@@ -1,0 +1,17 @@
+IMPORTANTE:
+Para o atalho não aparecer como “v295 - Sem Fundo Rosado”, coloque este bloco dentro do <head> do arquivo FS_Escala_Operacional_Inteligente.html:
+
+<title>FS Escala</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="application-name" content="FS Escala" />
+<meta name="apple-mobile-web-app-title" content="FS Escala" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
