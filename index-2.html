@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="description" content="FS Escala Operacional - gestão inteligente de equipes, escalas e jornada." />
+  <title>FS Escala Operacional</title>
+  <style>
+    :root{
+      --bg:#07111f;--panel:rgba(15,23,42,.72);--line:rgba(255,255,255,.14);--text:#f8fafc;--muted:#cbd5e1;
+      --blue:#2563eb;--cyan:#38bdf8;--green:#22c55e;--amber:#f59e0b;--shadow:0 28px 90px rgba(0,0,0,.48);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    body{overflow-x:hidden;background:
+      radial-gradient(circle at 10% 12%,rgba(37,99,235,.34),transparent 30%),
+      radial-gradient(circle at 90% 20%,rgba(56,189,248,.22),transparent 26%),
+      radial-gradient(circle at 72% 88%,rgba(34,197,94,.14),transparent 30%),
+      linear-gradient(145deg,#040814,#08111f 48%,#0f172a)}
+    .mesh{position:fixed;inset:0;pointer-events:none;overflow:hidden;opacity:.9}
+    .mesh:before{content:"";position:absolute;inset:-40%;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:54px 54px;transform:rotate(-10deg);animation:grid 28s linear infinite}
+    @keyframes grid{to{transform:rotate(-10deg) translate3d(54px,54px,0)}}
+    .orb{position:absolute;border-radius:999px;filter:blur(2px);opacity:.62;animation:float 13s ease-in-out infinite}
+    .orb.a{width:210px;height:210px;left:-70px;top:12%;background:rgba(59,130,246,.25)}
+    .orb.b{width:290px;height:290px;right:-120px;bottom:6%;background:rgba(34,211,238,.17);animation-delay:-5s}
+    .orb.c{width:120px;height:120px;right:20%;top:10%;background:rgba(255,255,255,.09);animation-delay:-8s}
+    @keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-28px) scale(1.05)}}
+    .wrap{position:relative;z-index:1;min-height:100vh;display:grid;place-items:center;padding:28px}
+    .shell{width:min(1160px,100%);display:grid;grid-template-columns:1.05fr .95fr;gap:26px;align-items:stretch}
+    .hero,.preview{border:1px solid var(--line);border-radius:34px;background:var(--panel);box-shadow:var(--shadow);backdrop-filter:blur(20px);overflow:hidden}
+    .hero{padding:34px;display:flex;flex-direction:column;justify-content:space-between;min-height:610px;animation:rise .75s ease both}
+    @keyframes rise{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .top{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:46px}
+    .brand{display:flex;gap:13px;align-items:center}.logo{width:56px;height:56px;border-radius:19px;background:linear-gradient(145deg,#1d4ed8,#38bdf8);display:grid;place-items:center;box-shadow:0 18px 34px rgba(56,189,248,.26);animation:pulse 3s ease-in-out infinite}.logo svg{width:30px;height:30px}.brand b{display:block;font-size:16px;letter-spacing:-.3px}.brand span{font-size:12px;color:#94a3b8;font-weight:700}
+    @keyframes pulse{50%{transform:scale(1.045)}}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#bbf7d0;font-size:12px;font-weight:900;white-space:nowrap}.dot{width:8px;height:8px;border-radius:999px;background:var(--green);box-shadow:0 0 16px var(--green)}
+    .device{margin-bottom:14px;display:inline-flex;align-items:center;gap:8px;color:#bae6fd;background:rgba(56,189,248,.09);border:1px solid rgba(56,189,248,.20);padding:8px 12px;border-radius:999px;font-size:12px;font-weight:900}
+    h1{font-size:clamp(40px,5vw,68px);line-height:.95;letter-spacing:-2.5px;margin-bottom:20px}.gradient{background:linear-gradient(90deg,#fff,#bae6fd,#7dd3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .lead{font-size:17px;line-height:1.65;color:var(--muted);max-width:650px;margin-bottom:26px}
+    .actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}.btn{height:54px;padding:0 20px;border-radius:18px;border:1px solid rgba(255,255,255,.14);display:inline-flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;color:white;font-weight:950;font-size:14px;cursor:pointer;transition:.2s ease}.btn.primary{background:linear-gradient(135deg,#2563eb,#0284c7);box-shadow:0 18px 34px rgba(37,99,235,.25)}.btn.secondary{background:rgba(255,255,255,.08)}.btn:hover{transform:translateY(-2px)}.btn:active{transform:scale(.985)}
+    .progress{height:9px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden;margin:10px 0 10px}.bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#2563eb,#38bdf8,#22c55e);animation:load 3.6s ease forwards}@keyframes load{to{width:100%}}
+    .status{display:flex;justify-content:space-between;gap:14px;font-size:12px;color:#94a3b8}.status b{color:#e2e8f0}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:32px}.miniCard{padding:15px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10)}.miniCard strong{display:block;font-size:19px;margin-bottom:5px}.miniCard span{font-size:11px;color:#94a3b8;font-weight:800}
+    .preview{position:relative;min-height:610px;padding:26px;animation:rise .9s ease both}.window{height:100%;border-radius:28px;background:linear-gradient(180deg,rgba(15,23,42,.92),rgba(2,6,23,.90));border:1px solid rgba(255,255,255,.12);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}.winTop{height:52px;display:flex;align-items:center;gap:9px;padding:0 18px;border-bottom:1px solid rgba(255,255,255,.09)}.light{width:11px;height:11px;border-radius:99px;background:#ef4444}.light:nth-child(2){background:#f59e0b}.light:nth-child(3){background:#22c55e}.winTitle{margin-left:auto;font-size:12px;color:#94a3b8;font-weight:900}
+    .dashboard{padding:20px;display:grid;gap:14px}.dashHeader{display:flex;justify-content:space-between;align-items:center}.dashHeader h2{font-size:18px}.badge{font-size:11px;font-weight:900;color:#bbf7d0;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.22);padding:7px 10px;border-radius:999px}.bigMetric{padding:20px;border-radius:24px;background:linear-gradient(135deg,rgba(37,99,235,.28),rgba(56,189,248,.12));border:1px solid rgba(125,211,252,.20)}.bigMetric span{font-size:12px;color:#bae6fd;font-weight:900}.bigMetric strong{display:block;font-size:42px;letter-spacing:-1.5px;margin-top:8px}.rows{display:grid;gap:10px}.row{display:grid;grid-template-columns:1fr 80px;gap:12px;align-items:center;padding:13px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}.line{height:8px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden}.line i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#38bdf8,#22c55e)}.row b{text-align:right;font-size:12px}.phoneHint{display:none}
+    @media(max-width:820px){body{overflow:auto}.wrap{padding:18px;align-items:start}.shell{display:block}.hero{min-height:calc(100vh - 36px);padding:24px 20px;border-radius:30px;text-align:center}.top{margin-bottom:28px}.brand{text-align:left}.pill{font-size:11px;padding:8px 10px}h1{font-size:34px;letter-spacing:-1.2px}.lead{font-size:14px;margin-left:auto;margin-right:auto}.actions{display:grid}.btn{width:100%;height:52px}.cards{grid-template-columns:1fr;gap:9px;margin-top:18px}.preview{display:none}.status{display:block;text-align:center}.status span{display:block;margin-top:5px}.phoneHint{display:block}.desktopHint{display:none}}
+  </style>
+</head>
+<body>
+  <div class="mesh"><span class="orb a"></span><span class="orb b"></span><span class="orb c"></span></div>
+  <main class="wrap">
+    <section class="shell">
+      <div class="hero">
+        <div>
+          <div class="top">
+            <div class="brand">
+              <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h10a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z" stroke="white" stroke-width="1.8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <div><b>FS Escala Operacional</b><span>Gestão inteligente de jornada</span></div>
+            </div>
+            <div class="pill"><span class="dot"></span> Online</div>
+          </div>
+
+          <div class="device" id="deviceLabel">Detectando dispositivo...</div>
+          <h1><span class="gradient">Controle premium</span><br>para escala e equipe.</h1>
+          <p class="lead">Bem-vindo à plataforma operacional para organizar escalas, acompanhar carga horária e dar mais clareza à gestão da equipe.</p>
+
+          <div class="actions">
+            <a class="btn primary" id="entrar" href="FS_Escala_Operacional_Inteligente.html">Entrar na plataforma</a>
+            <a class="btn secondary" id="baixar" href="FS_Escala_Operacional_Inteligente.html" download>Baixar plataforma</a>
+          </div>
+
+          <div class="progress"><div class="bar"></div></div>
+          <div class="status"><b id="statusText">Entrada automática em instantes...</b><span>Toque em entrar caso queira acessar agora.</span></div>
+        </div>
+
+        <div class="cards">
+          <div class="miniCard"><strong>⚡</strong><span>Acesso rápido</span></div>
+          <div class="miniCard"><strong>📊</strong><span>Visão operacional</span></div>
+          <div class="miniCard"><strong>🔒</strong><span>Estrutura segura</span></div>
+        </div>
+      </div>
+
+      <aside class="preview" aria-hidden="true">
+        <div class="window">
+          <div class="winTop"><span class="light"></span><span class="light"></span><span class="light"></span><span class="winTitle">Desktop Preview</span></div>
+          <div class="dashboard">
+            <div class="dashHeader"><h2>Painel operacional</h2><span class="badge">Pronto para uso</span></div>
+            <div class="bigMetric"><span>Organização da escala</span><strong>100%</strong></div>
+            <div class="rows">
+              <div class="row"><div><small>Equipe A</small><div class="line"><i style="width:92%"></i></div></div><b>92%</b></div>
+              <div class="row"><div><small>Equipe B</small><div class="line"><i style="width:87%"></i></div></div><b>87%</b></div>
+              <div class="row"><div><small>Cobertura sábado</small><div class="line"><i style="width:78%"></i></div></div><b>78%</b></div>
+              <div class="row"><div><small>Controle de jornada</small><div class="line"><i style="width:96%"></i></div></div><b>96%</b></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const plataforma = 'FS_Escala_Operacional_Inteligente.html';
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 821;
+    const deviceLabel = document.getElementById('deviceLabel');
+    const statusText = document.getElementById('statusText');
+    const baixar = document.getElementById('baixar');
+
+    if(isMobile){
+      deviceLabel.textContent = '📱 Modo mobile identificado';
+      statusText.textContent = 'Entrada automática otimizada para celular...';
+      baixar.textContent = 'Baixar para usar no aparelho';
+    }else{
+      deviceLabel.textContent = '🖥️ Modo desktop identificado';
+      statusText.textContent = 'Entrada automática em tela desktop premium...';
+      baixar.textContent = 'Baixar plataforma no computador';
+    }
+
+    setTimeout(() => { window.location.href = plataforma; }, 3800);
+  </script>
+</body>
+</html>
