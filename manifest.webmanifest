@@ -1,0 +1,26 @@
+{
+    "name": "FS Escala Operacional Inteligente",
+    "short_name": "FS Escala",
+    "description": "Sistema operacional de escala, gest\u00e3o de equipes e controle de jornada.",
+    "id": "/FS_escala_operacional/",
+    "start_url": "./FS_Escala_Operacional_Inteligente.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#020617",
+    "theme_color": "#020617",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "\u00edcone-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "\u00edcone-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
