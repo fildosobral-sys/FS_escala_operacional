@@ -7,7 +7,7 @@ function fsAssinaturaExportacao(){
 </script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 /* ===== v508: terceiro modo operacional — dias normais 6x1 / 44h ===== */
-(function(){
+document.addEventListener('DOMContentLoaded',function(){
   const copiar=(v)=>JSON.parse(JSON.stringify(v));
 
   function horariosPadrao6x1(){
@@ -49,12 +49,14 @@ function fsAssinaturaExportacao(){
     if(state.config&&state.config.modo==='6x1') return ['segunda','terca','quarta','quinta','sexta','sabado'].includes(dia);
     return workingOnAnterior(p,dia);
   };
+  try{workingOn=window.workingOn}catch(e){}
 
   const operacaoDiaAnterior=window.operacaoDia;
   window.operacaoDia=function(dia){
     if(state.config&&state.config.modo==='6x1') return '100% operação';
     return operacaoDiaAnterior(dia);
   };
+  try{operacaoDia=window.operacaoDia}catch(e){}
 
   const aplicarAnterior=window.aplicarDistribuicao;
   window.aplicarDistribuicao=function(){
@@ -68,24 +70,28 @@ function fsAssinaturaExportacao(){
     render();
     alert('Escala 6x1 aplicada: trabalho de segunda a sábado, jornada semanal de 44 horas e folga geral no domingo.');
   };
+  try{aplicarDistribuicao=window.aplicarDistribuicao}catch(e){}
 
   const cronoModeLabelAnterior=window.cronoModeLabel;
   window.cronoModeLabel=function(){
     if(state.config&&state.config.modo==='6x1') return 'DIAS NORMAIS — SEGUNDA A SÁBADO • DOMINGO FOLGA GERAL';
     return cronoModeLabelAnterior();
   };
+  try{cronoModeLabel=window.cronoModeLabel}catch(e){}
 
   const cronoRegraAnterior=window.cronoRegraAplicada;
   window.cronoRegraAplicada=function(){
     if(state.config&&state.config.modo==='6x1') return '<div class="cronoRuleBox"><b>Regras aplicadas</b><span>Operação completa de segunda a sábado, com jornada semanal de 44 horas.<br>Domingo permanece como folga geral.</span></div>';
     return cronoRegraAnterior();
   };
+  try{cronoRegraAplicada=window.cronoRegraAplicada}catch(e){}
 
   const configMiniCardsAnterior=window.configMiniCards;
   window.configMiniCards=function(){
     if(state.config&&state.config.modo==='6x1') return '<div class="cfg"><b>Modo</b><span style="font-size:16px">Dias normais 6x1</span></div><div class="cfg"><b>Trabalho</b><span style="font-size:16px">Segunda a sábado</span></div><div class="cfg"><b>Jornada</b><span>44h</span></div><div class="cfg"><b>Domingo</b><span style="font-size:16px">Folga geral</span></div>';
     return configMiniCardsAnterior();
   };
+  try{configMiniCards=window.configMiniCards}catch(e){}
 
   const renderVisaoAnterior=window.renderVisao;
   window.renderVisao=function(){
@@ -98,6 +104,7 @@ function fsAssinaturaExportacao(){
     }
     return r;
   };
+  try{renderVisao=window.renderVisao}catch(e){}
 
   function ajustarRelatorio6x1(htmlRelatorio){
     if(!(state.config&&state.config.modo==='6x1')) return htmlRelatorio;
@@ -117,7 +124,113 @@ function fsAssinaturaExportacao(){
     state.cargaMeta=44;
     setTimeout(()=>{save();render();},0);
   }
-})();
+});
+</script>
+<script>
+/* ===== v509: sincronização integral do dashboard e dos dias no modo 6x1 ===== */
+document.addEventListener('DOMContentLoaded',function(){
+  const DIAS_6X1=['segunda','terca','quarta','quinta','sexta','sabado'];
+  const modo6x1=()=>!!(state&&state.config&&state.config.modo==='6x1');
+
+  const oldWorkingOn=window.workingOn;
+  window.workingOn=function(p,dia){
+    if(modo6x1()) return DIAS_6X1.includes(dia);
+    return oldWorkingOn(p,dia);
+  };
+  try{workingOn=window.workingOn}catch(e){}
+
+  const oldHorarioPadrao=window.horarioPadrao;
+  window.horarioPadrao=function(dia,slot){
+    if(modo6x1()){
+      const lista=state.horarios&&state.horarios[dia];
+      return (lista&&lista[Number(slot)||0])||(lista&&lista[0])||{titulo:'Equipe 01',entrada:'08:00',saida:dia==='sabado'?'12:00':'18:00',almocoIni:dia==='sabado'?'12:00':'11:00',almocoFim:dia==='sabado'?'12:00':'13:00'};
+    }
+    return oldHorarioPadrao(dia,slot);
+  };
+  try{horarioPadrao=window.horarioPadrao}catch(e){}
+
+  const oldHorarioPessoa=window.horarioPessoa;
+  window.horarioPessoa=function(p,dia){
+    if(modo6x1()){
+      const ind=p&&p.horariosIndividuais&&p.horariosIndividuais[dia];
+      if(ind&&ind.ativo) return {titulo:'',entrada:ind.entrada,saida:ind.saida,almocoIni:ind.almocoIni,almocoFim:ind.almocoFim};
+      const s=typeof slotOf==='function'?slotOf(p,dia):0;
+      return window.horarioPadrao(dia,s);
+    }
+    return oldHorarioPessoa(p,dia);
+  };
+  try{horarioPessoa=window.horarioPessoa}catch(e){}
+
+  const oldTotalPessoa=window.totalPessoa;
+  window.totalPessoa=function(p){
+    if(!modo6x1()) return oldTotalPessoa(p);
+    return DIAS_6X1.reduce((total,d)=>total+calc(window.horarioPessoa(p,d)),0);
+  };
+  try{totalPessoa=window.totalPessoa}catch(e){}
+
+  const oldOperacaoDia=window.operacaoDia;
+  window.operacaoDia=function(dia){return modo6x1()?'100% operação':oldOperacaoDia(dia)};
+  try{operacaoDia=window.operacaoDia}catch(e){}
+
+  const oldCronoInicioFim=window.cronoDiaInicioFim;
+  window.cronoDiaInicioFim=function(dia){
+    if(modo6x1()){
+      const h=window.horarioPadrao(dia,0);
+      return {entrada:h.entrada,saida:h.saida};
+    }
+    return oldCronoInicioFim?oldCronoInicioFim(dia):{entrada:'08:00',saida:'18:00'};
+  };
+  try{cronoDiaInicioFim=window.cronoDiaInicioFim}catch(e){}
+
+  const oldCronoIntervalRows=window.cronoIntervalRows;
+  window.cronoIntervalRows=function(dia){
+    if(!modo6x1()) return oldCronoIntervalRows?oldCronoIntervalRows(dia):'';
+    const qtd=Math.max(1,Number(state.config.equipesDia[dia])||1);
+    return Array.from({length:qtd},(_,i)=>{
+      const h=window.horarioPadrao(dia,i);
+      const intervalo=h.almocoIni===h.almocoFim?'Sem intervalo':`${h.almocoIni} às ${h.almocoFim}`;
+      return `<tr><td>${i+1}</td><td>${h.entrada}</td><td>${intervalo==='Sem intervalo'?'—':h.almocoIni}</td><td>${intervalo==='Sem intervalo'?'—':h.almocoFim}</td><td>${h.saida}</td><td>${fmt(calc(h))}</td></tr>`;
+    }).join('');
+  };
+  try{cronoIntervalRows=window.cronoIntervalRows}catch(e){}
+
+  function atualizarInterface6x1(){
+    if(!modo6x1()) return;
+    state.cargaMeta=44;
+    const subtitulo=document.querySelector('.header p');
+    if(subtitulo) subtitulo.innerHTML='ESCALA 6x1 | JORNADA <span id="tituloCarga">44H</span>';
+    const blocos=Array.from(document.querySelectorAll('#visaoContent .overviewBlock'));
+    const resumo=blocos.find(b=>(b.querySelector('.overviewTitle')?.textContent||'').includes('Resumo das folgas'));
+    const grid=resumo&&resumo.querySelector('.overviewGrid');
+    if(grid) grid.innerHTML='<div class="groupCard"><b>Dias trabalhados</b><div class="num">6</div><small>Segunda a sábado</small></div><div class="groupCard"><b>Operação diária</b><div class="num">100%</div><small>Equipe completa nos seis dias</small></div><div class="groupCard"><b>Folga semanal</b><div class="num">1</div><small>Domingo — folga geral</small></div>';
+    document.querySelectorAll('#visaoContent .dayCard small').forEach(el=>{
+      if(!el.textContent.includes('100% operação')) el.innerHTML=el.innerHTML.replace(/[^<]*operação/i,'100% operação');
+    });
+  }
+
+  const oldRender=window.render;
+  window.render=function(){
+    if(modo6x1()) state.cargaMeta=44;
+    const r=oldRender.apply(this,arguments);
+    atualizarInterface6x1();
+    return r;
+  };
+  try{render=window.render}catch(e){}
+
+  const oldAlterar=window.fsAlterarModoEscala;
+  window.fsAlterarModoEscala=function(novoModo){
+    const r=oldAlterar(novoModo);
+    if(novoModo==='6x1'){
+      state.cargaMeta=44;
+      (state.pessoas||[]).forEach(p=>p.sabadoSim=true);
+      save();
+      window.render();
+    }
+    return r;
+  };
+
+  if(modo6x1()) setTimeout(()=>window.render(),0);
+});
 </script>
 <style>
 :root{--azul:#071d68;--verde:#007236;--linha:#d9e3f2;--txt:#101828}.app{max-width:1220px;margin:auto;padding:10px}*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:linear-gradient(180deg,#f7fbff,#eaf3ff);color:var(--txt)}.captureArea{background:linear-gradient(180deg,#f8fbff,#eef6ff);padding:10px;border-radius:22px}.top{background:rgba(255,255,255,.94);border:1px solid #dfe8f6;border-radius:24px;box-shadow:0 18px 45px rgba(7,29,104,.14);overflow:hidden;margin-bottom:10px}.header{text-align:center;padding:18px 16px 10px}.header h1{margin:0;color:var(--azul);font-size:clamp(28px,5.6vw,54px);font-weight:950}.header p{margin:4px 0 9px;color:var(--azul);font-size:clamp(14px,2.5vw,26px);font-weight:950}.line{height:2px;background:var(--azul);margin:0 18px}.meta{display:grid;grid-template-columns:repeat(3,1fr);padding:14px 18px 18px}.metaItem{display:flex;align-items:center;gap:12px;padding:6px 12px;border-right:1px solid #c5d2e5}.metaItem:last-child{border-right:0}.ico{min-width:48px;width:48px;height:48px;border-radius:50%;background:var(--azul);color:white;display:grid;place-items:center;font-size:23px}.metaItem b{display:block;color:var(--azul);font-size:13px}.metaItem span{font-size:13px;font-weight:850;line-height:1.25}.nav{display:flex;gap:5px;overflow:hidden;padding:2px 0 10px;position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#f7fbff,#eef6ff);justify-content:space-between}.nav button{border:0;background:rgba(223,233,247,.9);color:var(--azul);border-radius:16px;padding:9px 10px;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 6px 12px rgba(7,29,104,.06);cursor:pointer;flex:1 1 auto;min-width:0;text-align:center}.nav button.active{background:var(--azul);color:#fff}.page{display:none}.page.active{display:block}.cards,.summaryCards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}.card{color:white;border-radius:18px;padding:13px;font-weight:900;box-shadow:0 12px 25px rgba(0,24,77,.16)}.card small{display:block}.card strong{font-size:29px}.az{background:linear-gradient(135deg,var(--azul),#1647b6)}.vd{background:linear-gradient(135deg,var(--verde),#11a052)}.lj{background:linear-gradient(135deg,#f08416,#c85603)}.rx{background:linear-gradient(135deg,#6d28d9,#3b0764)}.panel,.board,.strategyBox{background:rgba(255,255,255,.96);border:1px solid #dbe5f4;border-radius:18px;box-shadow:0 12px 28px rgba(0,24,77,.10);overflow:hidden;margin-bottom:12px}.panelTitle{background:var(--azul);color:white;text-align:center;font-size:19px;font-weight:950;padding:10px}.panelTitle.green{background:var(--verde)}.content{padding:12px}.grid2{display:grid;grid-template-columns:380px 1fr;gap:12px}.strategyGrid,.miniDash{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.gridForm{display:grid;grid-template-columns:1fr 1fr;gap:8px}label{display:block;margin:8px 0 4px;font-size:12px;font-weight:900;color:var(--azul)}input,select{width:100%;padding:10px;border:1px solid #cbd7e9;border-radius:12px;font-weight:750;background:#fbfdff}button.primary,button.secondary{width:100%;margin-top:10px;padding:12px;border-radius:14px;font-weight:950;cursor:pointer}button.primary{border:0;background:var(--azul);color:white}button.secondary{border:1px solid #cbd7e9;background:#eef4ff;color:var(--azul)}.note,.alert{padding:11px;border-radius:14px;margin-bottom:8px;font-weight:850}.note{background:#f7fbff;border:1px solid #cfdcf0;color:#1f3768}.alert.warn{background:#ffedd5;color:#9a3412}.board{border:1.5px solid var(--azul);background:white}.board.green{border-color:var(--verde)}.boardTitle{position:relative;background:var(--azul);color:white;text-align:center;font-size:22px;font-weight:950;padding:9px 48px}.board.green .boardTitle{background:var(--verde)}.downloadIcon{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:12px;background:rgba(255,255,255,.16);color:white;font-size:18px;font-weight:950;display:grid;place-items:center;cursor:pointer}.info{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--linha);background:linear-gradient(180deg,#f8fbff,#eef5ff)}.info div{padding:9px 7px;border-right:1px solid #ccd7e7;font-size:12px;min-height:54px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}.info b{color:var(--azul);font-size:12px;font-weight:950}.info span{font-size:14px;font-weight:950;color:#101828}.tableWrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:980px;font-size:13px;table-layout:fixed}th{background:var(--azul);color:white;padding:8px 7px;border-right:1px solid rgba(255,255,255,.25);font-size:12px}td{border:1px solid #e1e8f2;padding:8px 7px;text-align:center;vertical-align:middle}td.name,td.func{text-align:left}td.name{font-weight:900;color:#162033}.ncol{width:44px}.namecol{width:230px}.funccol{width:140px}.timecol{width:86px}.intervalcol{width:260px}.totalcol{width:105px}.statuscol{width:140px}.editcol{width:90px}.totalOk{font-weight:950;color:var(--azul);background:linear-gradient(180deg,#f8fbff,#edf4ff)}.badge{display:inline-flex;align-items:center;justify-content:center;min-width:62px;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:950}.badge.ok{background:#dcfce7;color:#166534}.badge.warn{background:#ffedd5;color:#9a3412}.badge.bad{background:#fee2e2;color:#991b1b}.editBtn{border:0;background:#eef4ff;color:var(--azul);border-radius:999px;padding:7px 10px;font-weight:950;cursor:pointer}.configLine{display:grid;grid-template-columns:1.2fr .7fr .7fr .7fr;gap:8px;align-items:end;border:1px solid #dbe5f4;background:#fbfdff;border-radius:14px;padding:10px;margin-bottom:8px}.miniDash div,.summaryCard{background:#fff;border:1px solid #dbe5f4;border-radius:14px;padding:10px;text-align:center;font-weight:900;color:#071d68}.miniDash b,.summaryCard b{display:block;font-size:12px;color:#667085}.miniDash span,.summaryCard span{font-size:22px;font-weight:950}.cronograma40Shell{background:#fff;border:2px solid var(--azul);border-radius:22px;overflow:hidden;box-shadow:0 15px 34px rgba(7,29,104,.12)}.cr40Top{background:var(--azul);color:#fff;text-align:center;padding:13px 16px;position:relative}.cr40Top h2{margin:0;font-size:27px;font-weight:950}.cr40Export{position:absolute;right:12px;top:10px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;border-radius:14px;padding:8px 12px;font-weight:950;cursor:pointer}.cr40Dual,.cr40WeekGrid,.cr40Lists,.cr40SummaryRows{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px}.cr40Panel,.cr40WeekCard,.cr40List,.cr40Summary{border:1px solid #dbe5f4;border-radius:18px;background:#f8fbff;overflow:hidden}.cr40Head{background:var(--azul);color:#fff;text-align:center;padding:10px;font-weight:950}.cr40Head.orange{background:#c85603}.cr40Body{padding:12px}.cr40Info{display:flex;gap:12px;align-items:center}.cr40Icon{width:48px;height:48px;border-radius:16px;background:#071d68;color:#fff;display:grid;place-items:center;font-weight:950;font-size:24px;flex:0 0 auto}.cr40Icon.orange{background:#c85603}.cr40Info h3,.cr40WeekCard h3{margin:0;color:#071d68}.cr40Info strong,.cr40WeekCard strong{font-size:20px;color:#101828}.cr40WeekHead,.cr40ListTitle,.cr40SummaryTitle{background:#eaf1fc;color:#071d68;text-align:center;padding:10px;font-weight:950}.cr40WeekCard{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:12px}.cr40List h4{display:flex;justify-content:space-between;margin:0;background:#eef5ff;color:#071d68;padding:10px}.cr40Summary{margin:0 12px 12px}.cr40SummaryRow{border:1px solid #dbe5f4;border-radius:14px;background:#fff;padding:10px;font-weight:900}.cr40Footer{display:flex;gap:10px;align-items:center;background:#fff7ed;border-top:1px solid #fed7aa;color:#9a3412;padding:10px 14px;font-weight:850}.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}.modalBox{background:white;border-radius:22px;width:min(620px,100%);box-shadow:0 24px 60px rgba(0,0,0,.32);overflow:hidden}.modalTitle{background:var(--azul);color:white;font-size:20px;font-weight:950;text-align:center;padding:12px}.modalContent{padding:16px}.modalGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.closeBtn{background:#eef4ff!important;color:var(--azul)!important;border:1px solid #cbd7e9!important}.summaryCard small{display:block;margin-top:4px;font-size:12px;line-height:1.25;color:#344054}.summaryCard.filterActive{outline:3px solid var(--azul);background:#eef4ff}.overviewBlock{background:#fff;border:1px solid #dbe5f4;border-radius:18px;padding:12px;margin-bottom:12px}.overviewTitle{font-size:18px;font-weight:950;color:var(--azul);margin:0 0 10px;display:flex;align-items:center;gap:8px}.overviewGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.dayCard{border:1px solid #dbe5f4;border-radius:16px;padding:12px;background:linear-gradient(180deg,#fff,#f7fbff);text-align:center}.dayCard b{display:block;color:#667085;font-size:12px}.dayCard .num{font-size:28px;font-weight:950;color:var(--azul);line-height:1}.dayCard small{display:block;color:#344054;font-weight:850;margin-top:4px}.groupCard{border:1px solid #dbe5f4;border-radius:16px;padding:12px;background:#fff;text-align:center}.groupCard b{display:block;color:#667085;font-size:12px}.groupCard .num{font-size:24px;font-weight:950;color:var(--azul);line-height:1.1}.groupCard small{display:block;font-weight:800;color:#344054;line-height:1.35;margin-top:5px}.configCards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.configCards .cfg{border:1px solid #dbe5f4;border-radius:16px;padding:12px;text-align:center;background:#f8fbff}.configCards b{display:block;color:#667085;font-size:12px}.configCards span{display:block;color:var(--azul);font-size:20px;font-weight:950}.hintText{font-size:12px;color:#475467;font-weight:850;text-align:center;margin-top:6px}.toolsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.toolCard{background:#fff;border:1px solid #dbe5f4;border-radius:16px;padding:12px;box-shadow:0 8px 18px rgba(7,29,104,.07)}.toolCard h4{margin:0 0 6px;color:var(--azul);font-weight:950}.toolCard p{margin:0 0 8px;font-size:12px;color:#475467;font-weight:750;line-height:1.35}.textareaImport{width:100%;min-height:130px;border:1px solid #cbd7e9;border-radius:14px;padding:10px;font-weight:750;background:#fbfdff;resize:vertical}.smallActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.importStatus{font-size:12px;font-weight:850;color:#344054;margin-top:8px}.fileLine{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}@media(max-width:800px){.toolsGrid{grid-template-columns:1fr}.smallActions{grid-template-columns:1fr}}@media(max-width:800px){.overviewGrid,.configCards{grid-template-columns:1fr 1fr}}@media print{.noPrint,.nav,.downloadIcon,.cr40Export{display:none!important}body{background:#fff}.app{max-width:none}.panel,.board,.top,.cronograma40Shell{box-shadow:none}}@media(max-width:800px){.meta,.grid2,.strategyGrid,.miniDash,.cr40Dual,.cr40WeekGrid,.cr40Lists,.cr40SummaryRows,.configLine{grid-template-columns:1fr}.cards,.summaryCards{grid-template-columns:1fr 1fr}.info{grid-template-columns:1fr 1fr}table{font-size:11px;min-width:820px}}
@@ -12985,14 +13098,15 @@ window.baixarImagem=function(elementId,nomeArquivo){
 }
 .cronoDadosFilial .cronoFilialItem{
   min-width:0!important;
-  min-height:43px!important;
-  padding:7px 9px!important;
-  border-right:1px solid #dbe5f4!important;
-  border-bottom:1px solid #dbe5f4!important;
+  min-height:58px!important;
+  padding:10px 13px!important;
+  border-right:2px solid #dbe5f4!important;
+  border-bottom:2px solid #dbe5f4!important;
   display:flex!important;
   flex-direction:column!important;
   justify-content:center!important;
   text-align:left!important;
+  background:#f8fbff!important;
 }
 .cronoDadosFilial .cronoFilialItem.meta{grid-column:span 2!important}
 .cronoDadosFilial .cronoFilialItem.endereco{grid-column:span 3!important;border-bottom:0!important}
@@ -13000,16 +13114,43 @@ window.baixarImagem=function(elementId,nomeArquivo){
 .cronoDadosFilial .cronoFilialItem:last-child{border-right:0!important}
 .cronoDadosFilial .cronoFilialItem b{
   color:#071d68!important;
-  font-size:10px!important;
-  line-height:1.1!important;
+  font-size:13px!important;
+  line-height:1.15!important;
   text-transform:uppercase!important;
+  letter-spacing:.2px!important;
+  margin-bottom:4px!important;
 }
 .cronoDadosFilial .cronoFilialItem span{
   color:#101828!important;
-  font-size:11px!important;
-  line-height:1.15!important;
-  font-weight:900!important;
+  font-size:16px!important;
+  line-height:1.22!important;
+  font-weight:950!important;
   overflow-wrap:anywhere!important;
+}
+.cronoDadosFilial .cronoFilialItem.endereco{
+  background:#fff!important;
+  min-height:66px!important;
+}
+.cronoDadosFilial .cronoFilialItem.endereco span{
+  font-size:14px!important;
+  line-height:1.25!important;
+}
+.execReport.cronoExecutive.fsCronogramaExport .cronoDadosFilial .cronoSubTitle,
+.fsA4ExportStage .cronoDadosFilial .cronoSubTitle{
+  font-size:18px!important;
+  padding:10px!important;
+}
+.execReport.cronoExecutive.fsCronogramaExport .cronoDadosFilial .cronoFilialItem b,
+.fsA4ExportStage .cronoDadosFilial .cronoFilialItem b{
+  font-size:14px!important;
+}
+.execReport.cronoExecutive.fsCronogramaExport .cronoDadosFilial .cronoFilialItem span,
+.fsA4ExportStage .cronoDadosFilial .cronoFilialItem span{
+  font-size:17px!important;
+}
+.execReport.cronoExecutive.fsCronogramaExport .cronoDadosFilial .cronoFilialItem.endereco span,
+.fsA4ExportStage .cronoDadosFilial .cronoFilialItem.endereco span{
+  font-size:15px!important;
 }
 @media(max-width:800px){
   .cronoDadosFilial .cronoFilialGrid{grid-template-columns:1fr 1fr!important}
