@@ -13378,4 +13378,149 @@ window.baixarImagem=function(elementId,nomeArquivo){
   document.addEventListener('DOMContentLoaded',()=>{try{obsImportacao.observe(document.getElementById('config')||document.body,{childList:true,subtree:true});}catch(e){}});
 })();
 </script>
+<style id="fs-v511-relatorio-jornada-geral-css">
+.fsJornadaGeral{width:1600px;background:#fff;color:#111827;font-family:Arial,sans-serif;border:3px solid #071d68;border-radius:24px;overflow:hidden}
+.fsJornadaGeral *{box-sizing:border-box}.fsJornadaTop{background:#071d68;color:#fff;text-align:center;padding:22px 30px 18px}
+.fsJornadaTop h1{margin:0;font-size:45px;line-height:1.05;letter-spacing:.5px}.fsJornadaTop p{margin:8px 0 0;color:#facc15;font-size:20px;font-weight:900}
+.fsJornadaEmpresa{padding:14px 28px 12px;text-align:center;border-bottom:2px solid #cbd5e1;font-weight:850;font-size:18px;line-height:1.35}
+.fsJornadaEmpresa b{color:#071d68}.fsJornadaEnd{font-size:15px;color:#344054;margin-top:4px}
+.fsJornadaTabela{width:100%;border-collapse:collapse;table-layout:fixed}.fsJornadaTabela th{background:#eaf2ff;color:#071d68;border:1px solid #b8c8e2;padding:9px 6px;font-size:14px;text-transform:uppercase}
+.fsJornadaTabela td{border:1px solid #cbd5e1;padding:7px;font-size:13px;line-height:1.16;text-align:center;font-weight:750;vertical-align:middle}
+.fsJornadaTabela td.nome{text-align:left;font-size:14px;font-weight:950}.fsJornadaTabela td.funcao{text-align:left}.fsJornadaTabela tbody tr:nth-child(even){background:#f8fbff}
+.fsJornadaHorario{display:block;white-space:normal}.fsJornadaHorario b{color:#071d68}.fsJornadaFolga{color:#087b3e;font-weight:950}.fsJornadaTotal{font-size:18px!important;color:#071d68;font-weight:950!important}
+.fsJornadaRodape{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;padding:16px 28px 20px;align-items:end}
+.fsJornadaObs{font-size:15px;line-height:1.35;color:#344054}.fsJornadaAss{text-align:center;font-size:14px;font-weight:900}.fsJornadaAss span{display:block;border-top:2px solid #071d68;margin:25px auto 6px;width:78%}
+</style>
+<script id="fs-v511-relatorio-jornada-geral">
+/* Relatório formal consolidado de horários e carga semanal por colaborador. */
+(function(){
+  const uteis=['segunda','terca','quarta','quinta','sexta'];
+  function esc(v){return typeof html==='function'?html(String(v||'')):String(v||'').replace(/[&<>\"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[s]));}
+  function horarioTexto(p,d){
+    if(!workingOn(p,d))return 'FOLGA';
+    const h=horarioPessoa(p,d), inter=almoco(h), carga=fmt(calc(h));
+    return `${h.entrada}–${h.saida} | Int. ${inter} | ${carga}`;
+  }
+  function resumoUteis(p){
+    const grupos=[];
+    uteis.forEach(d=>{
+      const texto=horarioTexto(p,d), ultimo=grupos[grupos.length-1];
+      if(ultimo&&ultimo.texto===texto)ultimo.fim=d;else grupos.push({ini:d,fim:d,texto});
+    });
+    const ab={segunda:'Seg',terca:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
+    return grupos.map(g=>{
+      const dias=g.ini===g.fim?ab[g.ini]:`${ab[g.ini]}–${ab[g.fim]}`;
+      return `<span class="fsJornadaHorario"><b>${dias}:</b> ${g.texto==='FOLGA'?'<span class="fsJornadaFolga">FOLGA</span>':esc(g.texto)}</span>`;
+    }).join('');
+  }
+  function descansoPessoa(p){
+    const folgas=dias.filter(d=>!workingOn(p,d)).map(d=>diasLabel[d]);
+    folgas.push('Domingo');
+    return [...new Set(folgas)].join(' + ');
+  }
+  window.montarRelatorioJornadaGeral=function(){
+    const d=window.fsGetDadosEmpresa?fsGetDadosEmpresa():{};
+    const lista=typeof ordenar==='function'?ordenar(state.pessoas||[]):(state.pessoas||[]);
+    const rows=lista.map((p,i)=>{
+      const sab=horarioTexto(p,'sabado');
+      return `<tr><td>${String(i+1).padStart(2,'0')}</td><td class="nome">${esc(p.nome)}</td><td class="funcao">${typeof formatarFuncao==='function'?formatarFuncao(p.funcao):esc(p.funcao)}</td><td>${resumoUteis(p)}</td><td>${sab==='FOLGA'?'<span class="fsJornadaFolga">FOLGA</span>':esc(sab)}</td><td class="fsJornadaTotal">${fmt(totalPessoa(p))}</td><td>${esc(descansoPessoa(p))}</td></tr>`;
+    }).join('')||'<tr><td colspan="7">Nenhum colaborador cadastrado.</td></tr>';
+    const modelo=state.config.modo==='distribuido'?'Folga distribuída':state.config.modo==='6x1'?'Dias normais 6x1':'Dia especial + sábado';
+    const end=[d.endereco1,d.endereco2].filter(Boolean).map(esc).join(' • ');
+    return `<div class="fsJornadaGeral"><div class="fsJornadaTop"><h1>RELAÇÃO GERAL DE HORÁRIOS DE TRABALHO</h1><p>${esc(modelo.toUpperCase())} • CARGA-META ${Number(state.cargaMeta||44)} HORAS SEMANAIS</p></div><div class="fsJornadaEmpresa"><div><b>EMPREGADOR:</b> ${esc(d.empregador||'J. ALVES E OLIVEIRA LTDA')} &nbsp; • &nbsp; <b>DENOMINAÇÃO:</b> ${esc(String(d.filial||'ZENIR MÓVEIS E ELETROS').replace(/\n/g,' '))} &nbsp; • &nbsp; <b>ATIVIDADE:</b> ${esc(d.atividade||'COMÉRCIO VAREJISTA')}</div>${end?`<div class="fsJornadaEnd">${end}</div>`:''}</div><table class="fsJornadaTabela"><colgroup><col style="width:42px"><col style="width:250px"><col style="width:170px"><col style="width:460px"><col style="width:300px"><col style="width:120px"><col style="width:150px"></colgroup><thead><tr><th>Nº</th><th>Nome do colaborador</th><th>Função</th><th>Segunda a sexta-feira</th><th>Sábado</th><th>Carga semanal</th><th>Descanso semanal</th></tr></thead><tbody>${rows}</tbody></table><div class="fsJornadaRodape"><div class="fsJornadaObs"><b>Observação:</b> relatório gerado automaticamente a partir dos horários individuais cadastrados na plataforma. Alterações de jornada, intervalo, folga ou escala serão refletidas na próxima emissão.</div><div class="fsJornadaAss"><span></span>ASSINATURA DO EMPREGADOR OU REPRESENTANTE LEGAL</div></div></div>`;
+  };
+  window.baixarRelatorioJornadaGeral=function(){
+    if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
+    const antigo=document.getElementById('fsJornadaGeralStage');if(antigo)antigo.remove();
+    const stage=document.createElement('div');stage.id='fsJornadaGeralStage';stage.style.cssText='position:fixed;left:-12000px;top:0;width:1600px;background:#fff;z-index:-1';stage.innerHTML=montarRelatorioJornadaGeral();document.body.appendChild(stage);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const el=stage.firstElementChild,w=Math.ceil(el.scrollWidth),h=Math.ceil(el.scrollHeight);
+      html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:w+40,windowHeight:h+40}).then(src=>{
+        const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=55,r=Math.min((out.width-m*2)/src.width,(out.height-m*2)/src.height),dw=Math.floor(src.width*r),dh=Math.floor(src.height*r);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,(out.width-dw)/2,(out.height-dh)/2,dw,dh);const a=document.createElement('a');a.download='Relacao_Geral_Horarios_Carga_Semanal_A4_Retrato.png';a.href=out.toDataURL('image/png');a.click();
+      }).catch(e=>alert('Erro ao gerar relatório: '+(e&&e.message?e.message:e))).finally(()=>stage.remove());
+    }));
+  };
+  function inserirBotao(){
+    const grid=document.querySelector('#relatorios .execExportGrid');if(!grid||grid.querySelector('[data-fs-jornada-geral]'))return;
+    const b=document.createElement('button');b.className='primary';b.dataset.fsJornadaGeral='1';b.innerHTML='⏱️ Jornada Geral<br><small>horários e carga por colaborador</small>';b.onclick=ev=>{ev.preventDefault();ev.stopPropagation();baixarRelatorioJornadaGeral();};grid.appendChild(b);
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(inserirBotao,250));
+  const obs=new MutationObserver(inserirBotao);document.addEventListener('DOMContentLoaded',()=>{const r=document.getElementById('relatorios');if(r)obs.observe(r,{childList:true,subtree:true});});
+})();
+</script>
+<style id="fs-v512-modal-colaborador-contextual-css">
+.fsModoColaboradorResumo{grid-column:1/-1;background:#eef5ff;border:1px solid #c9d8ee;border-radius:14px;padding:11px 14px;color:#071d68;font-weight:900;line-height:1.3}
+.fsHorarioRapido{margin:10px 0 14px;border:1px solid #cbd8eb;background:#f8fbff;border-radius:16px;padding:10px 12px}
+.fsHorarioRapidoToggle{border:0;border-radius:10px;background:#e6efff;color:#071d68;padding:9px 13px;font-weight:950;cursor:pointer}.fsHorarioRapidoConteudo{display:none;padding-top:3px}.fsHorarioRapido.aberto .fsHorarioRapidoConteudo{display:block}.fsHorarioRapidoLinha{display:grid;grid-template-columns:150px repeat(4,minmax(110px,1fr)) 110px;gap:8px;align-items:end;margin-top:8px}
+.fsHorarioRapidoLinha b{align-self:center;color:#071d68}.fsHorarioRapidoLinha label{display:block;font-size:11px;font-weight:900;color:#475467;margin-bottom:3px}.fsHorarioRapidoLinha input{width:100%;padding:8px;border:1px solid #b8c8e2;border-radius:10px;font-weight:850}
+.fsHorarioRapidoLinha button{height:39px;border:0;border-radius:10px;background:#071d68;color:#fff;font-weight:900;cursor:pointer}
+@media(max-width:900px){.fsHorarioRapidoLinha{grid-template-columns:1fr 1fr}.fsHorarioRapidoLinha b{grid-column:1/-1}.fsHorarioRapidoLinha button{grid-column:1/-1}}
+</style>
+<script id="fs-v512-modal-colaborador-contextual">
+/* Cadastro individual contextual por modalidade + aplicação rápida de horários. */
+(function(){
+  function pai(el){return el&&el.parentElement;}
+  function rotulo(box,texto){const l=box&&box.querySelector('label');if(l)l.textContent=texto;}
+  function resumoModo(){
+    const modo=state.config&&state.config.modo;
+    if(modo==='6x1')return '<b>Modalidade ativa: Dias normais 6x1</b><br>Trabalho de segunda a sábado • descanso semanal no domingo.';
+    if(modo==='distribuido')return '<b>Modalidade ativa: Folga distribuída</b><br>A folga individual ocorre na terça, quarta ou quinta • domingo é descanso geral.';
+    return `<b>Modalidade ativa: Dia especial + sábado</b><br>Defina se o colaborador atua no dia especial ou no sábado • domingo é descanso geral.`;
+  }
+  function valor(d,campo,padrao){return document.getElementById(`mInd${campo}_${d}`)?.value||padrao;}
+  function campoRapido(prefix,titulo,dia){
+    return `<div class="fsHorarioRapidoLinha"><b>${titulo}</b><div><label>Entrada</label><input type="time" id="${prefix}Entrada" value="${valor(dia,'Entrada','08:00')}"></div><div><label>Saída intervalo</label><input type="time" id="${prefix}Ini" value="${valor(dia,'Ini','11:00')}"></div><div><label>Retorno intervalo</label><input type="time" id="${prefix}Fim" value="${valor(dia,'Fim','12:00')}"></div><div><label>Saída final</label><input type="time" id="${prefix}Saida" value="${valor(dia,'Saida','18:00')}"></div><button type="button" data-fs-aplicar="${prefix}">Aplicar</button></div>`;
+  }
+  function aplicarRapido(prefix,diasAlvo){
+    const mapa={Entrada:'Entrada',Ini:'Ini',Fim:'Fim',Saida:'Saida'};
+    diasAlvo.forEach(d=>{
+      const ck=document.getElementById('mIndAtivo_'+d);if(ck)ck.checked=true;
+      Object.entries(mapa).forEach(([orig,dest])=>{const a=document.getElementById(prefix+orig),b=document.getElementById(`mInd${dest}_${d}`);if(a&&b)b.value=a.value;});
+    });
+  }
+  function prepararModal(){
+    const modal=document.getElementById('pessoaModal'),box=document.getElementById('mHorarioIndividualBox');if(!modal||!box||modal.style.display==='none')return;
+    const grid=modal.querySelector('.modalGrid'),modo=state.config&&state.config.modo;
+    if(grid){
+      let resumo=grid.querySelector('.fsModoColaboradorResumo');if(!resumo){resumo=document.createElement('div');resumo.className='fsModoColaboradorResumo';grid.prepend(resumo);}resumo.innerHTML=resumoModo();
+      const esp=pai(document.getElementById('mEspecial')),sab=pai(document.getElementById('mSabado')),fol=pai(document.getElementById('mFolga')),eq=pai(document.getElementById('mEquipe'));
+      [esp,sab,fol,eq].forEach(x=>{if(x)x.style.display='';});
+      if(modo==='6x1'){
+        if(esp)esp.style.display='none';if(fol)fol.style.display='none';
+        rotulo(sab,'Trabalha de segunda a sábado?');document.getElementById('mSabado').value='Sim';
+        rotulo(eq,'Equipe / horário base');
+      }else if(modo==='distribuido'){
+        if(esp)esp.style.display='none';rotulo(fol,'Dia da folga distribuída');rotulo(sab,'Trabalha no sábado?');rotulo(eq,'Equipe / horário base');
+      }else{
+        if(fol)fol.style.display='none';rotulo(esp,'Participação no dia especial');rotulo(sab,'Trabalha no sábado?');rotulo(eq,'Equipe / horário base');
+      }
+    }
+    if(!box.querySelector('.fsHorarioRapido')){
+      const q=document.createElement('div');q.className='fsHorarioRapido';q.innerHTML=`<button type="button" class="fsHorarioRapidoToggle">⚡ Ajustar horário geral da semana e sábado</button><div class="fsHorarioRapidoConteudo">${campoRapido('fsRapSemana','Segunda a sexta','segunda')}${campoRapido('fsRapSabado','Sábado','sabado')}</div>`;box.prepend(q);
+      q.querySelector('.fsHorarioRapidoToggle').onclick=()=>q.classList.toggle('aberto');
+      q.querySelector('[data-fs-aplicar="fsRapSemana"]').onclick=()=>aplicarRapido('fsRapSemana',['segunda','terca','quarta','quinta','sexta']);
+      q.querySelector('[data-fs-aplicar="fsRapSabado"]').onclick=()=>aplicarRapido('fsRapSabado',['sabado']);
+    }
+  }
+  const oldEditar=window.editarPessoa;window.editarPessoa=function(){const r=oldEditar&&oldEditar.apply(this,arguments);setTimeout(prepararModal,20);return r;};
+  const oldNovo=window.novoPessoa;window.novoPessoa=function(){const r=oldNovo&&oldNovo.apply(this,arguments);setTimeout(prepararModal,20);return r;};
+  document.addEventListener('click',()=>setTimeout(prepararModal,30),true);
+  window.fsPrepararModalColaborador=prepararModal;
+})();
+</script>
+<script id="fs-v512-regras-somente-manual">
+/* O modal de regras deixa de abrir automaticamente; permanece acessível pelo botão Regras. */
+(function(){
+  const abrirOriginal=window.fsAbrirModalRegras;
+  if(typeof abrirOriginal==='function'){
+    window.fsAbrirModalRegras=function(forcar){
+      if(forcar===true||window.__fsAberturaManualRegras===true)return abrirOriginal.apply(this,arguments);
+    };
+  }
+  document.addEventListener('click',function(ev){
+    const b=ev.target&&ev.target.closest&&ev.target.closest('#fsBotaoRegrasConfigFixo,.fsBotaoRegrasFlutuante,[onclick*="fsAbrirModalRegras"]');
+    if(!b)return;window.__fsAberturaManualRegras=true;setTimeout(()=>{window.__fsAberturaManualRegras=false;},250);
+  },true);
+})();
+</script>
 </body></html>
