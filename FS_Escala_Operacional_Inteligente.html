@@ -5661,7 +5661,7 @@ function renderConfig(){
     </div>
   </div>
 
-  <div class="panel noPrint"><div class="panelTitle">BACKUP, RESTAURAÇÃO E IMPORTAÇÃO EM LOTE</div><div class="content"><div class="toolsGrid"><div class="toolCard"><h4>💾 Exportar dados</h4><p>Baixe uma cópia completa da base, configurações, horários e distribuição atual.</p><button class="primary" onclick="exportarDadosJson()">Baixar backup completo</button><button class="secondary dangerBtn" style="margin-top:10px" onclick="limparPlataformaComBackup()">🧹 Limpar plataforma com backup</button></div><div class="toolCard"><h4>📂 Restaurar dados</h4><p>Importe um backup .json gerado por esta própria plataforma para recuperar tudo.</p><input type="file" id="backupInput" accept="application/json,.json"><button class="secondary" onclick="importarDadosJson()">Restaurar backup</button></div><div class="toolCard"><h4>📥 Importação assistida</h4><p>Suba PDF, imagem ou TXT da lista. O sistema tenta ler nomes e funções. Confira o texto antes de importar.</p><input type="file" id="listaInput" accept="image/*,application/pdf,text/plain,.txt,.csv"><button class="secondary" onclick="lerArquivoAssistido()">Ler arquivo / imagem</button></div></div><label>Texto conferido para importar</label><textarea id="importText" class="textareaImport" placeholder="Ex.:
+  <div class="panel noPrint"><div class="panelTitle">BACKUP, RESTAURAÇÃO E IMPORTAÇÃO EM LOTE</div><div class="content"><div class="toolsGrid"><div class="toolCard"><h4>💾 Exportar dados</h4><p>Baixe uma cópia completa da base, configurações, horários e distribuição atual.</p><button class="primary" onclick="exportarDadosJson()">Baixar backup completo</button><button class="secondary dangerBtn" style="margin-top:10px" onclick="limparPlataformaComBackup()">🧹 Limpar plataforma com backup</button></div><div class="toolCard"><h4>📂 Restaurar dados</h4><p>Importe um backup .json gerado por esta própria plataforma para recuperar tudo.</p><input type="file" id="backupInput" accept="application/json,.json"><button class="secondary" onclick="importarDadosJson()">Restaurar backup</button></div><div class="toolCard"><h4>📥 Importação assistida</h4><p>Selecione até várias imagens, PDFs ou TXT. O sistema cruza as páginas e reconhece nomes, funções, dias e horários.</p><input type="file" id="listaInput" multiple accept="image/*,application/pdf,text/plain,.txt,.csv"><button class="secondary" onclick="lerArquivoAssistido()">Ler arquivos selecionados</button></div></div><label>Texto conferido para importar</label><textarea id="importText" class="textareaImport" placeholder="Ex.:
 Alex Alves Feitosa - Armazenista
 Maria Neuma de Souza Batista; Gerente de Crédito
 José Flávio Chagas    Vendedor(a)"></textarea><div class="fileLine"><div><label>Modo de importação</label><select id="importMode"><option value="merge">Adicionar/atualizar pela identificação do nome</option><option value="replace">Substituir toda a base de colaboradores</option></select></div><button class="primary" onclick="importarListaColaboradores()">Importar lista conferida e distribuir automaticamente</button></div><div id="importStatus" class="importStatus">Regra: a importação usa nome completo + função. Depois de importar, clique em gerar distribuição inteligente para aplicar a escala escolhida.</div></div></div>`;
@@ -13159,4 +13159,199 @@ window.baixarImagem=function(elementId,nomeArquivo){
   .cronoDadosFilial .cronoFilialItem:last-child{grid-column:1/-1!important}
 }
 </style>
+<script>
+/* ===== v510: importação estruturada de múltiplas imagens/PDFs ===== */
+(function(){
+  const DIAS_UTEIS=['segunda','terca','quarta','quinta','sexta'];
+  const FUNCOES=[
+    [/gerente\s*de\s*vendas?/i,'Gerente de Vendas'],
+    [/gerente\s*de\s*cr[eé]dito/i,'Gerente de Crédito'],
+    [/operador\s*a?\s*de?\s*caixa/i,'Operadora de Caixa'],
+    [/atendente\s*(?:de|[a-z]{1,3})?\s*lojas?/i,'Atendente de Loja'],
+    [/(?:auxiliar|auniliar|a\w{1,6}iliar|aux\.?|assis\.?)\s*(?:de\s*)?limpe[zçc]a/i,'Auxiliar de Limpeza'],
+    [/(?:assistente|assis\.?)\s*administrativ[oa]/i,'Assistente Administrativo'],
+    [/armazenista/i,'Armazenista'],
+    [/faturista/i,'Faturista'],
+    [/vendedor(?:a|\(a\))?/i,'Vendedor(a)']
+  ];
+  const lixo=/empregador|denomina[cç][aã]o|atividade|com[eé]rcio|varejista|endere[cç]o|carteira|trabalho|entrada|intervalo|sa[ií]da|descanso|semanal|observa[cç][aã]o|assinatura|cnpj|anivers[aá]rio|bairro|cep/i;
+  const semAcento=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const chaveNome=s=>semAcento(s).replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim();
+  const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function limparNome(s){
+    let v=String(s||'').replace(/[|_[\]{};,]+/g,' ').replace(/\b(?:n[ºo°]?|nome|empregado|colaborador)\b/gi,' ').replace(/^\s*[oO0-9]{1,3}[.)-]?\s+(?=[A-Za-zÀ-ÿ])/,'').replace(/^.*?(?:^|\s)\d{1,2}\s+(?=[A-Za-zÀ-ÿ])/,'').replace(/[^A-Za-zÀ-ÿ.\- ]+/g,' ').replace(/\s+/g,' ').trim();
+    v=v.replace(/\b([A-Za-zÀ-ÿ])\s+([A-Za-zÀ-ÿ])\s+([A-Za-zÀ-ÿ]{3,})/g,'$1$2 $3');
+    return v.split(' ').map(p=>/^(de|da|do|das|dos|e)$/i.test(p)?p.toLowerCase():(p.length<=3&&/^(fco|j[ºo]s[eé])$/i.test(p)?p.charAt(0).toUpperCase()+p.slice(1).toLowerCase():p.charAt(0).toUpperCase()+p.slice(1).toLowerCase())).join(' ');
+  }
+  function nomeValido(nome){
+    const p=String(nome||'').split(/\s+/).filter(Boolean);
+    if(p.length<2||p.length>9||nome.length<7||nome.length>80||lixo.test(nome)||/\d/.test(nome))return false;
+    return p.filter(x=>x.length>=2).length>=2;
+  }
+  function funcaoNaLinha(linha){
+    for(const [re,nome] of FUNCOES){const m=linha.match(re);if(m)return {m,funcao:nome,indice:m.index||0};}
+    const flexiveis=[[/caixa/i,'Operadora de Caixa'],[/lojas?/i,'Atendente de Loja'],[/limpe[zçc]a/i,'Auxiliar de Limpeza'],[/administrativ/i,'Assistente Administrativo'],[/vend(?:ed|edor|edora)/i,'Vendedor(a)'],[/cr[eé]dito/i,'Gerente de Crédito']];
+    for(const [re,nome] of flexiveis){const m=linha.match(re);if(!m)continue;let indice=m.index||0;const antes=linha.slice(0,indice).trimEnd();const iniAnterior=antes.lastIndexOf(' ');if(iniAnterior>=0)indice=iniAnterior+1;const fake=[linha.slice(indice,(m.index||0)+m[0].length)];fake.index=indice;return {m:fake,funcao:nome,indice};}
+    return null;
+  }
+  function tempos(texto){
+    const out=[]; const re=/(?:^|\D)([0-2]?\d)\s*[:;.]\s*([0-5]\d)(?:\s*[:;.]\s*[0-5]\d)?(?=\D|$)/g; let m;
+    while((m=re.exec(String(texto||'')))){const h=Number(m[1]),mi=Number(m[2]);if(h<=23)out.push(String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0'));}
+    return out;
+  }
+  function diasDoDocumento(texto,nomeArquivo){
+    const n=semAcento((nomeArquivo||'')+' '+String(texto||'').slice(0,1800));
+    if(/horario(?:s)? de trabalho\s*[-:]?\s*sabado|trabalho\s*[-:]?\s*sabado/.test(n))return ['sabado'];
+    if(n.includes('segunda')&&n.includes('sexta'))return DIAS_UTEIS.slice();
+    const mapa=[['segunda','segunda'],['terca','terca'],['quarta','quarta'],['quinta','quinta'],['sexta','sexta'],['sabado','sabado']];
+    const achou=mapa.filter(([x])=>n.includes(x)).map(x=>x[1]);
+    if(achou.length===1)return achou;
+    const saidas=String(texto||'').split(/\n+/).map(l=>{if(!funcaoNaLinha(l))return null;const ts=tempos(l);return ts.length>=2?Number(ts[ts.length-1].slice(0,2)):null;}).filter(x=>x!==null);
+    if(saidas.length>=4){const curtas=saidas.filter(h=>h<=14).length,longas=saidas.filter(h=>h>=17).length;if(curtas/saidas.length>=.7)return ['sabado'];if(longas/saidas.length>=.7)return DIAS_UTEIS.slice();}
+    return [];
+  }
+  function horarioDosTempos(ts){
+    if(ts.length>=4)return {entrada:ts[0],almocoIni:ts[1],almocoFim:ts[2],saida:ts[3]};
+    if(ts.length===2)return {entrada:ts[0],almocoIni:ts[0],almocoFim:ts[0],saida:ts[1]};
+    return null;
+  }
+  function extrairRegistrosPagina(texto,nomeArquivo){
+    const dias=diasDoDocumento(texto,nomeArquivo);
+    const linhas=String(texto||'').replace(/\r/g,'\n').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+    const registros=[];
+    linhas.forEach((linha,i)=>{
+      let f=funcaoNaLinha(linha),fonte=linha;
+      if(!f&&i+1<linhas.length){fonte=linha+' '+linhas[i+1];f=funcaoNaLinha(fonte);}
+      if(!f)return;
+      let antes=fonte.slice(0,f.indice).replace(/^.*?(?:^|\s)\d{1,2}\s+(?=[A-Za-zÀ-ÿ])/,'');
+      let nome=limparNome(antes);
+      if(!nomeValido(nome)&&i>0)nome=limparNome(linhas[i-1]+' '+antes);
+      if(!nomeValido(nome))return;
+      const depois=fonte.slice(f.indice+f.m[0].length);
+      let ts=tempos(depois);
+      if(ts.length<2&&i+1<linhas.length)ts=tempos(depois+' '+linhas[i+1]);
+      const antesHorario=depois.split(/(?:[0-2]?\d)\s*[:;. ]\s*[0-5]\d/)[0]||'';
+      const carteira=(antesHorario.match(/\b\d{4,8}\b/)||[])[0]||'';
+      registros.push({nome,funcao:f.funcao,dias,horario:horarioDosTempos(ts),carteira,origem:nomeArquivo});
+    });
+    return registros;
+  }
+  function distancia(a,b){
+    a=chaveNome(a);b=chaveNome(b);const m=Array.from({length:b.length+1},(_,i)=>i);
+    for(let i=1;i<=a.length;i++){let ant=m[0];m[0]=i;for(let j=1;j<=b.length;j++){const x=m[j];m[j]=Math.min(m[j]+1,m[j-1]+1,ant+(a[i-1]===b[j-1]?0:1));ant=x;}}
+    return m[b.length];
+  }
+  function consolidar(registros){
+    const out=[];
+    registros.forEach(r=>{
+      let atual=r.carteira?out.find(x=>x.carteira&&x.carteira===r.carteira):null;
+      if(!atual)atual=out.find(x=>chaveNome(x.nome)===chaveNome(r.nome));
+      if(!atual)atual=out.find(x=>x.funcao===r.funcao&&distancia(x.nome,r.nome)<=2&&Math.min(x.nome.length,r.nome.length)>12);
+      if(!atual){atual={nome:r.nome,funcao:r.funcao,carteira:r.carteira||'',horariosIndividuais:{},diasTrabalho:[],origens:[]};out.push(atual);}
+      atual.funcao=r.funcao; atual.origens.push(r.origem);
+      r.dias.forEach(d=>{if(!atual.diasTrabalho.includes(d))atual.diasTrabalho.push(d);});
+      if(r.horario)r.dias.forEach(d=>atual.horariosIndividuais[d]={ativo:true,...r.horario});
+    });
+    return out.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  }
+  function corrigirComBaseAtual(itens){
+    const base=Array.isArray(state?.pessoas)?state.pessoas:[];
+    itens.forEach(it=>{
+      const cand=base.filter(p=>p&&p.nome&&p.funcao===it.funcao);let melhor=null,nota=Infinity;
+      cand.forEach(p=>{const a=chaveNome(it.nome),b=chaveNome(p.nome),d=distancia(a,b),pa=a.split(' '),pb=b.split(' '),ancora=pa[0]===pb[0]&&distancia(pa[pa.length-1]||'',pb[pb.length-1]||'')<=2,rel=d/Math.max(a.length,b.length,1);if((ancora||rel<=.24)&&rel<nota){melhor=p;nota=rel;}});
+      if(melhor){it.nome=melhor.nome;it._baseConfirmada=true;}
+    });
+    const mapa=new Map();
+    itens.forEach(it=>{const k=chaveNome(it.nome),at=mapa.get(k);if(!at){mapa.set(k,it);return;}it.diasTrabalho.forEach(d=>{if(!at.diasTrabalho.includes(d))at.diasTrabalho.push(d);});Object.assign(at.horariosIndividuais,it.horariosIndividuais);at.origens.push(...it.origens);at._baseConfirmada=at._baseConfirmada||it._baseConfirmada;});
+    return Array.from(mapa.values()).filter(it=>it._baseConfirmada||new Set(it.origens).size>=2||it.funcao==='Assistente Administrativo');
+  }
+  function enriquecerPorNomes(itens,paginas){
+    itens.forEach(it=>{
+      const partes=chaveNome(it.nome).split(' ').filter(x=>x.length>2);if(partes.length<2)return;
+      const primeiro=partes[0],ultimo=partes[partes.length-1];
+      paginas.forEach(p=>{
+        const dias=diasDoDocumento(p.texto,p.nome);if(!dias.length)return;
+        const linha=String(p.texto||'').split(/\n+/).find(l=>{const n=chaveNome(l);return n.includes(primeiro)&&n.includes(ultimo);});
+        if(!linha)return;const h=horarioDosTempos(tempos(linha));
+        dias.forEach(d=>{if(!it.diasTrabalho.includes(d))it.diasTrabalho.push(d);if(h&&!it.horariosIndividuais[d])it.horariosIndividuais[d]={ativo:true,...h};});
+      });
+    });
+    return itens;
+  }
+  window.fsExtrairEscalaTabelaTexto=(texto,nome)=>consolidar(extrairRegistrosPagina(texto,nome||'documento'));
+  window.fsAnalisarTextosEscala=paginas=>enriquecerPorNomes(corrigirComBaseAtual(consolidar((paginas||[]).flatMap(p=>extrairRegistrosPagina(p.texto,p.nome)))),paginas||[]);
+  function linhasPdf(items){
+    const grupos=[];
+    items.forEach(it=>{const y=Math.round((it.transform&&it.transform[5])||0);let g=grupos.find(x=>Math.abs(x.y-y)<=3);if(!g){g={y,itens:[]};grupos.push(g);}g.itens.push(it);});
+    return grupos.sort((a,b)=>b.y-a.y).map(g=>g.itens.sort((a,b)=>((a.transform&&a.transform[4])||0)-((b.transform&&b.transform[4])||0)).map(x=>x.str).join(' ')).join('\n');
+  }
+  async function ocrCanvas(canvas,rotulo,progresso){
+    const ret=await Tesseract.recognize(canvas,'por+eng',{logger:m=>{if(m.status&&typeof setImportStatus==='function')setImportStatus(`${rotulo}: ${m.status}${m.progress?' '+Math.round(m.progress*100)+'%':''} • ${progresso}`);},tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
+    return ret.data.text||'';
+  }
+  async function prepararImagem(file){
+    const bmp=await createImageBitmap(file),escala=Math.min(2.4,2800/bmp.width),c=document.createElement('canvas');c.width=Math.round(bmp.width*escala);c.height=Math.round(bmp.height*escala);const ctx=c.getContext('2d');ctx.drawImage(bmp,0,0,c.width,c.height);const im=ctx.getImageData(0,0,c.width,c.height),d=im.data;for(let i=0;i<d.length;i+=4){let g=.299*d[i]+.587*d[i+1]+.114*d[i+2];g=Math.max(0,Math.min(255,(g-128)*1.45+128));d[i]=d[i+1]=d[i+2]=g;d[i+3]=255;}ctx.putImageData(im,0,0);bmp.close();return c;
+  }
+  async function lerArquivo(file,indice,total){
+    const rot=`Arquivo ${indice+1}/${total}`;
+    if(file.type.includes('text')||/\.(txt|csv)$/i.test(file.name))return [{texto:await file.text(),nome:file.name}];
+    if(file.type==='application/pdf'||/\.pdf$/i.test(file.name)){
+      if(!window.pdfjsLib)throw new Error('Leitor de PDF indisponível');
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,out=[];
+      for(let p=1;p<=pdf.numPages;p++){
+        if(typeof setImportStatus==='function')setImportStatus(`${rot}: lendo página ${p}/${pdf.numPages}`);
+        const page=await pdf.getPage(p),conteudo=await page.getTextContent();let texto=linhasPdf(conteudo.items);
+        if(extrairRegistrosPagina(texto,file.name).length<2&&window.Tesseract){const vp=page.getViewport({scale:2.2}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;texto=await ocrCanvas(c,`${rot} página ${p}`,`${p}/${pdf.numPages}`);}
+        out.push({texto,nome:`${file.name} — página ${p}`});
+      }return out;
+    }
+    if(file.type.startsWith('image/')){if(!window.Tesseract)throw new Error('Leitor de imagem indisponível');const c=await prepararImagem(file);return [{texto:await ocrCanvas(c,rot,`${indice+1}/${total}`),nome:file.name}];}
+    throw new Error('Formato não reconhecido: '+file.name);
+  }
+  window.lerArquivoAssistido=async function(){
+    const inp=document.getElementById('listaInput'),ta=document.getElementById('importText');const files=Array.from(inp?.files||[]);
+    if(!files.length)return alert('Selecione uma ou mais imagens, PDFs ou arquivos de texto.');
+    if(files.length>12)return alert('Selecione no máximo 12 arquivos por vez.');
+    try{
+      let paginas=[];for(let i=0;i<files.length;i++)paginas.push(...await lerArquivo(files[i],i,files.length));
+      const brutos=paginas.flatMap(p=>extrairRegistrosPagina(p.texto,p.nome));const itens=enriquecerPorNomes(corrigirComBaseAtual(consolidar(brutos)),paginas);
+      const temSemana=paginas.some(p=>diasDoDocumento(p.texto,p.nome).includes('segunda'));
+      const temSabado=paginas.some(p=>diasDoDocumento(p.texto,p.nome).includes('sabado'));
+      const indicaDomingo=paginas.some(p=>/descanso\s+semanal|domingo/i.test(p.texto));
+      window.fsImportacaoEstruturadaPendente={itens,modoDetectado:(temSemana&&(temSabado||indicaDomingo))?'6x1':null,arquivos:files.length};
+      ta.value=itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n');
+      const modo=document.getElementById('importMode');if(modo&&itens.length)modo.value='replace';
+      const comHorario=itens.filter(x=>Object.keys(x.horariosIndividuais).length).length;
+      setImportStatus(`${itens.length} colaborador(es) reconhecido(s), ${comHorario} com horários e ${files.length} arquivo(s) cruzado(s). ${window.fsImportacaoEstruturadaPendente.modoDetectado==='6x1'?'Escala 6x1 identificada. ':''}Confira a lista limpa antes de importar.`);
+      if(!itens.length)alert('Nenhuma linha foi considerada segura. Tente fotos mais retas, nítidas e mostrando a tabela completa.');
+    }catch(e){console.error(e);setImportStatus('Falha na leitura: '+e.message);alert('Não consegui concluir a leitura: '+e.message);}
+  };
+  try{lerArquivoAssistido=window.lerArquivoAssistido}catch(e){}
+
+  const importarAnterior=window.importarListaColaboradores;
+  window.importarListaColaboradores=function(){
+    const pend=window.fsImportacaoEstruturadaPendente,ta=document.getElementById('importText');
+    if(!pend||!pend.itens?.length)return importarAnterior.apply(this,arguments);
+    const textoAtual=String(ta?.value||'').trim();const textoPendente=pend.itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n').trim();
+    if(textoAtual!==textoPendente){window.fsImportacaoEstruturadaPendente=null;return importarAnterior.apply(this,arguments);}
+    const modo=document.getElementById('importMode')?.value||'replace';if(modo==='replace')state.pessoas=[];
+    const mapa=new Map((state.pessoas||[]).map(p=>[chaveNome(p.nome),p]));
+    pend.itens.forEach((it,i)=>{let p=mapa.get(chaveNome(it.nome));if(!p){p={id:'p'+Date.now()+'_'+i,nome:it.nome,funcao:it.funcao,especialSlot:null,sabadoSim:true,folgaDistribuida:['terca','quarta','quinta'][i%3],equipeBase:0,slots:{}};state.pessoas.push(p);}p.nome=it.nome;p.funcao=it.funcao;p.horariosIndividuais={...(p.horariosIndividuais||{}),...it.horariosIndividuais};p.diasTrabalhoImportados=Array.from(new Set([...(p.diasTrabalhoImportados||[]),...(it.diasTrabalho||[])]));p.sabadoSim=p.diasTrabalhoImportados.includes('sabado');mapa.set(chaveNome(it.nome),p);});
+    if(pend.modoDetectado==='6x1'){state.config.modo='6x1';state.cargaMeta=44;}
+    state.colaboradores=state.pessoas;window.fsImportacaoEstruturadaPendente=null;save();
+    if(typeof fsForcarRedistribuicaoIgualitaria==='function')fsForcarRedistribuicaoIgualitaria();
+    render();setImportStatus(`${pend.itens.length} colaborador(es) importado(s) com segurança. Nomes, funções, dias e horários reconhecidos foram aplicados.`);alert('Importação concluída com sucesso. Confira a página inicial e os quadros dos dias.');
+  };
+  try{importarListaColaboradores=window.importarListaColaboradores}catch(e){}
+
+  const workingOnAntesV510=window.workingOn;
+  window.workingOn=function(p,dia){
+    if(state.config?.modo==='6x1'&&Array.isArray(p?.diasTrabalhoImportados)&&p.diasTrabalhoImportados.length)return p.diasTrabalhoImportados.includes(dia);
+    return workingOnAntesV510(p,dia);
+  };
+  try{workingOn=window.workingOn}catch(e){}
+})();
+</script>
 </body></html>
