@@ -13557,7 +13557,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function descanso(p){const f=dias.filter(d=>!workingOn(p,d)).map(d=>diasLabel[d]);f.push('Domingo');return [...new Set(f)].join(' + ');}
   function pagina(lista,pi,total,d){return `<section class="fsJornadaPagina">${cabecalho(d,pi,total)}${tabela(lista,pi*MAX_POR_PAGINA)}<div class="fsJornadaDirFooter"><div class="fsJornadaDirObs"><b>Observação:</b> documento gerado automaticamente a partir dos horários individuais cadastrados. O símbolo “* varia por dia” indica que o colaborador possui horário ou folga diferente entre segunda e sexta-feira.</div><div class="fsJornadaDirAss"><span></span>ASSINATURA DO EMPREGADOR OU REPRESENTANTE LEGAL</div><div class="fsJornadaDirPag">Página ${pi+1} de ${total} • Emitido em ${new Date().toLocaleDateString('pt-BR')}</div></div></section>`;}
   window.montarRelatorioJornadaGeral=function(){const d=window.fsGetDadosEmpresa?fsGetDadosEmpresa():{},lista=typeof ordenar==='function'?ordenar(state.pessoas||[]):(state.pessoas||[]),ps=partes(lista,MAX_POR_PAGINA);return `<div class="fsJornadaPacote">${ps.map((x,i)=>pagina(x,i,ps.length,d)).join('')}</div>`;};
-  async function canvasPagina(el){const src=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,0,0,out.width,out.height);return out;}
+  async function canvasPagina(el){const src=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const margem=85,maxW=out.width-margem*2,maxH=out.height-margem*2,ratio=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*ratio),dh=Math.floor(src.height*ratio);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;}
   window.baixarRelatorioJornadaGeral=async function(){
     if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
     document.getElementById('fsJornadaGeralStage')?.remove();const stage=document.createElement('div');stage.id='fsJornadaGeralStage';stage.style.cssText='position:fixed;left:-12000px;top:0;width:1600px;background:#fff;z-index:-1';stage.innerHTML=montarRelatorioJornadaGeral();document.body.appendChild(stage);
@@ -13602,6 +13602,58 @@ window.baixarImagem=function(elementId,nomeArquivo){
   };
   function botao(){const grid=document.querySelector('#relatorios .execExportGrid');if(!grid||grid.querySelector('[data-fs-jornada-funcao]'))return;const b=document.createElement('button');b.className='primary';b.dataset.fsJornadaFuncao='1';b.innerHTML='🧩 Jornada por Função<br><small>um relatório para cada função</small>';b.onclick=ev=>{ev.preventDefault();ev.stopPropagation();baixarRelatorioJornadaPorFuncao();};grid.appendChild(b);}
   document.addEventListener('DOMContentLoaded',()=>setTimeout(botao,300));const obs=new MutationObserver(botao);document.addEventListener('DOMContentLoaded',()=>{const r=document.getElementById('relatorios');if(r)obs.observe(r,{childList:true,subtree:true});});
+})();
+</script>
+<style id="fs-v515-jornada-funcao-unica-css">
+.fsJornadaDirTable tbody tr.fsJornadaGrupoLinha{height:31px!important}.fsJornadaGrupoLinha td{background:#e8f5ee!important;color:#075f32!important;text-align:left!important;padding:5px 12px!important;font-size:13px!important;font-weight:950!important;letter-spacing:.25px!important;border-top:2px solid #087b3e!important;border-bottom:1px solid #9ccdb2!important}.fsJornadaGrupoLinha .fsGrupoQtd{float:right;color:#52709c;font-size:11px;font-weight:900}
+</style>
+<script id="fs-v515-jornada-funcao-unica">
+/* Jornada por função em um único relatório contínuo, com subtítulos discretos. */
+(function(){
+  const CAPACIDADE_VISUAL_PAGINA=26;
+  function normal(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+  function ordenarAgrupado(){
+    return (state.pessoas||[]).slice().sort((a,b)=>{
+      const f=String(a.funcao||'Sem função').localeCompare(String(b.funcao||'Sem função'),'pt-BR');
+      return f||String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR');
+    });
+  }
+  function blocos(arr){
+    const paginas=[];let atual=[],peso=0,funcaoAnterior='';
+    arr.forEach(p=>{const f=normal(p.funcao||'Sem função'),custo=1+(f!==funcaoAnterior ? .5 : 0);if(atual.length&&peso+custo>CAPACIDADE_VISUAL_PAGINA){paginas.push(atual);atual=[];peso=0;funcaoAnterior='';}const custoReal=1+(f!==funcaoAnterior ? .5 : 0);atual.push(p);peso+=custoReal;funcaoAnterior=f;});
+    if(atual.length)paginas.push(atual);return paginas.length?paginas:[[]];
+  }
+  function montarPaginaDoBloco(bloco,indice,total){
+    const pessoasOrig=state.pessoas,ordenarOrig=window.ordenar;let pagina;
+    try{
+      state.pessoas=bloco;window.ordenar=a=>(a||[]).slice();
+      const tmp=document.createElement('div');tmp.innerHTML=window.montarRelatorioJornadaGeral();pagina=tmp.querySelector('.fsJornadaPagina');
+    }finally{state.pessoas=pessoasOrig;window.ordenar=ordenarOrig;}
+    if(!pagina)return '';
+    const titulo=pagina.querySelector('.fsJornadaDirTitulo h1');if(titulo)titulo.textContent='RELAÇÃO DE HORÁRIOS ORGANIZADA POR FUNÇÃO';
+    const parte=pagina.querySelector('.fsJornadaDirParte b');if(parte)parte.textContent=`PARTE ${indice+1}/${total}`;
+    const pag=pagina.querySelector('.fsJornadaDirPag');if(pag)pag.textContent=`Relatório por função • Página ${indice+1} de ${total} • Emitido em ${new Date().toLocaleDateString('pt-BR')}`;
+    const tbody=pagina.querySelector('tbody'),rows=tbody?[...tbody.querySelectorAll('tr')]:[];let anterior='';
+    rows.forEach((tr,i)=>{
+      const p=bloco[i];if(!p)return;const funcao=String(p.funcao||'Sem função').trim()||'Sem função';
+      if(normal(funcao)!==normal(anterior)){
+        const totalFunc=(state.pessoas||[]).filter(x=>normal(x.funcao||'Sem função')===normal(funcao)).length;
+        const faixa=document.createElement('tr');faixa.className='fsJornadaGrupoLinha';faixa.innerHTML=`<td colspan="13">${typeof iconeFuncao==='function'?iconeFuncao(funcao):'•'} ${funcao.toUpperCase()}<span class="fsGrupoQtd">${totalFunc} COLABORADOR(ES)</span></td>`;tbody.insertBefore(faixa,tr);anterior=funcao;
+      }
+    });
+    return pagina.outerHTML;
+  }
+  window.montarRelatorioJornadaPorFuncao=function(){const lista=ordenarAgrupado(),ps=blocos(lista);return `<div class="fsJornadaPacote fsJornadaPorFuncao">${ps.map((b,i)=>montarPaginaDoBloco(b,i,ps.length)).join('')}</div>`;};
+  async function renderComMargem(el){
+    const src=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=85,maxW=out.width-m*2,maxH=out.height-m*2,r=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*r),dh=Math.floor(src.height*r);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;
+  }
+  window.baixarRelatorioJornadaPorFuncao=async function(){
+    if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
+    document.getElementById('fsJornadaFuncaoStage')?.remove();const stage=document.createElement('div');stage.id='fsJornadaFuncaoStage';stage.style.cssText='position:fixed;left:-12000px;top:0;width:1600px;background:#fff;z-index:-1';stage.innerHTML=montarRelatorioJornadaPorFuncao();document.body.appendChild(stage);
+    try{const pags=[...stage.querySelectorAll('.fsJornadaPagina')];for(let i=0;i<pags.length;i++){const out=await renderComMargem(pags[i]),a=document.createElement('a');a.download=`Jornada_Organizada_por_Funcao_A4_Retrato_Parte_${String(i+1).padStart(2,'0')}.png`;a.href=out.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();await new Promise(r=>setTimeout(r,200));}}catch(err){alert('Erro ao gerar relatório por função: '+(err&&err.message?err.message:err));}finally{stage.remove();}
+  };
+  function atualizarBotao(){const b=document.querySelector('[data-fs-jornada-funcao]');if(b)b.innerHTML='🧩 Jornada por Função<br><small>um relatório único agrupado</small>';}
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(atualizarBotao,500));document.addEventListener('click',()=>setTimeout(atualizarBotao,100),true);
 })();
 </script>
 </body></html>
