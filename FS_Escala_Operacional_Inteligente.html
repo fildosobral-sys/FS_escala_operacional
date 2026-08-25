@@ -13379,17 +13379,17 @@ window.baixarImagem=function(elementId,nomeArquivo){
 })();
 </script>
 <style id="fs-v511-relatorio-jornada-geral-css">
-.fsJornadaGeral{width:1600px;background:#fff;color:#111827;font-family:Arial,sans-serif;border:3px solid #071d68;border-radius:24px;overflow:hidden}
+.fsJornadaGeral{width:1600px;min-height:2180px;background:#fff;color:#111827;font-family:Arial,sans-serif;border:3px solid #071d68;border-radius:24px;overflow:hidden;display:flex;flex-direction:column}
 .fsJornadaGeral *{box-sizing:border-box}.fsJornadaTop{background:#071d68;color:#fff;text-align:center;padding:22px 30px 18px}
 .fsJornadaTop h1{margin:0;font-size:45px;line-height:1.05;letter-spacing:.5px}.fsJornadaTop p{margin:8px 0 0;color:#facc15;font-size:20px;font-weight:900}
-.fsJornadaEmpresa{padding:14px 28px 12px;text-align:center;border-bottom:2px solid #cbd5e1;font-weight:850;font-size:18px;line-height:1.35}
-.fsJornadaEmpresa b{color:#071d68}.fsJornadaEnd{font-size:15px;color:#344054;margin-top:4px}
-.fsJornadaTabela{width:100%;border-collapse:collapse;table-layout:fixed}.fsJornadaTabela th{background:#eaf2ff;color:#071d68;border:1px solid #b8c8e2;padding:9px 6px;font-size:14px;text-transform:uppercase}
-.fsJornadaTabela td{border:1px solid #cbd5e1;padding:7px;font-size:13px;line-height:1.16;text-align:center;font-weight:750;vertical-align:middle}
-.fsJornadaTabela td.nome{text-align:left;font-size:14px;font-weight:950}.fsJornadaTabela td.funcao{text-align:left}.fsJornadaTabela tbody tr:nth-child(even){background:#f8fbff}
+.fsJornadaEmpresa{padding:18px 28px 16px;text-align:center;border-bottom:2px solid #cbd5e1;font-weight:850;font-size:20px;line-height:1.4}
+.fsJornadaEmpresa b{color:#071d68}.fsJornadaEnd{font-size:18px;color:#344054;margin-top:7px}
+.fsJornadaTabela{width:100%;border-collapse:collapse;table-layout:fixed}.fsJornadaTabela th{background:#eaf2ff;color:#071d68;border:1px solid #b8c8e2;padding:13px 7px;font-size:17px;text-transform:uppercase}
+.fsJornadaTabela td{border:1px solid #cbd5e1;padding:10px 8px;font-size:16px;line-height:1.22;text-align:center;font-weight:750;vertical-align:middle}
+.fsJornadaTabela tbody tr{height:67px}.fsJornadaTabela td.nome{text-align:left;font-size:17px;font-weight:950}.fsJornadaTabela td.funcao{text-align:left}.fsJornadaTabela tbody tr:nth-child(even){background:#f8fbff}
 .fsJornadaHorario{display:block;white-space:normal}.fsJornadaHorario b{color:#071d68}.fsJornadaFolga{color:#087b3e;font-weight:950}.fsJornadaTotal{font-size:18px!important;color:#071d68;font-weight:950!important}
-.fsJornadaRodape{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;padding:16px 28px 20px;align-items:end}
-.fsJornadaObs{font-size:15px;line-height:1.35;color:#344054}.fsJornadaAss{text-align:center;font-size:14px;font-weight:900}.fsJornadaAss span{display:block;border-top:2px solid #071d68;margin:25px auto 6px;width:78%}
+.fsJornadaRodape{display:grid;grid-template-columns:1.5fr 1fr;gap:24px;padding:25px 32px 30px;align-items:end;margin-top:auto}
+.fsJornadaObs{font-size:18px;line-height:1.42;color:#344054}.fsJornadaAss{text-align:center;font-size:17px;font-weight:900}.fsJornadaAss span{display:block;border-top:2px solid #071d68;margin:34px auto 8px;width:82%}
 </style>
 <script id="fs-v511-relatorio-jornada-geral">
 /* Relatório formal consolidado de horários e carga semanal por colaborador. */
@@ -13451,9 +13451,9 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <style id="fs-v512-modal-colaborador-contextual-css">
 .fsModoColaboradorResumo{grid-column:1/-1;background:#eef5ff;border:1px solid #c9d8ee;border-radius:14px;padding:11px 14px;color:#071d68;font-weight:900;line-height:1.3}
 .fsHorarioRapido{margin:10px 0 14px;border:1px solid #cbd8eb;background:#f8fbff;border-radius:16px;padding:10px 12px}
-.fsHorarioRapidoToggle{border:0;border-radius:10px;background:#e6efff;color:#071d68;padding:9px 13px;font-weight:950;cursor:pointer}.fsHorarioRapidoConteudo{display:none;padding-top:3px}.fsHorarioRapido.aberto .fsHorarioRapidoConteudo{display:block}.fsHorarioRapidoLinha{display:grid;grid-template-columns:150px repeat(4,minmax(110px,1fr)) 110px;gap:8px;align-items:end;margin-top:8px}
-.fsHorarioRapidoLinha b{align-self:center;color:#071d68}.fsHorarioRapidoLinha label{display:block;font-size:11px;font-weight:900;color:#475467;margin-bottom:3px}.fsHorarioRapidoLinha input{width:100%;padding:8px;border:1px solid #b8c8e2;border-radius:10px;font-weight:850}
-.fsHorarioRapidoLinha button{height:39px;border:0;border-radius:10px;background:#071d68;color:#fff;font-weight:900;cursor:pointer}
+.fsHorarioRapidoToggle{border:0;border-radius:10px;background:#e6efff;color:#071d68;padding:9px 13px;font-weight:950;cursor:pointer}.fsHorarioRapidoConteudo{display:none;padding-top:3px}.fsHorarioRapido.aberto .fsHorarioRapidoConteudo{display:block}.fsHorarioRapidoLinha{display:grid;grid-template-columns:135px repeat(4,minmax(0,1fr));gap:8px;align-items:end;margin-top:10px;min-width:0}
+.fsHorarioRapidoLinha b{align-self:center;color:#071d68}.fsHorarioRapidoLinha label{display:block;font-size:11px;font-weight:900;color:#475467;margin-bottom:3px}.fsHorarioRapidoLinha input{width:100%;min-width:0;padding:8px;border:1px solid #b8c8e2;border-radius:10px;font-weight:850}
+.fsHorarioRapidoLinha button{grid-column:2/-1;justify-self:end;width:135px;height:39px;border:0;border-radius:10px;background:#071d68;color:#fff;font-weight:900;cursor:pointer}
 @media(max-width:900px){.fsHorarioRapidoLinha{grid-template-columns:1fr 1fr}.fsHorarioRapidoLinha b{grid-column:1/-1}.fsHorarioRapidoLinha button{grid-column:1/-1}}
 </style>
 <script id="fs-v512-modal-colaborador-contextual">
