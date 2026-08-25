@@ -13523,4 +13523,85 @@ window.baixarImagem=function(elementId,nomeArquivo){
   },true);
 })();
 </script>
+<style id="fs-v513-jornada-diretoria-css">
+.fsJornadaPacote{width:1600px;background:#fff}.fsJornadaPagina{width:1600px;height:2263px;background:#fff;color:#111827;font-family:Arial,sans-serif;border:3px solid #071d68;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box}
+.fsJornadaDirTop{height:142px;background:#071d68;color:#fff;display:grid;grid-template-columns:235px 1fr 235px;align-items:center;padding:16px 24px;box-sizing:border-box}.fsJornadaDirLogo{display:flex;align-items:center;justify-content:center;height:100px;background:#fff;border-radius:16px;padding:10px}.fsJornadaDirLogo img{max-width:190px;max-height:78px;object-fit:contain}.fsJornadaDirTitulo{text-align:center;padding:0 18px}.fsJornadaDirTitulo h1{font-size:34px;line-height:1.08;margin:0;font-weight:950;letter-spacing:.4px}.fsJornadaDirTitulo p{font-size:17px;color:#facc15;font-weight:950;margin:9px 0 0}.fsJornadaDirParte{text-align:center;font-size:16px;font-weight:900;color:#dbeafe}.fsJornadaDirParte b{display:block;font-size:23px;color:#fff;margin-top:5px}
+.fsJornadaDirEmpresa{padding:13px 22px 12px;border-bottom:2px solid #b8c8e2;background:#f8fbff}.fsJornadaDirLinha1{display:grid;grid-template-columns:1.2fr 1.2fr .8fr;gap:10px}.fsJornadaDirDado{border:1px solid #d4dfef;border-radius:10px;background:#fff;padding:8px 10px;min-width:0}.fsJornadaDirDado b{display:block;font-size:11px;color:#52709c;text-transform:uppercase;margin-bottom:2px}.fsJornadaDirDado span{display:block;font-size:15px;color:#071d68;font-weight:950;white-space:normal;overflow-wrap:anywhere}.fsJornadaDirEnd{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.fsJornadaDirMeta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}.fsJornadaDirMeta .fsJornadaDirDado{padding:6px 10px}.fsJornadaDirMeta .fsJornadaDirDado span{font-size:13px}
+.fsJornadaDirTable{width:100%;border-collapse:collapse;table-layout:fixed}.fsJornadaDirTable th{border:1px solid #b4c6e1;background:#eaf2ff;color:#071d68;padding:7px 4px;font-size:12px;line-height:1.12;text-transform:uppercase;font-weight:950}.fsJornadaDirTable thead tr:first-child th{background:#071d68;color:#fff;font-size:13px;padding:9px 4px}.fsJornadaDirTable td{border:1px solid #ccd8e8;padding:7px 5px;font-size:13px;line-height:1.15;text-align:center;font-weight:800;vertical-align:middle}.fsJornadaDirTable tbody tr{height:62px}.fsJornadaDirTable tbody tr:nth-child(even){background:#f6f9fe}.fsJornadaDirTable .nome{text-align:left;font-size:14px;font-weight:950}.fsJornadaDirTable .funcao{text-align:left}.fsJornadaDirTable .carga{font-size:16px;color:#071d68;font-weight:950}.fsJornadaDirTable .folga{color:#087b3e;font-weight:950}.fsJornadaDirTable .intervalo{white-space:nowrap}
+.fsJornadaDirFooter{margin-top:auto;padding:13px 24px 16px;display:grid;grid-template-columns:1.35fr 1fr;gap:20px;align-items:end;border-top:1px solid #d4dfef}.fsJornadaDirObs{font-size:13px;line-height:1.35;color:#475467}.fsJornadaDirAss{text-align:center;font-size:13px;font-weight:950}.fsJornadaDirAss span{display:block;border-top:2px solid #071d68;width:82%;margin:25px auto 6px}.fsJornadaDirPag{grid-column:1/-1;text-align:right;font-size:11px;color:#667085;font-weight:850}
+</style>
+<script id="fs-v513-jornada-diretoria">
+/* Jornada geral executiva: colunas de horário, cabeçalho institucional e paginação A4 retrato. */
+(function(){
+  const MAX_POR_PAGINA=22, uteis=['segunda','terca','quarta','quinta','sexta'];
+  const logo='https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png';
+  function e(v){return typeof html==='function'?html(String(v||'')):String(v||'');}
+  function partes(arr,n){const o=[];for(let i=0;i<arr.length;i+=n)o.push(arr.slice(i,i+n));return o.length?o:[[]];}
+  function inter(h){if(!h||h.almocoIni===h.almocoFim)return '—';return `${h.almocoIni}/${h.almocoFim}`;}
+  function hDia(p,d){if(!workingOn(p,d))return null;return horarioPessoa(p,d);}
+  function chave(h){return h?`${h.entrada}|${inter(h)}|${h.saida}|${fmt(calc(h))}`:'FOLGA';}
+  function principalUteis(p){
+    const hs=uteis.map(d=>hDia(p,d)), cont={};hs.forEach(h=>{const k=chave(h);cont[k]=(cont[k]||0)+1;});
+    const k=Object.entries(cont).sort((a,b)=>b[1]-a[1])[0]?.[0];return hs.find(h=>chave(h)===k)||null;
+  }
+  function variacaoUteis(p){return new Set(uteis.map(d=>chave(hDia(p,d)))).size>1;}
+  function cel(h,campo){if(!h)return '<span class="folga">FOLGA</span>';if(campo==='intervalo')return e(inter(h));if(campo==='carga')return fmt(calc(h));return e(h[campo]);}
+  function modo(){return state.config.modo==='distribuido'?'FOLGA DISTRIBUÍDA':state.config.modo==='6x1'?'DIAS NORMAIS 6X1':'DIA ESPECIAL + SÁBADO';}
+  function cabecalho(d,pi,total){
+    return `<div class="fsJornadaDirTop"><div class="fsJornadaDirLogo"><img src="${logo}" crossorigin="anonymous" alt="Zenir"></div><div class="fsJornadaDirTitulo"><h1>RELAÇÃO GERAL DE HORÁRIOS DE TRABALHO</h1><p>${modo()} • CARGA-META ${Number(state.cargaMeta||44)} HORAS SEMANAIS</p></div><div class="fsJornadaDirParte">DOCUMENTO EXECUTIVO<b>PARTE ${pi+1}/${total}</b></div></div><div class="fsJornadaDirEmpresa"><div class="fsJornadaDirLinha1"><div class="fsJornadaDirDado"><b>Empregador</b><span>${e(d.empregador||'J. ALVES E OLIVEIRA LTDA')}</span></div><div class="fsJornadaDirDado"><b>Filial / Denominação</b><span>${e(String(d.filial||'ZENIR MÓVEIS E ELETROS').replace(/\n/g,' '))}</span></div><div class="fsJornadaDirDado"><b>Atividade</b><span>${e(d.atividade||'COMÉRCIO VAREJISTA')}</span></div></div><div class="fsJornadaDirEnd"><div class="fsJornadaDirDado"><b>Endereço 1</b><span>${e(d.endereco1||'Não informado')}</span></div><div class="fsJornadaDirDado"><b>Endereço 2</b><span>${e(d.endereco2||'Não informado')}</span></div></div><div class="fsJornadaDirMeta"><div class="fsJornadaDirDado"><b>CNPJ</b><span>${e(d.cnpj||'—')}</span></div><div class="fsJornadaDirDado"><b>Inscrição Estadual</b><span>${e(d.inscricaoEstadual||'—')}</span></div><div class="fsJornadaDirDado"><b>Aniversário da filial</b><span>${e(d.aniversarioFilial||'—')}</span></div></div></div>`;
+  }
+  function tabela(lista,offset){
+    const rows=lista.map((p,i)=>{const u=principalUteis(p),s=hDia(p,'sabado'),varia=variacaoUteis(p);return `<tr><td>${String(offset+i+1).padStart(2,'0')}</td><td class="nome">${e(p.nome)}</td><td class="funcao">${typeof formatarFuncao==='function'?formatarFuncao(p.funcao):e(p.funcao)}</td><td>${cel(u,'entrada')}${varia?'<br><small>* varia por dia</small>':''}</td><td class="intervalo">${cel(u,'intervalo')}</td><td>${cel(u,'saida')}</td><td>${cel(u,'carga')}</td><td>${cel(s,'entrada')}</td><td class="intervalo">${cel(s,'intervalo')}</td><td>${cel(s,'saida')}</td><td>${cel(s,'carga')}</td><td class="carga">${fmt(totalPessoa(p))}</td><td>${e(descanso(p))}</td></tr>`;}).join('');
+    return `<table class="fsJornadaDirTable"><colgroup><col style="width:40px"><col style="width:225px"><col style="width:150px"><col style="width:91px"><col style="width:115px"><col style="width:91px"><col style="width:92px"><col style="width:86px"><col style="width:110px"><col style="width:86px"><col style="width:88px"><col style="width:105px"><col style="width:105px"></colgroup><thead><tr><th rowspan="2">Nº</th><th rowspan="2">Colaborador</th><th rowspan="2">Função</th><th colspan="4">Segunda a sexta-feira</th><th colspan="4">Sábado</th><th rowspan="2">Carga<br>semanal</th><th rowspan="2">Descanso<br>semanal</th></tr><tr><th>Entrada</th><th>Intervalo</th><th>Saída</th><th>Carga</th><th>Entrada</th><th>Intervalo</th><th>Saída</th><th>Carga</th></tr></thead><tbody>${rows||'<tr><td colspan="13">Nenhum colaborador cadastrado.</td></tr>'}</tbody></table>`;
+  }
+  function descanso(p){const f=dias.filter(d=>!workingOn(p,d)).map(d=>diasLabel[d]);f.push('Domingo');return [...new Set(f)].join(' + ');}
+  function pagina(lista,pi,total,d){return `<section class="fsJornadaPagina">${cabecalho(d,pi,total)}${tabela(lista,pi*MAX_POR_PAGINA)}<div class="fsJornadaDirFooter"><div class="fsJornadaDirObs"><b>Observação:</b> documento gerado automaticamente a partir dos horários individuais cadastrados. O símbolo “* varia por dia” indica que o colaborador possui horário ou folga diferente entre segunda e sexta-feira.</div><div class="fsJornadaDirAss"><span></span>ASSINATURA DO EMPREGADOR OU REPRESENTANTE LEGAL</div><div class="fsJornadaDirPag">Página ${pi+1} de ${total} • Emitido em ${new Date().toLocaleDateString('pt-BR')}</div></div></section>`;}
+  window.montarRelatorioJornadaGeral=function(){const d=window.fsGetDadosEmpresa?fsGetDadosEmpresa():{},lista=typeof ordenar==='function'?ordenar(state.pessoas||[]):(state.pessoas||[]),ps=partes(lista,MAX_POR_PAGINA);return `<div class="fsJornadaPacote">${ps.map((x,i)=>pagina(x,i,ps.length,d)).join('')}</div>`;};
+  async function canvasPagina(el){const src=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,0,0,out.width,out.height);return out;}
+  window.baixarRelatorioJornadaGeral=async function(){
+    if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
+    document.getElementById('fsJornadaGeralStage')?.remove();const stage=document.createElement('div');stage.id='fsJornadaGeralStage';stage.style.cssText='position:fixed;left:-12000px;top:0;width:1600px;background:#fff;z-index:-1';stage.innerHTML=montarRelatorioJornadaGeral();document.body.appendChild(stage);
+    try{const pags=[...stage.querySelectorAll('.fsJornadaPagina')];for(let i=0;i<pags.length;i++){const out=await canvasPagina(pags[i]),a=document.createElement('a');a.download=`Relacao_Geral_Horarios_A4_Retrato_Parte_${String(i+1).padStart(2,'0')}.png`;a.href=out.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();await new Promise(r=>setTimeout(r,180));}}catch(err){alert('Erro ao gerar relatório: '+(err&&err.message?err.message:err));}finally{stage.remove();}
+  };
+})();
+</script>
+<style id="fs-v514-jornada-por-funcao-css">
+.fsJornadaFuncaoFaixa{background:#087b3e;color:#fff;text-align:center;padding:9px 16px;font-size:20px;font-weight:950;letter-spacing:.3px;border-bottom:2px solid #065f31}
+</style>
+<script id="fs-v514-jornada-por-funcao">
+/* Segundo relatório: mesma estrutura executiva, com páginas independentes por função. */
+(function(){
+  function slug(v){return String(v||'funcao').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_|_$/g,'');}
+  function gruposFuncao(){
+    const mapa=new Map();(state.pessoas||[]).forEach(p=>{const f=String(p.funcao||'Sem função').trim()||'Sem função';if(!mapa.has(f))mapa.set(f,[]);mapa.get(f).push(p);});
+    return [...mapa.entries()].sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'));
+  }
+  function htmlGrupo(funcao,pessoas){
+    const original=state.pessoas;let htmlGrupo='';
+    try{state.pessoas=pessoas;htmlGrupo=window.montarRelatorioJornadaGeral();}finally{state.pessoas=original;}
+    const tmp=document.createElement('div');tmp.innerHTML=htmlGrupo;
+    const pags=[...tmp.querySelectorAll('.fsJornadaPagina')];
+    pags.forEach((p,i)=>{
+      p.dataset.funcao=funcao;p.dataset.parte=String(i+1);p.dataset.totalPartes=String(pags.length);
+      const titulo=p.querySelector('.fsJornadaDirTitulo h1');if(titulo)titulo.textContent='RELAÇÃO DE HORÁRIOS POR FUNÇÃO';
+      const empresa=p.querySelector('.fsJornadaDirEmpresa');if(empresa){const faixa=document.createElement('div');faixa.className='fsJornadaFuncaoFaixa';faixa.textContent=`FUNÇÃO: ${funcao.toUpperCase()} • ${pessoas.length} COLABORADOR(ES)`;empresa.insertAdjacentElement('afterend',faixa);}
+      const parte=p.querySelector('.fsJornadaDirParte b');if(parte)parte.textContent=`PARTE ${i+1}/${pags.length}`;
+      const pag=p.querySelector('.fsJornadaDirPag');if(pag)pag.textContent=`${funcao} • Página ${i+1} de ${pags.length} • Emitido em ${new Date().toLocaleDateString('pt-BR')}`;
+    });
+    return pags.map(p=>p.outerHTML).join('');
+  }
+  window.montarRelatorioJornadaPorFuncao=function(){return `<div class="fsJornadaPacote fsJornadaPorFuncao">${gruposFuncao().map(([f,ps])=>htmlGrupo(f,ps)).join('')}</div>`;};
+  async function renderA4(el){
+    const src=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});
+    const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,0,0,out.width,out.height);return out;
+  }
+  window.baixarRelatorioJornadaPorFuncao=async function(){
+    if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
+    document.getElementById('fsJornadaFuncaoStage')?.remove();const stage=document.createElement('div');stage.id='fsJornadaFuncaoStage';stage.style.cssText='position:fixed;left:-12000px;top:0;width:1600px;background:#fff;z-index:-1';stage.innerHTML=montarRelatorioJornadaPorFuncao();document.body.appendChild(stage);
+    try{const pags=[...stage.querySelectorAll('.fsJornadaPagina')];for(let i=0;i<pags.length;i++){const p=pags[i],out=await renderA4(p),a=document.createElement('a');a.download=`Jornada_${slug(p.dataset.funcao)}_A4_Retrato_Parte_${String(p.dataset.parte).padStart(2,'0')}.png`;a.href=out.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();await new Promise(r=>setTimeout(r,220));}}catch(err){alert('Erro ao gerar relatório por função: '+(err&&err.message?err.message:err));}finally{stage.remove();}
+  };
+  function botao(){const grid=document.querySelector('#relatorios .execExportGrid');if(!grid||grid.querySelector('[data-fs-jornada-funcao]'))return;const b=document.createElement('button');b.className='primary';b.dataset.fsJornadaFuncao='1';b.innerHTML='🧩 Jornada por Função<br><small>um relatório para cada função</small>';b.onclick=ev=>{ev.preventDefault();ev.stopPropagation();baixarRelatorioJornadaPorFuncao();};grid.appendChild(b);}
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(botao,300));const obs=new MutationObserver(botao);document.addEventListener('DOMContentLoaded',()=>{const r=document.getElementById('relatorios');if(r)obs.observe(r,{childList:true,subtree:true});});
+})();
+</script>
 </body></html>
