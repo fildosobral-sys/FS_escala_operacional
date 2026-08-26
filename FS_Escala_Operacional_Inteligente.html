@@ -14217,4 +14217,68 @@ window.baixarImagem=function(elementId,nomeArquivo){
   setInterval(conferir,450);setTimeout(()=>{if(ativo())sincronizar(true);montarColuna();},1900);
 })();
 </script>
+<style id="fs-v531-layout-pendencia-domingo-css">
+/* A coluna dominical e apenas um indicador operacional; ela nao pode
+   redimensionar as colunas principais da relacao de colaboradores. */
+#baseContent table.fsTabelaDomingoCompacta{table-layout:fixed;width:100%}
+#baseContent table.fsTabelaDomingoCompacta .fsDomPendingHead,
+#baseContent table.fsTabelaDomingoCompacta .fsDomPendingCell{width:148px!important;min-width:148px!important;max-width:148px!important;padding-left:6px!important;padding-right:6px!important}
+#baseContent table.fsTabelaDomingoCompacta .fsDomPendingHead{font-size:11px;line-height:1.15;white-space:normal}
+#baseContent table.fsTabelaDomingoCompacta .fsDomPendingCell select{width:100%!important;min-height:32px!important;padding:4px 6px!important;border-radius:8px!important;font-size:11px!important}
+#baseContent table.fsTabelaDomingoCompacta .fsDomPendingCell small{font-size:9px!important;line-height:1.15!important;margin-top:3px!important}
+#baseContent .fsDomingoAvisoLista{display:none!important}
+#baseContent table.fsModo6x1 th.fsFolgaDistribuidaOculta,
+#baseContent table.fsModo6x1 td.fsFolgaDistribuidaOculta{display:none!important}
+#baseContent .fsDomResolvidoCompacto{display:flex;align-items:center;justify-content:center;min-height:32px;border:1px solid #7bd5a8;border-radius:8px;background:#eafaf2;color:#08783e;font-size:11px;font-weight:900;cursor:pointer;padding:4px;text-align:center}
+@media(max-width:900px){#baseContent table.fsTabelaDomingoCompacta .fsDomPendingHead,#baseContent table.fsTabelaDomingoCompacta .fsDomPendingCell{width:126px!important;min-width:126px!important;max-width:126px!important}}
+</style>
+<script id="fs-v531-layout-pendencia-domingo">
+(function(){
+  function domingoAtivo(){
+    try{const d=window.fsGetDadosEmpresa?.();if(d&&typeof d.abreDomingo==='boolean')return d.abreDomingo;}catch(e){}
+    try{const d=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}');if(typeof d.abreDomingo==='boolean')return d.abreDomingo;}catch(e){}
+    return !!state?.config?.funcionamentoUnidade?.abreDomingo;
+  }
+  function ajustarTabela(){
+    const base=document.getElementById('baseContent');if(!base)return;
+    const on=domingoAtivo(),modo=state?.config?.modo||'6x1';
+    base.querySelector('.fsDomingoAvisoLista')?.remove();
+    base.querySelectorAll('table').forEach(tab=>{
+      tab.classList.toggle('fsTabelaDomingoCompacta',on);
+      tab.classList.toggle('fsModo6x1',modo==='6x1');
+      const head=[...tab.querySelectorAll('thead th')];
+      const folgaIndex=head.findIndex(th=>/folga\s+distribu[ií]da/i.test(th.textContent||''));
+      if(folgaIndex>=0){
+        head[folgaIndex].classList.toggle('fsFolgaDistribuidaOculta',modo==='6x1');
+        tab.querySelectorAll('tbody tr').forEach(tr=>{
+          if(tr.querySelector('[colspan]'))return;
+          tr.children[folgaIndex]?.classList.toggle('fsFolgaDistribuidaOculta',modo==='6x1');
+        });
+      }
+      if(!on){
+        tab.querySelectorAll('.fsDomPendingHead,.fsDomPendingCell').forEach(x=>x.remove());
+        tab.querySelectorAll('tbody [data-fs-dom-col="1"]').forEach(c=>{c.colSpan=Math.max(1,Number(c.colSpan||1)-1);delete c.dataset.fsDomCol;});
+        return;
+      }
+      tab.querySelectorAll('.fsDomPendingCell').forEach(td=>{
+        const sel=td.querySelector('select');if(!sel)return;
+        const valor=sel.value;
+        if(valor){
+          const label=sel.options[sel.selectedIndex]?.textContent?.replace(/^Folga na\s+/i,'')||'Definida';
+          sel.style.display='none';
+          td.querySelector('small')?.remove();
+          let ok=td.querySelector('.fsDomResolvidoCompacto');
+          if(!ok){ok=document.createElement('button');ok.type='button';ok.className='fsDomResolvidoCompacto';ok.title='Clique para alterar a folga do domingo';ok.onclick=()=>{ok.remove();sel.style.display='';sel.focus();};td.appendChild(ok);}
+          ok.textContent=valor==='nao'?'✅ Não trabalha':'✅ '+label;
+        }
+      });
+    });
+  }
+  let agendado=false;
+  function agendar(){if(agendado)return;agendado=true;setTimeout(()=>{agendado=false;ajustarTabela();},130);}
+  const obs=new MutationObserver(agendar);
+  function iniciar(){const base=document.getElementById('baseContent');if(base)obs.observe(base,{childList:true,subtree:true});ajustarTabela();setInterval(ajustarTabela,700);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,2100));else setTimeout(iniciar,2100);
+})();
+</script>
 </body></html>
