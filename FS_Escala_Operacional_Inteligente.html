@@ -13841,4 +13841,52 @@ window.baixarImagem=function(elementId,nomeArquivo){
   setTimeout(()=>{campo();destacarLista();},250);
 })();
 </script>
+<script id="fs-v520-correcao-domingo-aprendiz">
+(function(){
+  function lerEmpresa(){try{return JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')}catch(e){return{}}}
+  function domingoMarcado(){const ck=document.getElementById('fsAbreDomingo');if(ck)return!!ck.checked;const cfg=state?.config?.funcionamentoUnidade;if(cfg&&typeof cfg.abreDomingo==='boolean')return cfg.abreDomingo;return!!lerEmpresa().abreDomingo;}
+  function gravarDomingo(on){
+    state.config=state.config||{};state.config.funcionamentoUnidade=state.config.funcionamentoUnidade||{};state.config.funcionamentoUnidade.abreDomingo=!!on;
+    const d=lerEmpresa();d.abreDomingo=!!on;localStorage.setItem('fsDadosEmpresa',JSON.stringify(d));save();
+  }
+  function limparDomingo(){
+    if(domingoMarcado())return;
+    document.getElementById('fsDomingoScheduleCard')?.remove();
+    document.querySelector('#relatorios [data-fs-domingo-relatorio]')?.remove();
+    const btn=document.querySelector('#nav [data-page="domingo"]'),sec=document.getElementById('domingo');
+    if(btn?.classList.contains('active')||sec?.classList.contains('active'))document.querySelector('#nav [data-page="visao"]')?.click();
+    btn?.remove();sec?.remove();
+  }
+  function atualizarDomingoCompleto(){
+    const on=domingoMarcado();gravarDomingo(on);
+    document.querySelectorAll('.fsHorarioDomingoCampo').forEach(x=>x.style.display=on?'block':'none');
+    if(!on)limparDomingo();
+    if(typeof window.fsRenderHorarioDomingoConfig==='function')window.fsRenderHorarioDomingoConfig(on);
+    if(typeof renderCronograma==='function')renderCronograma();
+    if(typeof renderRelatoriosPreview==='function')renderRelatoriosPreview();
+    setTimeout(()=>{if(typeof render==='function')render();if(!on)limparDomingo();},30);
+  }
+  window.fsAtualizarCamposDomingo=atualizarDomingoCompleto;
+
+  function criarCampoAprendiz(){
+    const modal=document.getElementById('pessoaModal'),grid=modal?.querySelector('.modalGrid');if(!modal||!grid)return;
+    const existentes=[...modal.querySelectorAll('.fsAprendizCadastro')];let box=existentes[0]||null;existentes.slice(1).forEach(x=>x.remove());
+    if(box&&box.parentElement!==grid){box.remove();box=null;}
+    if(!box){box=document.createElement('div');box.className='fsAprendizCadastro';box.innerHTML=`<label class="fsAprendizCheck"><input type="checkbox" id="mJovemAprendiz"> Jovem aprendiz</label><div class="fsAprendizMeta"><label for="mCargaSemanalAprendiz">Carga semanal individual</label><input type="number" id="mCargaSemanalAprendiz" min="1" max="44" step="1" value="12"><small>horas por semana</small></div><div class="fsAprendizAjuda">Ao ativar, a conferência usa esta meta individual. Exemplo: 3 dias de 4h = 12h semanais.</div>`;grid.appendChild(box);}
+    const checks=[...modal.querySelectorAll('#mJovemAprendiz')],metas=[...modal.querySelectorAll('#mCargaSemanalAprendiz')];checks.slice(1).forEach(x=>x.closest('.fsAprendizCadastro')?.remove());metas.slice(1).forEach(x=>x.closest('.fsAprendizCadastro')?.remove());
+    const ck=box.querySelector('#mJovemAprendiz'),meta=box.querySelector('.fsAprendizMeta'),aj=box.querySelector('.fsAprendizAjuda');
+    if(!ck.dataset.fsUnico){ck.dataset.fsUnico='1';ck.addEventListener('change',()=>{meta.style.display=ck.checked?'block':'none';aj.style.display=ck.checked?'block':'none';});}
+  }
+  function preencherAprendiz(){
+    criarCampoAprendiz();const modal=document.getElementById('pessoaModal'),i=document.getElementById('editIndex')?.value,p=i===''?null:state.pessoas[Number(i)],ck=modal?.querySelector('#mJovemAprendiz'),inp=modal?.querySelector('#mCargaSemanalAprendiz');if(!ck||!inp)return;
+    ck.checked=!!p?.jovemAprendiz;inp.value=Math.max(1,Number(p?.cargaSemanalAprendiz||12));ck.dispatchEvent(new Event('change'));
+  }
+  function envolver(nome){const ant=window[nome];if(typeof ant!=='function'||ant.__fsV520)return;const fn=function(){const r=ant.apply(this,arguments);setTimeout(preencherAprendiz,90);return r;};fn.__fsV520=true;window[nome]=fn;try{if(nome==='editarPessoa')editarPessoa=fn;else novoPessoa=fn}catch(e){}}
+  envolver('editarPessoa');envolver('novoPessoa');
+  document.addEventListener('change',e=>{if(e.target?.id==='fsAbreDomingo')atualizarDomingoCompleto();});
+  const obs=new MutationObserver(()=>{const modal=document.getElementById('pessoaModal');if(modal&&modal.style.display!=='none'){const n=modal.querySelectorAll('.fsAprendizCadastro').length;if(n!==1)preencherAprendiz();}if(!domingoMarcado())limparDomingo();});
+  try{obs.observe(document.body,{childList:true,subtree:true});}catch(e){}
+  setTimeout(()=>{gravarDomingo(domingoMarcado());if(!domingoMarcado())limparDomingo();criarCampoAprendiz();},350);
+})();
+</script>
 </body></html>
