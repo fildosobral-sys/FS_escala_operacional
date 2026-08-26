@@ -13858,13 +13858,25 @@ window.baixarImagem=function(elementId,nomeArquivo){
     btn?.remove();sec?.remove();
   }
   function atualizarDomingoCompleto(){
+    if(window.__fsAtualizandoDomingo){
+      const on=domingoMarcado();
+      document.querySelectorAll('.fsHorarioDomingoCampo').forEach(x=>x.style.display=on?'block':'none');
+      if(typeof window.fsRenderHorarioDomingoConfig==='function')window.fsRenderHorarioDomingoConfig(on);
+      if(!on)limparDomingo();
+      return;
+    }
+    window.__fsAtualizandoDomingo=true;
     const on=domingoMarcado();gravarDomingo(on);
     document.querySelectorAll('.fsHorarioDomingoCampo').forEach(x=>x.style.display=on?'block':'none');
     if(!on)limparDomingo();
     if(typeof window.fsRenderHorarioDomingoConfig==='function')window.fsRenderHorarioDomingoConfig(on);
-    if(typeof renderCronograma==='function')renderCronograma();
-    if(typeof renderRelatoriosPreview==='function')renderRelatoriosPreview();
-    setTimeout(()=>{if(typeof render==='function')render();if(!on)limparDomingo();},30);
+    try{if(typeof render==='function')render();}catch(e){console.error(e);}
+    setTimeout(()=>{
+      if(typeof renderCronograma==='function')renderCronograma();
+      if(typeof renderRelatoriosPreview==='function')renderRelatoriosPreview();
+      if(!on)limparDomingo();
+      window.__fsAtualizandoDomingo=false;
+    },500);
   }
   window.fsAtualizarCamposDomingo=atualizarDomingoCompleto;
 
