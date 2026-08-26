@@ -13557,7 +13557,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function descanso(p){const f=dias.filter(d=>!workingOn(p,d)).map(d=>diasLabel[d]);f.push('Domingo');return [...new Set(f)].join(' + ');}
   function pagina(lista,pi,total,d){return `<section class="fsJornadaPagina">${cabecalho(d,pi,total)}${tabela(lista,pi*MAX_POR_PAGINA)}<div class="fsJornadaDirFooter"><div class="fsJornadaDirObs"><b>Observação:</b> documento gerado automaticamente a partir dos horários individuais cadastrados. O símbolo “* varia por dia” indica que o colaborador possui horário ou folga diferente entre segunda e sexta-feira.</div><div class="fsJornadaDirAss"><span></span>ASSINATURA DO EMPREGADOR OU REPRESENTANTE LEGAL</div><div class="fsJornadaDirPag">Página ${pi+1} de ${total} • Emitido em ${new Date().toLocaleDateString('pt-BR')}</div></div></section>`;}
   window.montarRelatorioJornadaGeral=function(){const d=window.fsGetDadosEmpresa?fsGetDadosEmpresa():{},lista=typeof ordenar==='function'?ordenar(state.pessoas||[]):(state.pessoas||[]),ps=partes(lista,MAX_POR_PAGINA);return `<div class="fsJornadaPacote">${ps.map((x,i)=>pagina(x,i,ps.length,d)).join('')}</div>`;};
-  async function canvasPagina(el){const src=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const margem=85,maxW=out.width-margem*2,maxH=out.height-margem*2,ratio=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*ratio),dh=Math.floor(src.height*ratio);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;}
+  async function canvasPagina(el){const src=await html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const margem=85,maxW=out.width-margem*2,maxH=out.height-margem*2,ratio=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*ratio),dh=Math.floor(src.height*ratio);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;}
   window.baixarRelatorioJornadaGeral=async function(){
     if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
     document.getElementById('fsJornadaGeralStage')?.remove();const stage=document.createElement('div');stage.id='fsJornadaGeralStage';stage.style.cssText='position:fixed;left:-12000px;top:0;width:1600px;background:#fff;z-index:-1';stage.innerHTML=montarRelatorioJornadaGeral();document.body.appendChild(stage);
@@ -13592,7 +13592,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   window.montarRelatorioJornadaPorFuncao=function(){return `<div class="fsJornadaPacote fsJornadaPorFuncao">${gruposFuncao().map(([f,ps])=>htmlGrupo(f,ps)).join('')}</div>`;};
   async function renderA4(el){
-    const src=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});
+    const src=await html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});
     const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,0,0,out.width,out.height);return out;
   }
   window.baixarRelatorioJornadaPorFuncao=async function(){
@@ -13610,7 +13610,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <script id="fs-v515-jornada-funcao-unica">
 /* Jornada por função em um único relatório contínuo, com subtítulos discretos. */
 (function(){
-  const CAPACIDADE_VISUAL_PAGINA=26;
+  const CAPACIDADE_VISUAL_PAGINA=23.5;
   function normal(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
   function ordenarAgrupado(){
     return (state.pessoas||[]).slice().sort((a,b)=>{
@@ -13645,7 +13645,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   window.montarRelatorioJornadaPorFuncao=function(){const lista=ordenarAgrupado(),ps=blocos(lista);return `<div class="fsJornadaPacote fsJornadaPorFuncao">${ps.map((b,i)=>montarPaginaDoBloco(b,i,ps.length)).join('')}</div>`;};
   async function renderComMargem(el){
-    const src=await html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=85,maxW=out.width-m*2,maxH=out.height-m*2,r=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*r),dh=Math.floor(src.height*r);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;
+    const src=await html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=85,maxW=out.width-m*2,maxH=out.height-m*2,r=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*r),dh=Math.floor(src.height*r);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;
   }
   window.baixarRelatorioJornadaPorFuncao=async function(){
     if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
@@ -13656,4 +13656,21 @@ window.baixarImagem=function(elementId,nomeArquivo){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(atualizarBotao,500));document.addEventListener('click',()=>setTimeout(atualizarBotao,100),true);
 })();
 </script>
+<style id="fs-v516-impressao-legivel">
+.fsJornadaDirTable th{font-size:14px!important;padding:8px 4px!important}
+.fsJornadaDirTable thead tr:first-child th{font-size:15px!important;padding:10px 4px!important}
+.fsJornadaDirTable td{font-size:15px!important;line-height:1.16!important;font-weight:850!important;padding:8px 5px!important}
+.fsJornadaDirTable tbody tr{height:65px!important}
+.fsJornadaDirTable .nome{font-size:16px!important}
+.fsJornadaDirTable .funcao{font-size:14px!important}
+.fsJornadaDirTable .carga{font-size:18px!important}
+.fsJornadaGrupoLinha td{font-size:15px!important;padding:6px 12px!important}
+.fsJornadaDirTable tbody tr.fsJornadaGrupoLinha{height:35px!important}
+.fsJornadaGrupoLinha .fsGrupoQtd{font-size:13px!important}
+.fsJornadaDirDado b{font-size:12px!important}
+.fsJornadaDirDado span{font-size:17px!important}
+.fsJornadaDirMeta .fsJornadaDirDado span{font-size:15px!important}
+.fsJornadaDirFooter{font-size:14px}
+.fsJornadaDirObs,.fsJornadaDirAss{font-size:14px!important}
+</style>
 </body></html>
