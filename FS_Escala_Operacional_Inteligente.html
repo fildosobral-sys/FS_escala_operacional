@@ -13983,4 +13983,62 @@ window.baixarImagem=function(elementId,nomeArquivo){
   try{baixarQuadroIndividual=window.baixarQuadroIndividual}catch(e){}
 })();
 </script>
+<style id="fs-v523-individual-executivo">
+.fsInd523Stage{position:fixed;left:-20000px;top:0;width:1120px;background:#fff}.fsInd523{width:1120px;min-height:790px;background:#f4f8ff;color:#101828;font-family:Arial,sans-serif;border:2px solid #071d68;border-radius:22px;overflow:hidden;box-sizing:border-box}.fsInd523Header{height:132px;background:linear-gradient(135deg,#061b63,#123aa5);display:grid;grid-template-columns:250px 1fr;align-items:center;padding:18px 30px;box-sizing:border-box;color:#fff}.fsInd523Logo{height:86px;background:#fff;border-radius:15px;display:flex;align-items:center;justify-content:center;padding:10px 18px;box-sizing:border-box}.fsInd523Logo img{max-width:100%;max-height:66px;object-fit:contain}.fsInd523Title{padding-left:28px}.fsInd523Title h1{font-size:35px;line-height:1;margin:0 0 10px;font-weight:950;letter-spacing:.5px}.fsInd523Title p{font-size:17px;margin:0;color:#ffd72e;font-weight:900}.fsInd523Body{padding:18px 22px 14px}.fsInd523Company{display:grid;grid-template-columns:1.35fr 1fr .75fr;gap:10px;margin-bottom:12px}.fsInd523Card{background:#fff;border:1px solid #c8d7eb;border-radius:11px;padding:10px 13px;min-height:56px;box-sizing:border-box}.fsInd523Card b{display:block;color:#59708f;font-size:10px;letter-spacing:.45px;text-transform:uppercase;margin-bottom:4px}.fsInd523Card strong{display:block;color:#071d68;font-size:15px;line-height:1.15}.fsInd523Person{display:grid;grid-template-columns:1.25fr 1fr .8fr .9fr;gap:10px;margin-bottom:12px}.fsInd523Person .fsInd523Card{min-height:66px}.fsInd523Person strong{font-size:18px}.fsInd523Badge{display:inline-flex;align-items:center;background:#e0f2fe;color:#075985;border:1px solid #7dd3fc;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:950;margin-top:3px}.fsInd523Table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid #bdcde4;border-radius:12px;overflow:hidden;table-layout:fixed}.fsInd523Table th{background:#071d68;color:#fff;padding:9px 6px;font-size:13px}.fsInd523Table td{border-right:1px solid #d3deed;border-top:1px solid #d3deed;padding:9px 7px;text-align:center;font-size:15px;height:31px}.fsInd523Table td:nth-child(2){text-align:left;font-weight:900;color:#071d68}.fsInd523Table tbody tr:nth-child(even){background:#f3f7fd}.fsInd523Table .folga{color:#667085;background:#f4f4f5;font-weight:800}.fsInd523Table .total{font-weight:950;color:#071d68}.fsInd523Sign{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:18px 12px 12px}.fsInd523Sign div{border-top:1px solid #516b94;text-align:center;padding-top:6px;font-size:11px;color:#071d68;font-weight:900}.fsInd523Notice{background:#fff;border:2px solid #071d68;border-radius:12px;padding:11px 14px;color:#203864;font-size:12px;line-height:1.35;font-weight:700}.fsInd523Notice b{color:#071d68}.fsInd523Footer{background:#071d68;color:#fff;min-height:44px;display:flex;align-items:center;justify-content:space-between;padding:8px 28px;box-sizing:border-box;font-size:12px;font-weight:900}.fsInd523Footer strong{font-size:14px}.fsInd523Ok{color:#08783e}.fsInd523Warn{color:#a24a00}
+</style>
+<script id="fs-v523-calculo-exato-e-quadro">
+(function(){
+  const diasBase=['segunda','terca','quarta','quinta','sexta','sabado'];
+  function metaMinutos(p){return Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.cargaMeta||44)))*60;}
+  function diasMarcados(p){
+    if(p?.usarDiasIndividuais&&Array.isArray(p.diasAtivosIndividuais))return p.diasAtivosIndividuais.filter(d=>diasBase.includes(d)||(d==='domingo'&&window.fsGetDadosEmpresa?.().abreDomingo));
+    return diasBase.filter(d=>{const h=p?.horariosIndividuais?.[d];return h?.ativo!==false&&(typeof workingOn==='function'?workingOn(p,d):true);});
+  }
+  function trabalhaExato(p,d){return diasMarcados(p).includes(d);}
+  function horarioExato(p,d){
+    const h=p?.horariosIndividuais?.[d];
+    if(h?.ativo||trabalhaExato(p,d)){
+      if(h&&h.entrada!=null)return{titulo:h.titulo||'',entrada:h.entrada||'00:00',almocoIni:h.almocoIni||'00:00',almocoFim:h.almocoFim||'00:00',saida:h.saida||'00:00'};
+    }
+    return typeof horarioPessoa==='function'?horarioPessoa(p,d):{entrada:'00:00',almocoIni:'00:00',almocoFim:'00:00',saida:'00:00'};
+  }
+  function totalExato(p){let t=0;diasMarcados(p).forEach(d=>{t+=calc(horarioExato(p,d));});return t;}
+  window.fsDiasMarcadosPessoa=diasMarcados;window.fsHorarioExatoPessoa=horarioExato;window.fsTotalExatoPessoa=totalExato;
+  window.workingOn=trabalhaExato;try{workingOn=trabalhaExato}catch(e){}
+  window.totalPessoa=function(p){window.__fsPessoaStatus=p;return totalExato(p);};try{totalPessoa=window.totalPessoa}catch(e){}
+  window.status=function(total){const p=window.__fsPessoaStatus,dif=Number(total||0)-metaMinutos(p);if(Math.abs(dif)<=5)return['OK','ok',''];return[dif>0?'Excesso':'Abaixo',dif>0?'bad':'warn',fmt(Math.abs(dif))];};try{status=window.status}catch(e){}
+
+  const salvarAnt=window.salvarPessoaModal||salvarPessoaModal;
+  window.salvarPessoaModal=function(){
+    const idx=document.getElementById('editIndex')?.value,nome=document.getElementById('mNome')?.value.trim(),aprendiz=!!document.querySelector('#pessoaModal #mJovemAprendiz')?.checked,meta=Math.max(1,Number(document.querySelector('#pessoaModal #mCargaSemanalAprendiz')?.value||12));
+    const ativos=diasBase.filter(d=>document.getElementById('mIndAtivo_'+d)?.checked),captura={};
+    ativos.forEach(d=>{captura[d]={ativo:true,entrada:document.getElementById('mIndEntrada_'+d)?.value||'00:00',almocoIni:document.getElementById('mIndAlmocoIni_'+d)?.value||'00:00',almocoFim:document.getElementById('mIndAlmocoFim_'+d)?.value||'00:00',saida:document.getElementById('mIndSaida_'+d)?.value||'00:00'};});
+    const r=salvarAnt.apply(this,arguments);const p=idx!==''?state.pessoas[Number(idx)]:[...state.pessoas].reverse().find(x=>x.nome===nome);if(!p)return r;
+    p.jovemAprendiz=aprendiz;p.cargaSemanalAprendiz=meta;p.usarDiasIndividuais=true;p.diasAtivosIndividuais=[...ativos];p.sabadoSim=ativos.includes('sabado');p.horariosIndividuais={...(p.horariosIndividuais||{})};
+    diasBase.forEach(d=>{if(captura[d])p.horariosIndividuais[d]=captura[d];else delete p.horariosIndividuais[d];});
+    save();setTimeout(()=>{if(typeof render==='function')render();},50);return r;
+  };try{salvarPessoaModal=window.salvarPessoaModal}catch(e){}
+
+  function empresa(){return window.fsGetDadosEmpresa?window.fsGetDadosEmpresa():{};}
+  function esc(v){return typeof html==='function'?html(String(v??'')):String(v??'');}
+  function linha(p,d,i){
+    const on=trabalhaExato(p,d),nome=diasLabel[d]||d;
+    if(!on)return `<tr class="folga"><td>${String(i+1).padStart(2,'0')}</td><td>${esc(nome)}</td><td colspan="3">FOLGA — dia não incluído na jornada</td><td>Folga</td></tr>`;
+    const h=horarioExato(p,d),tot=calc(h),inter=(h.almocoIni==='00:00'&&h.almocoFim==='00:00')?'Sem intervalo':`${h.almocoIni} às ${h.almocoFim}`;
+    return `<tr><td>${String(i+1).padStart(2,'0')}</td><td>${esc(nome)}</td><td>${esc(h.entrada)}</td><td>${esc(inter)}</td><td>${esc(h.saida)}</td><td class="total">${fmt(tot)}</td></tr>`;
+  }
+  function quadroHtml(p){
+    const d=empresa(),total=totalExato(p),meta=metaMinutos(p),dif=total-meta,ok=Math.abs(dif)<=5,lista=[...diasBase];if(d.abreDomingo)lista.push('domingo');
+    const filial=d.filial||d.denominacao||d.nomeFilial||'Unidade',cnpj=d.cnpj||'Não informado',logo='https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png';
+    const tipo=p.jovemAprendiz?`<span class="fsInd523Badge">🎓 Jovem aprendiz • meta ${Number(p.cargaSemanalAprendiz||12)}h</span>`:'Colaborador';
+    return `<div class="fsInd523"><header class="fsInd523Header"><div class="fsInd523Logo"><img src="${logo}" crossorigin="anonymous"></div><div class="fsInd523Title"><h1>QUADRO INDIVIDUAL EXECUTIVO</h1><p>${esc(filial)} • CNPJ ${esc(cnpj)}</p></div></header><main class="fsInd523Body"><section class="fsInd523Company"><div class="fsInd523Card"><b>Filial / denominação</b><strong>${esc(filial)}</strong></div><div class="fsInd523Card"><b>Empregador</b><strong>${esc(d.empregador||'Não informado')}</strong></div><div class="fsInd523Card"><b>CNPJ</b><strong>${esc(cnpj)}</strong></div></section><section class="fsInd523Person"><div class="fsInd523Card"><b>Colaborador</b><strong>${esc(p.nome)}</strong></div><div class="fsInd523Card"><b>Função</b><strong>${esc(formatarFuncao?formatarFuncao(p.funcao):p.funcao)}</strong></div><div class="fsInd523Card"><b>Modalidade</b><strong>${tipo}</strong></div><div class="fsInd523Card"><b>Total semanal / meta</b><strong class="${ok?'fsInd523Ok':'fsInd523Warn'}">${fmt(total)} / ${fmt(meta)}</strong></div></section><table class="fsInd523Table"><thead><tr><th style="width:6%">Nº</th><th style="width:25%">Jornada</th><th>Entrada</th><th>Intervalo</th><th>Saída</th><th>Total dia</th></tr></thead><tbody>${lista.map((x,i)=>linha(p,x,i)).join('')}</tbody></table><div class="fsInd523Sign"><div>ASSINATURA / CIÊNCIA DO COLABORADOR</div><div>GESTOR RESPONSÁVEL</div></div><div class="fsInd523Notice"><b>ORIENTAÇÃO DE CUMPRIMENTO DA JORNADA:</b> O colaborador deve seguir os horários definidos pela gestão e registrar corretamente no ponto a entrada, o intervalo, o retorno e a saída. Qualquer alteração de jornada, registro fora do horário ou mudança operacional depende de autorização expressa da gestão. Eventual descumprimento será tratado conforme as normas internas e a legislação aplicável.</div></main><footer class="fsInd523Footer"><strong>${esc(filial)}</strong><span>CNPJ ${esc(cnpj)} • Emitido em ${new Date().toLocaleDateString('pt-BR')}</span></footer></div>`;
+  }
+  window.baixarQuadroIndividual=function(){
+    const idx=document.getElementById('editIndex')?.value,p=idx===''?null:state.pessoas[Number(idx)];if(!p)return alert('Colaborador não encontrado.');if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou.');
+    const stage=document.createElement('div');stage.className='fsInd523Stage';stage.innerHTML=quadroHtml(p);document.body.appendChild(stage);const el=stage.firstElementChild;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,width:1120,height:Math.ceil(el.scrollHeight)}).then(canvas=>{const a=document.createElement('a');a.download='Quadro_Individual_'+norm(p.nome).replace(/\s+/g,'_')+'.png';a.href=canvas.toDataURL('image/png');a.click();}).catch(e=>alert('Erro ao gerar quadro: '+e.message)).finally(()=>stage.remove())));
+  };try{baixarQuadroIndividual=window.baixarQuadroIndividual}catch(e){}
+  setTimeout(()=>{if(typeof render==='function')render();},180);
+})();
+</script>
 </body></html>
