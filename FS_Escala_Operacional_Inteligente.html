@@ -5589,19 +5589,19 @@ function renderConfig(){
       <div class="scheduleRowTitle">👥 ${html(titulo)}</div>
       <div>
         <label>Entrada</label>
-        <input type="time" value="${h.entrada}" onchange="state.horarios['${d}'][${i}].entrada=this.value;save();render();">
+        <input type="time" value="${h.entrada}" onchange="state.horarios['${d}'][${i}].entrada=this.value;save();fsHorarioPadraoAlterado();">
       </div>
       <div>
         <label>Saída intervalo</label>
-        <input type="time" value="${h.almocoIni}" onchange="state.horarios['${d}'][${i}].almocoIni=this.value;save();render();">
+        <input type="time" value="${h.almocoIni}" onchange="state.horarios['${d}'][${i}].almocoIni=this.value;save();fsHorarioPadraoAlterado();">
       </div>
       <div>
         <label>Retorno intervalo</label>
-        <input type="time" value="${h.almocoFim}" onchange="state.horarios['${d}'][${i}].almocoFim=this.value;save();render();">
+        <input type="time" value="${h.almocoFim}" onchange="state.horarios['${d}'][${i}].almocoFim=this.value;save();fsHorarioPadraoAlterado();">
       </div>
       <div>
         <label>Saída final</label>
-        <input type="time" value="${h.saida}" onchange="state.horarios['${d}'][${i}].saida=this.value;save();render();">
+        <input type="time" value="${h.saida}" onchange="state.horarios['${d}'][${i}].saida=this.value;save();fsHorarioPadraoAlterado();">
       </div>
     </div>`;
   }
@@ -13785,7 +13785,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     const operacaoAnterior=window.operacaoDia||operacaoDia;window.operacaoDia=function(dia){if(dia==='domingo'&&ativo())return'100% operação';return operacaoAnterior(dia);};try{operacaoDia=window.operacaoDia}catch(e){}
     const corAnterior=window.execCorDia||execCorDia;window.execCorDia=function(dia){return dia==='domingo'?'sunday':corAnterior(dia);};try{execCorDia=window.execCorDia}catch(e){}
 
-    function linhaHorario(i){const h=state.horarios.domingo[i]||state.horarios.domingo[0];return `<div class="scheduleRow"><div class="scheduleRowTitle">👥 ${html(h.titulo||`Equipe ${String(i+1).padStart(2,'0')}`)}</div><div><label>Entrada</label><input type="time" value="${h.entrada}" onchange="state.horarios.domingo[${i}].entrada=this.value;save();render();"></div><div><label>Saída intervalo</label><input type="time" value="${h.almocoIni}" onchange="state.horarios.domingo[${i}].almocoIni=this.value;save();render();"></div><div><label>Retorno intervalo</label><input type="time" value="${h.almocoFim}" onchange="state.horarios.domingo[${i}].almocoFim=this.value;save();render();"></div><div><label>Saída final</label><input type="time" value="${h.saida}" onchange="state.horarios.domingo[${i}].saida=this.value;save();render();"></div></div>`;}
+    function linhaHorario(i){const h=state.horarios.domingo[i]||state.horarios.domingo[0];return `<div class="scheduleRow"><div class="scheduleRowTitle">👥 ${html(h.titulo||`Equipe ${String(i+1).padStart(2,'0')}`)}</div><div><label>Entrada</label><input type="time" value="${h.entrada}" onchange="state.horarios.domingo[${i}].entrada=this.value;save();fsHorarioPadraoAlterado();"></div><div><label>Saída intervalo</label><input type="time" value="${h.almocoIni}" onchange="state.horarios.domingo[${i}].almocoIni=this.value;save();fsHorarioPadraoAlterado();"></div><div><label>Retorno intervalo</label><input type="time" value="${h.almocoFim}" onchange="state.horarios.domingo[${i}].almocoFim=this.value;save();fsHorarioPadraoAlterado();"></div><div><label>Saída final</label><input type="time" value="${h.saida}" onchange="state.horarios.domingo[${i}].saida=this.value;save();fsHorarioPadraoAlterado();"></div></div>`;}
     function cardDomingo(){const qtd=Number(state.config.equipesDia.domingo)||1;return `<div class="dayScheduleCard fsDomingoScheduleCard" id="fsDomingoScheduleCard"><div class="dayScheduleHead"><div class="dayScheduleTitle"><b>Domingo</b><small>100% operação • unidade aberta</small></div><div><label>Quantidade de horários/equipes no dia</label><select onchange="state.config.equipesDia.domingo=Number(this.value);save();render();"><option value="1" ${qtd===1?'selected':''}>1 horário/equipe</option><option value="2" ${qtd===2?'selected':''}>2 horários/equipes</option><option value="3" ${qtd===3?'selected':''}>3 horários/equipes</option></select></div></div><div class="dayScheduleRows">${Array.from({length:qtd},(_,i)=>linhaHorario(i)).join('')}</div></div>`;}
     window.fsRenderHorarioDomingoConfig=function(forcar){garantirEstado();const box=document.querySelector('#configContent .horariosDiaBox');if(!box)return;const atual=document.getElementById('fsDomingoScheduleCard'),mostrar=typeof forcar==='boolean'?forcar:ativo();if(!mostrar){atual?.remove();return;}if(!atual)box.insertAdjacentHTML('beforeend',cardDomingo());};
     const atualizarDomingoAnterior=window.fsAtualizarCamposDomingo;window.fsAtualizarCamposDomingo=function(){if(typeof atualizarDomingoAnterior==='function')atualizarDomingoAnterior.apply(this,arguments);window.fsRenderHorarioDomingoConfig(!!document.getElementById('fsAbreDomingo')?.checked);};
@@ -13943,6 +13943,44 @@ window.baixarImagem=function(elementId,nomeArquivo){
     aplicar(!!e.target.checked);
   },true);
   setTimeout(()=>{const ck=document.getElementById('fsAbreDomingo');if(ck){ck.removeAttribute('onchange');aplicar(!!ck.checked);}},650);
+})();
+</script>
+<style id="fs-v522-premium-css">
+.fsCronoDomingoGrid{display:block!important;width:auto!important}.fsCronoDomingoGrid>.cronoExecPanel{display:block!important;width:100%!important;max-width:none!important;margin:0!important}.fsCronoDomingoGrid .cronoExecBody{width:100%!important;grid-template-columns:155px minmax(0,1fr)!important;box-sizing:border-box}.fsCronoDomingoGrid .miniIntervalTable{width:100%!important}
+.individualCard.fsIndividualPremium{background:linear-gradient(180deg,#f5f9ff 0%,#eef5ff 100%);border:2px solid #071d68}.individualCard.fsIndividualPremium .indTop{background:linear-gradient(135deg,#061b63,#123aa5);position:relative;overflow:hidden}.individualCard.fsIndividualPremium .indTop:after{content:'';position:absolute;width:230px;height:230px;border:34px solid rgba(255,255,255,.06);border-radius:50%;right:-65px;top:-105px}.individualCard.fsIndividualPremium .indGrid{grid-template-columns:1.2fr 1fr 1fr}.individualCard.fsIndividualPremium .indBox{background:#fff;border:1px solid #cbd9ed;box-shadow:0 3px 10px rgba(7,29,104,.06)}.individualCard.fsIndividualPremium .indBox b{color:#52709c;font-size:12px;letter-spacing:.35px}.individualCard.fsIndividualPremium .indBox span{color:#071d68;font-weight:950}.individualCard.fsIndividualPremium .indTable{box-shadow:0 3px 14px rgba(7,29,104,.07);border-radius:12px;overflow:hidden}.individualCard.fsIndividualPremium .indTable thead th{background:#071d68}.individualCard.fsIndividualPremium .indTable tbody tr:nth-child(even){background:#f4f8ff}.fsAprendizIndividualFaixa{margin:0 0 10px;background:linear-gradient(90deg,#e0f2fe,#eef8ff);border:1px solid #7dd3fc;border-left:7px solid #0284c7;border-radius:12px;padding:10px 14px;color:#075985;font-weight:950;display:flex;justify-content:space-between;align-items:center}.fsAprendizIndividualFaixa small{font-size:13px;color:#42647d}.individualCard.fsIndividualPremium .indFooter{background:linear-gradient(90deg,#061b63,#123aa5)}
+</style>
+<script id="fs-v522-horarios-aprendiz-premium">
+(function(){
+  let timerHorario;
+  window.fsHorarioPadraoAlterado=function(){clearTimeout(timerHorario);timerHorario=setTimeout(()=>{if(typeof renderCronograma==='function')renderCronograma();if(typeof renderRelatoriosPreview==='function')renderRelatoriosPreview();},180);};
+
+  const salvarAnterior=window.salvarPessoaModal||salvarPessoaModal;
+  window.salvarPessoaModal=function(){
+    const idxAntes=document.getElementById('editIndex')?.value, nomeAntes=document.getElementById('mNome')?.value.trim(), ck=document.querySelector('#pessoaModal #mJovemAprendiz'),meta=document.querySelector('#pessoaModal #mCargaSemanalAprendiz');
+    const aprendiz=!!ck?.checked,carga=Math.max(1,Number(meta?.value||12)),ativos=dias.filter(d=>document.getElementById('mIndAtivo_'+d)?.checked);
+    const r=salvarAnterior.apply(this,arguments);
+    let p=idxAntes!==''?state.pessoas[Number(idxAntes)]:[...state.pessoas].reverse().find(x=>x.nome===nomeAntes);if(!p)return r;
+    p.jovemAprendiz=aprendiz;p.cargaSemanalAprendiz=carga;p.usarDiasIndividuais=true;p.diasAtivosIndividuais=[...ativos];p.sabadoSim=ativos.includes('sabado');p.horariosIndividuais=p.horariosIndividuais||{};
+    dias.forEach(d=>{if(!ativos.includes(d))delete p.horariosIndividuais[d];});
+    save();render();return r;
+  };try{salvarPessoaModal=window.salvarPessoaModal}catch(e){}
+
+  function prepararQuadro(node,p){
+    const card=node?.querySelector?.('.individualCard');if(!card)return;card.classList.add('fsIndividualPremium');
+    const top=card.querySelector('.indTop'),total=totalPessoa(p),metaH=Math.max(1,Number(p.jovemAprendiz?p.cargaSemanalAprendiz:state.cargaMeta||44));
+    if(p.jovemAprendiz){
+      if(top){const sub=top.querySelector('p');if(sub)sub.textContent=`Jovem aprendiz | Meta individual ${metaH}h semanais | Jornada personalizada`;}
+      const body=card.querySelector('.indBody');if(body){const faixa=document.createElement('div');faixa.className='fsAprendizIndividualFaixa';faixa.innerHTML=`<span>🎓 JOVEM APRENDIZ</span><small>Meta cadastrada: ${metaH}h • Realizado: ${fmt(total)}</small>`;body.prepend(faixa);}
+      const caixas=[...card.querySelectorAll('.indBox')];caixas.forEach(x=>{const b=x.querySelector('b');if(/dias de trabalho/i.test(b?.textContent||'')){const nomes=dias.filter(d=>workingOn(p,d)).map(d=>diasLabel[d]);x.querySelector('span').textContent=nomes.join(', ')||'Nenhum dia marcado';}if(/total semanal/i.test(b?.textContent||''))b.textContent='Carga semanal / meta';});
+    }
+  }
+  const baixarAnterior=window.baixarQuadroIndividual;
+  if(typeof baixarAnterior==='function')window.baixarQuadroIndividual=function(){
+    const i=document.getElementById('editIndex')?.value,p=i===''?null:state.pessoas[Number(i)],body=document.body,append=body.appendChild;
+    body.appendChild=function(node){if(node?.id==='individualCaptureTemp'&&p)prepararQuadro(node,p);return append.call(this,node);};
+    try{return baixarAnterior.apply(this,arguments);}finally{body.appendChild=append;}
+  };
+  try{baixarQuadroIndividual=window.baixarQuadroIndividual}catch(e){}
 })();
 </script>
 </body></html>
