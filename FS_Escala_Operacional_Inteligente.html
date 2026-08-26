@@ -13901,4 +13901,48 @@ window.baixarImagem=function(elementId,nomeArquivo){
   setTimeout(()=>{gravarDomingo(domingoMarcado());if(!domingoMarcado())limparDomingo();criarCampoAprendiz();},350);
 })();
 </script>
+<script id="fs-v521-domingo-sem-recursao">
+(function(){
+  function salvarEstado(on){
+    state.config=state.config||{};state.config.funcionamentoUnidade=state.config.funcionamentoUnidade||{};state.config.funcionamentoUnidade.abreDomingo=!!on;
+    let d={};try{d=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')}catch(e){}d.abreDomingo=!!on;localStorage.setItem('fsDadosEmpresa',JSON.stringify(d));save();
+  }
+  function remover(){
+    document.getElementById('fsDomingoScheduleCard')?.remove();
+    document.querySelector('#relatorios [data-fs-domingo-relatorio]')?.remove();
+    const sec=document.getElementById('domingo'),btn=document.querySelector('#nav [data-page="domingo"]');
+    if(sec?.classList.contains('active'))document.querySelector('#nav [data-page="visao"]')?.click();
+    sec?.remove();btn?.remove();
+  }
+  function adicionarNavegacao(){
+    let sec=document.getElementById('domingo'),btn=document.querySelector('#nav [data-page="domingo"]');
+    if(!sec){sec=document.createElement('section');sec.id='domingo';sec.className='page';document.getElementById('sabado')?.insertAdjacentElement('afterend',sec);}
+    if(!btn){btn=document.createElement('button');btn.dataset.page='domingo';btn.textContent='Domingo';document.querySelector('#nav [data-page="sabado"]')?.insertAdjacentElement('afterend',btn);}
+    if(sec&&typeof renderDia==='function')renderDia('domingo');
+  }
+  function adicionarRelatorio(){
+    const grid=document.querySelector('#relatorios .execExportGrid');if(!grid||grid.querySelector('[data-fs-domingo-relatorio]'))return;
+    const b=document.createElement('button');b.className='primary fsSundayReportButton';b.dataset.fsDomingoRelatorio='1';b.innerHTML='🟠 Domingo<br><small>operação dominical</small>';b.onclick=()=>window.baixarRelatorioExecutivo('domingo');
+    const cron=grid.querySelector('button[onclick*="cronograma"]');grid.insertBefore(b,cron||null);
+  }
+  function aplicar(on){
+    if(window.__fsAplicandoDomingoV521)return;window.__fsAplicandoDomingoV521=true;
+    try{
+      salvarEstado(on);
+      document.querySelectorAll('.fsHorarioDomingoCampo').forEach(x=>x.style.display=on?'block':'none');
+      if(typeof window.fsRenderHorarioDomingoConfig==='function')window.fsRenderHorarioDomingoConfig(on);
+      if(on){adicionarNavegacao();adicionarRelatorio();}else remover();
+      if(typeof renderCronograma==='function')renderCronograma();
+      if(typeof renderRelatoriosPreview==='function')renderRelatoriosPreview();
+    }finally{setTimeout(()=>{window.__fsAplicandoDomingoV521=false;},80);}
+  }
+  window.fsAtualizarCamposDomingo=function(){const ck=document.getElementById('fsAbreDomingo');aplicar(!!ck?.checked);};
+  document.addEventListener('change',function(e){
+    if(e.target?.id!=='fsAbreDomingo')return;
+    e.stopImmediatePropagation();
+    aplicar(!!e.target.checked);
+  },true);
+  setTimeout(()=>{const ck=document.getElementById('fsAbreDomingo');if(ck){ck.removeAttribute('onchange');aplicar(!!ck.checked);}},650);
+})();
+</script>
 </body></html>
