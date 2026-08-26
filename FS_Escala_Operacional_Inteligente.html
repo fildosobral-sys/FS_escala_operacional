@@ -13989,10 +13989,12 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <script id="fs-v523-calculo-exato-e-quadro">
 (function(){
   const diasBase=['segunda','terca','quarta','quinta','sexta','sabado'];
+  const workingOnLegado=window.workingOn||workingOn;
   function metaMinutos(p){return Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.cargaMeta||44)))*60;}
   function diasMarcados(p){
     if(p?.usarDiasIndividuais&&Array.isArray(p.diasAtivosIndividuais))return p.diasAtivosIndividuais.filter(d=>diasBase.includes(d)||(d==='domingo'&&window.fsGetDadosEmpresa?.().abreDomingo));
-    return diasBase.filter(d=>{const h=p?.horariosIndividuais?.[d];return h?.ativo!==false&&(typeof workingOn==='function'?workingOn(p,d):true);});
+    if(state?.config?.modo==='6x1')return [...diasBase];
+    return diasBase.filter(d=>{const h=p?.horariosIndividuais?.[d];return h?.ativo!==false&&workingOnLegado(p,d);});
   }
   function trabalhaExato(p,d){return diasMarcados(p).includes(d);}
   function horarioExato(p,d){
@@ -14012,7 +14014,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.salvarPessoaModal=function(){
     const idx=document.getElementById('editIndex')?.value,nome=document.getElementById('mNome')?.value.trim(),aprendiz=!!document.querySelector('#pessoaModal #mJovemAprendiz')?.checked,meta=Math.max(1,Number(document.querySelector('#pessoaModal #mCargaSemanalAprendiz')?.value||12));
     const ativos=diasBase.filter(d=>document.getElementById('mIndAtivo_'+d)?.checked),captura={};
-    ativos.forEach(d=>{captura[d]={ativo:true,entrada:document.getElementById('mIndEntrada_'+d)?.value||'00:00',almocoIni:document.getElementById('mIndAlmocoIni_'+d)?.value||'00:00',almocoFim:document.getElementById('mIndAlmocoFim_'+d)?.value||'00:00',saida:document.getElementById('mIndSaida_'+d)?.value||'00:00'};});
+    ativos.forEach(d=>{captura[d]={ativo:true,entrada:document.getElementById('mIndEntrada_'+d)?.value||'00:00',almocoIni:document.getElementById('mIndIni_'+d)?.value||'00:00',almocoFim:document.getElementById('mIndFim_'+d)?.value||'00:00',saida:document.getElementById('mIndSaida_'+d)?.value||'00:00'};});
     const r=salvarAnt.apply(this,arguments);const p=idx!==''?state.pessoas[Number(idx)]:[...state.pessoas].reverse().find(x=>x.nome===nome);if(!p)return r;
     p.jovemAprendiz=aprendiz;p.cargaSemanalAprendiz=meta;p.usarDiasIndividuais=true;p.diasAtivosIndividuais=[...ativos];p.sabadoSim=ativos.includes('sabado');p.horariosIndividuais={...(p.horariosIndividuais||{})};
     diasBase.forEach(d=>{if(captura[d])p.horariosIndividuais[d]=captura[d];else delete p.horariosIndividuais[d];});
@@ -14029,16 +14031,24 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   function quadroHtml(p){
     const d=empresa(),total=totalExato(p),meta=metaMinutos(p),dif=total-meta,ok=Math.abs(dif)<=5,lista=[...diasBase];if(d.abreDomingo)lista.push('domingo');
-    const filial=d.filial||d.denominacao||d.nomeFilial||'Unidade',cnpj=d.cnpj||'Não informado',logo='https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png';
+    const filial=d.filial||d.denominacao||d.nomeFilial||'Unidade',cnpj=d.cnpj||'Não informado',logo='LOGO ATUAL.png';
     const tipo=p.jovemAprendiz?`<span class="fsInd523Badge">🎓 Jovem aprendiz • meta ${Number(p.cargaSemanalAprendiz||12)}h</span>`:'Colaborador';
     return `<div class="fsInd523"><header class="fsInd523Header"><div class="fsInd523Logo"><img src="${logo}" crossorigin="anonymous"></div><div class="fsInd523Title"><h1>QUADRO INDIVIDUAL EXECUTIVO</h1><p>${esc(filial)} • CNPJ ${esc(cnpj)}</p></div></header><main class="fsInd523Body"><section class="fsInd523Company"><div class="fsInd523Card"><b>Filial / denominação</b><strong>${esc(filial)}</strong></div><div class="fsInd523Card"><b>Empregador</b><strong>${esc(d.empregador||'Não informado')}</strong></div><div class="fsInd523Card"><b>CNPJ</b><strong>${esc(cnpj)}</strong></div></section><section class="fsInd523Person"><div class="fsInd523Card"><b>Colaborador</b><strong>${esc(p.nome)}</strong></div><div class="fsInd523Card"><b>Função</b><strong>${esc(formatarFuncao?formatarFuncao(p.funcao):p.funcao)}</strong></div><div class="fsInd523Card"><b>Modalidade</b><strong>${tipo}</strong></div><div class="fsInd523Card"><b>Total semanal / meta</b><strong class="${ok?'fsInd523Ok':'fsInd523Warn'}">${fmt(total)} / ${fmt(meta)}</strong></div></section><table class="fsInd523Table"><thead><tr><th style="width:6%">Nº</th><th style="width:25%">Jornada</th><th>Entrada</th><th>Intervalo</th><th>Saída</th><th>Total dia</th></tr></thead><tbody>${lista.map((x,i)=>linha(p,x,i)).join('')}</tbody></table><div class="fsInd523Sign"><div>ASSINATURA / CIÊNCIA DO COLABORADOR</div><div>GESTOR RESPONSÁVEL</div></div><div class="fsInd523Notice"><b>ORIENTAÇÃO DE CUMPRIMENTO DA JORNADA:</b> O colaborador deve seguir os horários definidos pela gestão e registrar corretamente no ponto a entrada, o intervalo, o retorno e a saída. Qualquer alteração de jornada, registro fora do horário ou mudança operacional depende de autorização expressa da gestão. Eventual descumprimento será tratado conforme as normas internas e a legislação aplicável.</div></main><footer class="fsInd523Footer"><strong>${esc(filial)}</strong><span>CNPJ ${esc(cnpj)} • Emitido em ${new Date().toLocaleDateString('pt-BR')}</span></footer></div>`;
   }
-  window.baixarQuadroIndividual=function(){
+  const baixarPremium=function(){
     const idx=document.getElementById('editIndex')?.value,p=idx===''?null:state.pessoas[Number(idx)];if(!p)return alert('Colaborador não encontrado.');if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou.');
     const stage=document.createElement('div');stage.className='fsInd523Stage';stage.innerHTML=quadroHtml(p);document.body.appendChild(stage);const el=stage.firstElementChild;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,width:1120,height:Math.ceil(el.scrollHeight)}).then(canvas=>{const a=document.createElement('a');a.download='Quadro_Individual_'+norm(p.nome).replace(/\s+/g,'_')+'.png';a.href=canvas.toDataURL('image/png');a.click();}).catch(e=>alert('Erro ao gerar quadro: '+e.message)).finally(()=>stage.remove())));
-  };try{baixarQuadroIndividual=window.baixarQuadroIndividual}catch(e){}
-  setTimeout(()=>{if(typeof render==='function')render();},180);
+    const img=el.querySelector('img'),pronto=img&&!img.complete?new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;setTimeout(resolve,1800);}):Promise.resolve();
+    pronto.then(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,width:1120,height:Math.ceil(el.scrollHeight)}).then(canvas=>{const a=document.createElement('a');a.download='Quadro_Individual_'+norm(p.nome).replace(/\s+/g,'_')+'.png';a.href=canvas.toDataURL('image/png');a.click();}).catch(e=>alert('Erro ao gerar quadro: '+e.message)).finally(()=>stage.remove()))));
+  };
+  function instalarPorUltimo(){
+    window.workingOn=trabalhaExato;try{workingOn=trabalhaExato}catch(e){}
+    window.totalPessoa=function(p){window.__fsPessoaStatus=p;return totalExato(p);};try{totalPessoa=window.totalPessoa}catch(e){}
+    window.status=function(total){const p=window.__fsPessoaStatus,dif=Number(total||0)-metaMinutos(p);if(Math.abs(dif)<=5)return['OK','ok',''];return[dif>0?'Excesso':'Abaixo',dif>0?'bad':'warn',fmt(Math.abs(dif))];};try{status=window.status}catch(e){}
+    window.baixarQuadroIndividual=baixarPremium;try{baixarQuadroIndividual=baixarPremium}catch(e){}
+    if(typeof render==='function')render();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(instalarPorUltimo,900));else setTimeout(instalarPorUltimo,900);
 })();
 </script>
 </body></html>
