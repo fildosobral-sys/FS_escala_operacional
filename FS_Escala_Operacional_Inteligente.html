@@ -14004,7 +14004,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     }
     return typeof horarioPessoa==='function'?horarioPessoa(p,d):{entrada:'00:00',almocoIni:'00:00',almocoFim:'00:00',saida:'00:00'};
   }
-  function totalExato(p){let t=0;diasMarcados(p).forEach(d=>{t+=calc(horarioExato(p,d));});return t;}
+  function totalExato(p){let t=0;diasMarcados(p).forEach(d=>{t+=d==='domingo'?480:calc(horarioExato(p,d));});return t;}
   window.fsDiasMarcadosPessoa=diasMarcados;window.fsHorarioExatoPessoa=horarioExato;window.fsTotalExatoPessoa=totalExato;
   window.workingOn=trabalhaExato;try{workingOn=trabalhaExato}catch(e){}
   window.totalPessoa=function(p){window.__fsPessoaStatus=p;return totalExato(p);};try{totalPessoa=window.totalPessoa}catch(e){}
@@ -14126,6 +14126,95 @@ window.baixarImagem=function(elementId,nomeArquivo){
     posRender();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(instalar,1500));else setTimeout(instalar,1500);
+})();
+</script>
+<style id="fs-v528-domingo-compensado-css">
+.fsDomPendingHead,.fsDomPendingCell{min-width:205px}.fsDomPendingCell select{width:100%;min-height:38px;border:1px solid #b9cbe5;border-radius:10px;background:#fff;color:#071d68;font-weight:800;padding:7px 9px}.fsDomPendingCell select.fsPendente{border-color:#f59e0b;background:#fff7e6;color:#9a4d00}.fsDomPendingCell select.fsResolvido{border-color:#16a56b;background:#effcf5;color:#08783e}.fsDomPendingCell small{display:block;margin-top:4px;font-size:10px;font-weight:800;color:#667085}.fsDomingoAvisoLista{margin:0 0 14px;border:1px solid #f1bd62;border-left:7px solid #e58b00;border-radius:14px;background:#fff8e9;padding:12px 15px;color:#7a4200;font-weight:800}.fsDomingoAvisoLista b{display:block;color:#8f4700;margin-bottom:3px}.fsDomPendBadge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:900;background:#fff0d5;color:#9a4d00;border:1px solid #f1bd62}.fsDomOkBadge{background:#eafaf2;color:#08783e;border-color:#7bd5a8}
+@media(max-width:900px){.fsDomPendingHead,.fsDomPendingCell{min-width:180px}.fsDomPendingCell select{font-size:12px}}
+</style>
+<script id="fs-v528-domingo-compensado">
+(function(){
+  const DS=['segunda','terca','quarta','quinta','sexta','sabado'],TODOS=[...DS,'domingo'];
+  const rot={segunda:'Segunda-feira',terca:'Terça-feira',quarta:'Quarta-feira',quinta:'Quinta-feira',sexta:'Sexta-feira',sabado:'Sábado',domingo:'Domingo'};
+  const clone=v=>JSON.parse(JSON.stringify(v));
+  const min=h=>{const [a,b]=String(h||'00:00').split(':').map(Number);return(a||0)*60+(b||0)};
+  const hora=m=>{m=Math.max(0,Math.min(1439,Math.round(m)));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+  function empresa(){try{return Object.assign({},JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}'),state?.config?.funcionamentoUnidade||{})}catch(e){return state?.config?.funcionamentoUnidade||{}}}
+  function ativo(){return!!empresa().abreDomingo}
+  function modo(){return state?.config?.modo||'6x1'}
+  function meta(p){return Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(modo()==='6x1'?44:40)))*60}
+  function perfis(){state.config.perfisDomingoCompensado=state.config.perfisDomingoCompensado||{};state.config.perfisDomingoCompensado[modo()]=state.config.perfisDomingoCompensado[modo()]||{};return state.config.perfisDomingoCompensado[modo()]}
+  function horarioPadrao(p,d){
+    const h=p?.horariosIndividuais?.[d];if(h?.ativo)return clone(h);
+    const arr=state?.horarios?.[d]||[],slot=Math.min(Math.max(0,Number(p?.slots?.[d]??p?.equipeBase??0)),Math.max(0,arr.length-1));
+    return clone(arr[slot]||arr[0]||{entrada:'00:00',almocoIni:'00:00',almocoFim:'00:00',saida:'00:00'});
+  }
+  function baseAtual(p){
+    const lista=Array.isArray(p.diasAtivosIndividuais)?p.diasAtivosIndividuais.filter(d=>DS.includes(d)):DS.filter(d=>{try{return workingOn(p,d)}catch(e){return true}});
+    return{dias:[...new Set(lista)],horarios:clone(p.horariosIndividuais||{}),usar:!!p.usarDiasIndividuais,sabado:!!p.sabadoSim};
+  }
+  function restaurarBase(p,reg){
+    if(!reg?.base)return;p.usarDiasIndividuais=true;p.diasAtivosIndividuais=clone(reg.base.dias||[]);p.horariosIndividuais=clone(reg.base.horarios||{});p.sabadoSim=p.diasAtivosIndividuais.includes('sabado');
+  }
+  function limite(d){const e=empresa(),dom=d==='domingo',sab=d==='sabado';return{abre:min(dom?(e.horarioDomingoEntrada||'10:00'):sab?(e.horarioSabadoEntrada||'08:00'):(e.horarioSemanaEntrada||'08:00')),fecha:min(dom?(e.horarioDomingoSaida||'20:00'):sab?(e.horarioSabadoSaida||'14:00'):(e.horarioSemanaSaida||'18:00'))}}
+  function minutosHorario(h){return Math.max(0,min(h.saida)-min(h.entrada)-Math.max(0,min(h.almocoFim)-min(h.almocoIni)))}
+  function total(p){return(p.diasAtivosIndividuais||[]).reduce((s,d)=>s+(d==='domingo'?480:minutosHorario(horarioPadrao(p,d))),0)}
+  function ajustarMeta(p){
+    const ativos=(p.diasAtivosIndividuais||[]).filter(d=>TODOS.includes(d));let dif=meta(p)-total(p);if(Math.abs(dif)<=5)return true;
+    p.horariosIndividuais=p.horariosIndividuais||{};
+    for(const d of [...ativos].reverse()){
+      if(Math.abs(dif)<=5)break;const h=horarioPadrao(p,d),lim=limite(d);let en=min(h.entrada),ai=min(h.almocoIni),af=min(h.almocoFim),sa=min(h.saida),int=Math.max(0,af-ai);
+      if(dif<0){
+        let tirar=Math.min(-dif,Math.max(0,180-int));if(tirar){if(int===0){ai=Math.max(en+60,Math.min(12*60,sa-60));af=ai+tirar}else af+=tirar;dif+=tirar;}
+        if(dif<0){tirar=Math.min(-dif,Math.max(0,sa-en-int));sa-=tirar;dif+=tirar;}
+      }else{
+        let add=Math.min(dif,int);if(add){af-=add;dif-=add;}
+        if(dif>0){add=Math.min(dif,Math.max(0,lim.fecha-sa));sa+=add;dif-=add;}
+        if(dif>0){add=Math.min(dif,Math.max(0,en-lim.abre));en-=add;dif-=add;}
+      }
+      p.horariosIndividuais[d]={ativo:true,entrada:hora(en),almocoIni:int||af>ai?hora(ai):'00:00',almocoFim:int||af>ai?hora(af):'00:00',saida:hora(sa)};
+    }
+    return Math.abs(dif)<=5;
+  }
+  function atualizarSnapshot(){
+    const pf=state.config?.perfisEscala?.[modo()];if(!pf)return;
+    pf.pessoas=pf.pessoas||{};(state.pessoas||[]).forEach(p=>{pf.pessoas[p.id]=Object.assign({},pf.pessoas[p.id]||{}, {horariosIndividuais:clone(p.horariosIndividuais||{}),diasAtivosIndividuais:clone(p.diasAtivosIndividuais||[]),usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim});});
+  }
+  function aplicarPessoa(p,reg){
+    restaurarBase(p,reg);
+    if(!ativo()||!reg?.folga||reg.folga==='nao')return;
+    const base=(reg.base?.dias||[]).filter(d=>DS.includes(d));
+    p.usarDiasIndividuais=true;p.diasAtivosIndividuais=[...base.filter(d=>d!==reg.folga),'domingo'];p.sabadoSim=p.diasAtivosIndividuais.includes('sabado');p.horariosIndividuais=p.horariosIndividuais||{};
+    delete p.horariosIndividuais[reg.folga];p.horariosIndividuais.domingo=Object.assign({ativo:true},horarioPadrao(p,'domingo'),{ativo:true});
+  }
+  function definir(id,valor){
+    const p=(state.pessoas||[]).find(x=>x.id===id);if(!p)return;const mapa=perfis(),reg=mapa[id]||(mapa[id]={base:baseAtual(p),folga:null});if(!reg.base)reg.base=baseAtual(p);reg.folga=valor||null;aplicarPessoa(p,reg);atualizarSnapshot();save();render();
+    const calculado=total(p),alvo=meta(p);if(valor&&valor!=='nao'&&Math.abs(calculado-alvo)>5)alert(`A folga foi aplicada, mas ainda existe uma diferença de ${fmt(Math.abs(calculado-alvo))}. Confira a sugestão de jornada do colaborador.`);
+  }
+  window.fsDefinirFolgaDomingo=definir;
+  function sincronizar(on){
+    const mapa=perfis();(state.pessoas||[]).forEach(p=>{let reg=mapa[p.id];if(on){if(!reg)reg=mapa[p.id]={base:baseAtual(p),folga:null};if(reg.folga)aplicarPessoa(p,reg);}else if(reg)restaurarBase(p,reg);});atualizarSnapshot();save();
+  }
+  function opcoes(p,reg){
+    const base=(reg?.base?.dias||baseAtual(p).dias).filter(d=>d!=='sabado');return `<option value="">⚠ Definir folga compensatória</option><option value="nao" ${reg?.folga==='nao'?'selected':''}>Não trabalha domingo</option>${base.map(d=>`<option value="${d}" ${reg?.folga===d?'selected':''}>Folga na ${rot[d]}</option>`).join('')}`;
+  }
+  function linhaId(tr){const oc=tr.querySelector('[onclick*="editarPessoa"]')?.getAttribute('onclick')||'';return oc.match(/editarPessoa\(['\"]([^'\"]+)/)?.[1]||null}
+  function montarColuna(){
+    const base=document.getElementById('baseContent');if(!base||!ativo())return;
+    if(!base.querySelector('.fsDomingoAvisoLista'))base.insertAdjacentHTML('afterbegin',`<div class="fsDomingoAvisoLista"><b>⚠ Operação de domingo: definir folga compensatória</b>O domingo mostra somente o horário realmente trabalhado, enquanto a compensação interna considera a jornada integral do dia substituído. Selecione uma folga de segunda a sexta para manter ${modo()==='6x1'?'44 horas e 6 dias':'40 horas e 5 dias'} semanais sem gerar débito.</div>`);
+    base.querySelectorAll('table').forEach(tab=>{
+      const hr=tab.querySelector('thead tr');if(hr&&!hr.querySelector('.fsDomPendingHead')){const th=document.createElement('th');th.className='fsDomPendingHead';th.textContent='PENDÊNCIA / DOMINGO';hr.insertBefore(th,hr.lastElementChild);}
+      tab.querySelectorAll('tbody tr').forEach(tr=>{
+        const id=linhaId(tr);if(!id){const c=tr.querySelector('[colspan]');if(c&&!c.dataset.fsDomCol){c.colSpan=Number(c.colSpan||1)+1;c.dataset.fsDomCol='1';}return;}
+        if(tr.querySelector('.fsDomPendingCell'))return;const p=state.pessoas.find(x=>x.id===id),reg=perfis()[id],td=document.createElement('td');td.className='fsDomPendingCell';const pend=!reg?.folga;
+        td.innerHTML=`<select class="${pend?'fsPendente':'fsResolvido'}" onchange="fsDefinirFolgaDomingo('${id}',this.value)">${opcoes(p,reg)}</select><small>${pend?'Pendente: colaborador ainda não escalado no domingo':reg.folga==='nao'?'Fora da equipe dominical':`Domingo substitui ${rot[reg.folga]}`}</small>`;tr.insertBefore(td,tr.lastElementChild);
+      });
+    });
+  }
+  let ultimo=ativo(),ocupado=false;
+  function conferir(){const agora=ativo();if(agora!==ultimo&&!ocupado){ocupado=true;ultimo=agora;sincronizar(agora);setTimeout(()=>{try{render()}finally{ocupado=false}},80);}if(agora)setTimeout(montarColuna,60);}
+  const renderAnt=window.render||render;if(!renderAnt.__fs528){const fn=function(){const r=renderAnt.apply(this,arguments);setTimeout(montarColuna,100);return r};fn.__fs528=true;window.render=fn;try{render=fn}catch(e){}}
+  setInterval(conferir,450);setTimeout(()=>{if(ativo())sincronizar(true);montarColuna();},1900);
 })();
 </script>
 </body></html>
