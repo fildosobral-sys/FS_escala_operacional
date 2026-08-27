@@ -14665,4 +14665,60 @@ window.baixarImagem=function(elementId,nomeArquivo){
   setTimeout(()=>{limparDomingoSemanal();save();ciclo()},2600);
 })();
 </script>
+<style id="fs-v541-integracao-domingo-css">
+#domingo>.fsDomMesPainel~*{display:none!important}
+#pessoaModal .fsDomingoEditorPergunta,#pessoaModal .fsLinhaDomingoIndividual{display:none!important}
+.fsDom541Status{width:126px!important;min-width:126px!important;font-size:10px!important}.fsDom541Pendente{display:inline-flex;align-items:center;border:1px solid #efbd64;border-radius:9px;background:#fff7e8;color:#8a4a00;padding:6px 9px;font-size:10px;font-weight:950;cursor:pointer}.fsDom541Ok{display:inline-flex;align-items:center;border:1px solid #7bd5a8;border-radius:9px;background:#eafaf2;color:#08783e;padding:6px 9px;font-size:10px;font-weight:950}.fsDom541Nao{color:#667085;font-weight:800}
+.fsInd523DomObs{margin:10px 0;background:#fff8e9;border:1px solid #efbd64;border-left:7px solid #e58b00;border-radius:12px;padding:10px 13px;color:#714000;font-size:11px;line-height:1.35}.fsInd523DomObs b{color:#7a4200}.fsInd523DomObs ul{margin:6px 0 0;padding-left:18px}.fsInd523DomObs li{margin:3px 0}
+</style>
+<script id="fs-v541-integracao-domingo">
+(function(){
+  const pad=n=>String(n).padStart(2,'0'),iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,br=s=>{if(!s)return'—';const[a,m,d]=s.split('-');return`${d}/${m}/${a}`};
+  function store(){state.config=state.config||{};const d=state.config.escalaDomingosPorData=state.config.escalaDomingosPorData||{competencia:`${new Date().getFullYear()}-${pad(new Date().getMonth()+1)}`,itens:{}};d.itens=d.itens||{};return d}
+  function domingos(){const c=store().competencia,[a,m]=c.split('-').map(Number),r=[],d=new Date(a,m-1,1);while(d.getMonth()===m-1){if(d.getDay()===0)r.push(iso(d));d.setDate(d.getDate()+1)}return r}
+  function folgas(data){const[a,m,d]=data.split('-').map(Number),b=new Date(a,m-1,d),r=[];for(let i=1;i<=5;i++){const x=new Date(b);x.setDate(b.getDate()+i);r.push(iso(x))}return r}
+  function reg(data,id){const s=store();s.itens[data]=s.itens[data]||{};const r=s.itens[data][id]||(s.itens[data][id]={status:'pendente',trabalha:false,folgaData:''});if(!r.status)r.status=r.trabalha?'trabalha':'pendente';return r}
+  function horario(){let e={};try{e=window.fsGetDadosEmpresa?.()||JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')}catch(_){ }return`${e.horarioDomingoEntrada||'10:00'} às ${e.horarioDomingoSaida||'20:00'}`}
+  function func(p){try{return formatarFuncao(p.funcao)}catch(e){return p.funcao||'—'}}
+  function situacao(p){const ds=domingos(),rs=ds.map(d=>reg(d,p.id)),pend=rs.some(r=>r.status==='pendente'||(r.status==='trabalha'&&!r.folgaData)),trabs=rs.filter(r=>r.status==='trabalha'&&r.folgaData);return{pend,trabs,nao:!pend&&!trabs.length}}
+  window.fsDom541Status=function(data,id,v){const r=reg(data,id);r.status=v;r.trabalha=v==='trabalha';if(r.trabalha&&!r.folgaData)r.folgaData=folgas(data)[0];if(!r.trabalha)r.folgaData='';save();renderPainel();setTimeout(atualizarTudo,20)};
+  window.fsDom541Folga=function(data,id,v){const r=reg(data,id);r.folgaData=v;save();renderPainel();setTimeout(atualizarTudo,20)};
+  window.fsDom541Mes=function(v){store().competencia=v;save();renderPainel();setTimeout(atualizarTudo,20)};
+  function linha(data,p){const r=reg(data,p.id),opts=folgas(data).map(x=>`<option value="${x}" ${r.folgaData===x?'selected':''}>${br(x)}</option>`).join(''),cl=r.status==='trabalha'?'fsDomSim':r.status==='nao'?'fsDomNao':'fsDomPendente';return`<tr class="${cl}"><td class="fsDom541Status"><select onchange="fsDom541Status('${data}','${p.id}',this.value)"><option value="pendente" ${r.status==='pendente'?'selected':''}>⚠ Pendente</option><option value="trabalha" ${r.status==='trabalha'?'selected':''}>✅ Trabalha</option><option value="nao" ${r.status==='nao'?'selected':''}>— Não trabalha</option></select></td><td><b>${p.nome}</b></td><td>${func(p)}</td><td>${r.status==='trabalha'?`<select onchange="fsDom541Folga('${data}','${p.id}',this.value)"><option value="">Definir folga</option>${opts}</select>`:r.status==='nao'?'<span class="fsDom541Nao">Não trabalha neste domingo</span>':'<span class="fsDom541Nao">Aguardando definição</span>'}</td></tr>`}
+  function painel(){const s=store(),ds=domingos();return`<div class="fsDomMesPainel" data-v541="1"><div class="fsDomMesTopo"><div><h3>📅 Escala dominical por data</h3><small>Classifique todos como Trabalha ou Não trabalha. Quem trabalhar terá folga obrigatória na semana subsequente.</small></div><input type="month" value="${s.competencia}" onchange="fsDom541Mes(this.value)"></div><div class="fsDomMesGrade">${ds.map(data=>{const qtd=(state.pessoas||[]).filter(p=>reg(data,p.id).status==='trabalha').length,pen=(state.pessoas||[]).filter(p=>reg(data,p.id).status==='pendente').length;return`<section class="fsDomDataCard"><div class="fsDomDataHead"><b>Domingo, ${br(data)}</b><span>${qtd} escalado(s) • ${pen} pendente(s)</span></div><table class="fsDomDataTabela"><thead><tr><th style="width:126px">Situação</th><th>Colaborador</th><th>Função</th><th>Folga na semana seguinte</th></tr></thead><tbody>${(state.pessoas||[]).map(p=>linha(data,p)).join('')}</tbody></table></section>`}).join('')}</div></div>`}
+  function renderPainel(){const sec=document.getElementById('domingo');if(!sec)return;const old=sec.querySelector('.fsDomMesPainel');if(old)old.outerHTML=painel();else sec.insertAdjacentHTML('afterbegin',painel())}
+  function idLinha(tr){const oc=tr.querySelector('[onclick*="editarPessoa"]')?.getAttribute('onclick')||'';return oc.match(/editarPessoa\(['"]([^'"]+)/)?.[1]}
+  function statusLista(){const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;const hs=[...tab.querySelectorAll('thead th')],idx=hs.findIndex(h=>/situa[cç][aã]o da jornada/i.test(h.textContent));if(idx<0)return;tab.querySelectorAll('tbody tr').forEach(tr=>{const id=idLinha(tr),p=state.pessoas.find(x=>x.id===id);if(!p)return;const st=situacao(p),td=tr.children[idx];if(!td)return;if(st.pend)td.innerHTML=`<button class="fsDom541Pendente" onclick="fsAbrirAgendaDomingos()">⚠ Domingo pendente</button>`;else if(st.trabs.length)td.innerHTML='<span class="fsDom541Ok">✅ Jornada OK</span>';});}
+  function atualModal(){const m=document.getElementById('pessoaModal');if(!m||m.style.display==='none')return;const idx=document.getElementById('editIndex')?.value,p=idx!==''?state.pessoas?.[Number(idx)]:(state.pessoas||[]).find(x=>x.nome===document.getElementById('mNome')?.value?.trim());if(!p)return;m.querySelector('.fsDomResumoIndividual')?.remove();const st=situacao(p),lis=domingos().map(d=>{const r=reg(d,p.id);return r.status==='trabalha'?`<li>✅ <b>${br(d)}</b> • ${horario()} • folga em <b>${br(r.folgaData)}</b></li>`:r.status==='nao'?`<li>— <b>${br(d)}</b> • não trabalha</li>`:`<li style="color:#9a4d00">⚠ <b>${br(d)}</b> • pendente</li>`}).join(''),html=`<div class="fsDomResumoIndividual"><b>📅 Escala dominical da competência</b><ul>${lis}</ul></div>`,a=m.querySelector('#mHorarioIndividualBox')||m.querySelector('.individualBox');if(a)a.insertAdjacentHTML('beforebegin',html)}
+  function obs(p){const st=situacao(p),lis=st.trabs.map(({folgaData},i)=>{const datas=domingos().filter(d=>reg(d,p.id).status==='trabalha'&&reg(d,p.id).folgaData)[i];return`<li>Trabalha domingo <b>${br(datas)}</b>, no horário ${horario()}, com folga compensatória em <b>${br(folgaData)}</b>.</li>`}).join('');return`<div class="fsInd523DomObs"><b>📅 PROGRAMAÇÃO DOMINICAL DA COMPETÊNCIA:</b>${lis?`<ul>${lis}</ul>`:' Não há domingo programado para este colaborador.'}${st.pend?'<br><b>⚠ Existem domingos ainda pendentes de definição.</b>':''}</div>`}
+  function instalarQuadro(){const ant=window.baixarQuadroIndividual;if(typeof ant!=='function'||ant.__fs541)return;const fn=function(){const idx=document.getElementById('editIndex')?.value,p=idx!==''?state.pessoas?.[Number(idx)]:null,ap=document.body.appendChild;document.body.appendChild=function(n){if(p&&n?.classList?.contains('fsInd523Stage')){const aviso=n.querySelector('.fsInd523Notice');if(aviso)aviso.insertAdjacentHTML('beforebegin',obs(p))}return ap.call(this,n)};try{return ant.apply(this,arguments)}finally{document.body.appendChild=ap}};fn.__fs541=true;window.baixarQuadroIndividual=fn;try{baixarQuadroIndividual=fn}catch(e){}}
+  function atualizarTudo(){if(document.getElementById('domingo')&&!document.querySelector('#domingo .fsDomMesPainel[data-v541]'))renderPainel();statusLista();atualModal();instalarQuadro()}
+  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizarTudo,35)}).observe(document.body,{childList:true,subtree:true});setInterval(atualizarTudo,300);setTimeout(()=>{renderPainel();atualizarTudo()},350);
+})();
+</script>
+<script id="fs-v542-ordem-inteligente-equipes">
+(function(){
+  const DS=['segunda','terca','quarta','quinta','sexta','sabado','domingo'];
+  const min=h=>{const[a,b]=String(h||'00:00').split(':').map(Number);return(a||0)*60+(b||0)};
+  const clone=v=>JSON.parse(JSON.stringify(v));
+  function chave(h){return[min(h?.entrada),min(h?.saida),min(h?.almocoIni),min(h?.almocoFim)]}
+  function cmp(a,b){const x=chave(a.h),y=chave(b.h);for(let i=0;i<x.length;i++)if(x[i]!==y[i])return x[i]-y[i];return a.i-b.i}
+  function distancia(h,p){return Math.abs(min(h?.entrada)-min(p?.entrada))*3+Math.abs(min(h?.saida)-min(p?.saida))*3+Math.abs(min(h?.almocoIni)-min(p?.almocoIni))*.15+Math.abs(min(h?.almocoFim)-min(p?.almocoFim))*.15}
+  function slotAntigo(p,d){if(d==='sabado'&&p.equipeSabado!=null)return Number(p.equipeSabado);if(state.config?.modo==='atual'&&d===state.config?.diaEspecial&&p.especialSlot!=null)return Number(p.especialSlot);return Number(p?.slots?.[d]??p?.equipeBase??0)}
+  let ultima='';
+  function assinatura(){return JSON.stringify(DS.map(d=>(state.horarios?.[d]||[]).map(h=>chave(h))))}
+  function normalizar(forcar){const sig=assinatura();if(!forcar&&sig===ultima)return false;ultima=sig;let mudou=false;
+    DS.forEach(d=>{const arr=state.horarios?.[d];if(!Array.isArray(arr)||arr.length<2)return;const ord=arr.map((h,i)=>({h:clone(h),i})).sort(cmp),map={};ord.forEach((x,novo)=>map[x.i]=novo);if(ord.some((x,i)=>x.i!==i)){state.horarios[d]=ord.map(x=>x.h);mudou=true}
+      (state.pessoas||[]).forEach(p=>{p.slots=p.slots||{};const ind=p.horariosIndividuais?.[d],ant=slotAntigo(p,d);let novo=map[ant]??Math.min(Math.max(0,ant),arr.length-1);
+        if(ind?.ativo){let melhor=Infinity;state.horarios[d].forEach((h,i)=>{const n=distancia(h,ind);if(n<melhor){melhor=n;novo=i}})}
+        if(Number(p.slots[d])!==novo){p.slots[d]=novo;mudou=true}if(d==='segunda')p.equipeBase=novo;if(d==='sabado')p.equipeSabado=novo;if(state.config?.modo==='atual'&&d===state.config?.diaEspecial&&p.especialSlot!=null)p.especialSlot=novo;
+      });
+    });
+    if(mudou){save();setTimeout(()=>{try{render()}catch(e){}},20)}return mudou;
+  }
+  window.fsOrdenarEquipesPorHorario=()=>normalizar(true);
+  function alfabetizar(){document.querySelectorAll('.board tbody').forEach(tb=>{const rows=[...tb.rows].filter(r=>r.querySelector('td.name'));rows.sort((a,b)=>(a.querySelector('td.name')?.textContent||'').localeCompare(b.querySelector('td.name')?.textContent||'','pt-BR',{sensitivity:'base'})).forEach((r,i)=>{const n=r.querySelector('td.ncol');if(n)n.textContent=String(i+1).padStart(2,'0');tb.appendChild(r)})})}
+  let busy=false;setInterval(()=>{if(busy)return;busy=true;try{normalizar(false);alfabetizar()}finally{busy=false}},350);setTimeout(()=>{normalizar(true);alfabetizar()},500);
+})();
+</script>
 </body></html>
