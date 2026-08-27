@@ -14150,11 +14150,17 @@ window.baixarImagem=function(elementId,nomeArquivo){
     return clone(arr[slot]||arr[0]||{entrada:'00:00',almocoIni:'00:00',almocoFim:'00:00',saida:'00:00'});
   }
   function baseAtual(p){
-    const lista=Array.isArray(p.diasAtivosIndividuais)?p.diasAtivosIndividuais.filter(d=>DS.includes(d)):DS.filter(d=>{try{return workingOn(p,d)}catch(e){return true}});
+    let lista=Array.isArray(p.diasAtivosIndividuais)?p.diasAtivosIndividuais.filter(d=>DS.includes(d)):DS.filter(d=>{try{return workingOn(p,d)}catch(e){return true}});
+    /* Recuperação para perfis antigos que ficaram sem nenhum dia marcado. */
+    if(!lista.length){
+      if(modo()==='6x1')lista=[...DS];
+      else if(modo()==='distribuido')lista=DS.filter(d=>d!==(p.folgaDistribuida||'terca'));
+      else{const esp=state.config?.diaEspecial||'quarta';lista=p.sabadoSim?[...DS.filter(d=>d!==esp)]:['segunda','terca','quarta','quinta','sexta'];}
+    }
     return{dias:[...new Set(lista)],horarios:clone(p.horariosIndividuais||{}),usar:!!p.usarDiasIndividuais,sabado:!!p.sabadoSim};
   }
   function restaurarBase(p,reg){
-    if(!reg?.base)return;p.usarDiasIndividuais=true;p.diasAtivosIndividuais=clone(reg.base.dias||[]);p.horariosIndividuais=clone(reg.base.horarios||{});p.sabadoSim=p.diasAtivosIndividuais.includes('sabado');
+    if(!reg?.base)return;const recuperada=(reg.base.dias||[]).filter(d=>DS.includes(d));if(!recuperada.length)reg.base=baseAtual(Object.assign({},p,{diasAtivosIndividuais:[]}));p.usarDiasIndividuais=true;p.diasAtivosIndividuais=clone(reg.base.dias||[]);p.horariosIndividuais=clone(reg.base.horarios||{});p.sabadoSim=p.diasAtivosIndividuais.includes('sabado');
   }
   function limite(d){const e=empresa(),dom=d==='domingo',sab=d==='sabado';return{abre:min(dom?(e.horarioDomingoEntrada||'10:00'):sab?(e.horarioSabadoEntrada||'08:00'):(e.horarioSemanaEntrada||'08:00')),fecha:min(dom?(e.horarioDomingoSaida||'20:00'):sab?(e.horarioSabadoSaida||'14:00'):(e.horarioSemanaSaida||'18:00'))}}
   function minutosHorario(h){return Math.max(0,min(h.saida)-min(h.entrada)-Math.max(0,min(h.almocoFim)-min(h.almocoIni)))}
@@ -14182,21 +14188,21 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   function aplicarPessoa(p,reg){
     restaurarBase(p,reg);
-    if(!ativo()||!reg?.folga||reg.folga==='nao')return;
+    if(!ativo()||reg?.folga==='nao')return;
     const base=(reg.base?.dias||[]).filter(d=>DS.includes(d));
-    p.usarDiasIndividuais=true;p.diasAtivosIndividuais=[...base.filter(d=>d!==reg.folga),'domingo'];p.sabadoSim=p.diasAtivosIndividuais.includes('sabado');p.horariosIndividuais=p.horariosIndividuais||{};
-    delete p.horariosIndividuais[reg.folga];p.horariosIndividuais.domingo=Object.assign({ativo:true},horarioPadrao(p,'domingo'),{ativo:true});
+    p.usarDiasIndividuais=true;p.diasAtivosIndividuais=[...base.filter(d=>!reg?.folga||d!==reg.folga),'domingo'];p.sabadoSim=p.diasAtivosIndividuais.includes('sabado');p.horariosIndividuais=p.horariosIndividuais||{};
+    if(reg?.folga)delete p.horariosIndividuais[reg.folga];p.horariosIndividuais.domingo=Object.assign({ativo:true},horarioPadrao(p,'domingo'),{ativo:true});
   }
   function definir(id,valor){
     const p=(state.pessoas||[]).find(x=>x.id===id);if(!p)return;const mapa=perfis(),reg=mapa[id]||(mapa[id]={base:baseAtual(p),folga:null});if(!reg.base)reg.base=baseAtual(p);reg.folga=valor||null;aplicarPessoa(p,reg);atualizarSnapshot();save();render();
     const calculado=total(p),alvo=meta(p);if(valor&&valor!=='nao'&&Math.abs(calculado-alvo)>5)alert(`A folga foi aplicada, mas ainda existe uma diferença de ${fmt(Math.abs(calculado-alvo))}. Confira a sugestão de jornada do colaborador.`);
   }
   window.fsDefinirFolgaDomingo=definir;
-  function sincronizar(on){
-    const mapa=perfis();(state.pessoas||[]).forEach(p=>{let reg=mapa[p.id];if(on){if(!reg)reg=mapa[p.id]={base:baseAtual(p),folga:null};if(reg.folga)aplicarPessoa(p,reg);}else if(reg)restaurarBase(p,reg);});atualizarSnapshot();save();
+  function sincronizar(on,reiniciar){
+    const mapa=perfis();(state.pessoas||[]).forEach(p=>{let reg=mapa[p.id];if(on){if(!reg)reg=mapa[p.id]={base:baseAtual(p),folga:null};if(!reg.base?.dias?.length)reg.base=baseAtual(p);if(reiniciar)reg.folga=null;aplicarPessoa(p,reg);}else if(reg)restaurarBase(p,reg);});atualizarSnapshot();save();
   }
   function opcoes(p,reg){
-    const base=(reg?.base?.dias||baseAtual(p).dias).filter(d=>d!=='sabado');return `<option value="">⚠ Definir folga compensatória</option><option value="nao" ${reg?.folga==='nao'?'selected':''}>Não trabalha domingo</option>${base.map(d=>`<option value="${d}" ${reg?.folga===d?'selected':''}>Folga na ${rot[d]}</option>`).join('')}`;
+    const base=['segunda','terca','quarta','quinta','sexta'];return `<option value="">⚠ Definir folga compensatória</option><option value="nao" ${reg?.folga==='nao'?'selected':''}>Não trabalha domingo</option>${base.map(d=>`<option value="${d}" ${reg?.folga===d?'selected':''}>Folga na ${rot[d]}</option>`).join('')}`;
   }
   function linhaId(tr){const oc=tr.querySelector('[onclick*="editarPessoa"]')?.getAttribute('onclick')||'';return oc.match(/editarPessoa\(['\"]([^'\"]+)/)?.[1]||null}
   function montarColuna(){
@@ -14212,7 +14218,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     });
   }
   let ultimo=ativo(),ocupado=false;
-  function conferir(){const agora=ativo();if(agora!==ultimo&&!ocupado){ocupado=true;ultimo=agora;sincronizar(agora);setTimeout(()=>{try{render()}finally{ocupado=false}},80);}if(agora)setTimeout(montarColuna,60);}
+  function conferir(){const agora=ativo();if(agora!==ultimo&&!ocupado){ocupado=true;const ativando=agora&&!ultimo;ultimo=agora;sincronizar(agora,ativando);setTimeout(()=>{try{render()}finally{ocupado=false}},80);}if(agora)setTimeout(montarColuna,60);}
   const renderAnt=window.render||render;if(!renderAnt.__fs528){const fn=function(){const r=renderAnt.apply(this,arguments);setTimeout(montarColuna,100);return r};fn.__fs528=true;window.render=fn;try{render=fn}catch(e){}}
   setInterval(conferir,450);setTimeout(()=>{if(ativo())sincronizar(true);montarColuna();},1900);
 })();
@@ -14616,6 +14622,47 @@ window.baixarImagem=function(elementId,nomeArquivo){
   let raf=0;function agenda(){cancelAnimationFrame(raf);raf=requestAnimationFrame(limpar)}
   function iniciar(){const b=document.getElementById('baseContent');if(b)new MutationObserver(agenda).observe(b,{childList:true,subtree:true});limpar()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,60));else setTimeout(iniciar,60);
+})();
+</script>
+<style id="fs-v540-domingos-por-data-css">
+.fsDomMesPainel{margin:14px auto 20px;max-width:1500px;border:1px solid #cbd8ed;border-radius:22px;background:#fff;box-shadow:0 14px 35px rgba(7,29,104,.09);overflow:hidden}
+.fsDomMesTopo{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;background:linear-gradient(135deg,#071d68,#1749b5);color:#fff}.fsDomMesTopo h3{margin:0;font-size:20px}.fsDomMesTopo small{display:block;margin-top:4px;opacity:.88}.fsDomMesTopo input{border:0;border-radius:12px;padding:9px 12px;font-weight:850;color:#071d68}
+.fsDomMesGrade{padding:14px;display:grid;gap:14px}.fsDomDataCard{border:1px solid #d7e0ee;border-radius:16px;overflow:hidden;background:#fbfdff}.fsDomDataHead{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff7e8;border-bottom:1px solid #f0d39e;color:#7b4500}.fsDomDataHead b{font-size:15px}.fsDomDataHead span{font-size:11px;font-weight:900;border:1px solid #efbd64;border-radius:999px;padding:4px 9px;background:#fff}
+.fsDomDataTabela{width:100%;border-collapse:collapse;table-layout:fixed}.fsDomDataTabela th,.fsDomDataTabela td{padding:8px 10px;border-bottom:1px solid #e5eaf2;text-align:left}.fsDomDataTabela th{font-size:10px;text-transform:uppercase;color:#67728a;background:#f5f8fc}.fsDomDataTabela th:first-child,.fsDomDataTabela td:first-child{width:42px;text-align:center}.fsDomDataTabela th:nth-child(3),.fsDomDataTabela td:nth-child(3){width:28%}.fsDomDataTabela th:last-child,.fsDomDataTabela td:last-child{width:28%}.fsDomDataTabela input[type=checkbox]{width:20px;height:20px;accent-color:#1687d9}.fsDomDataTabela select{width:100%;border:1px solid #c7d3e5;border-radius:9px;padding:7px;background:#fff;color:#071d68;font-weight:750}.fsDomDataTabela tr.fsDomNao td{opacity:.55}.fsDomDataTabela tr.fsDomSim td{background:#f0fbf6}.fsDomDataVazio{padding:25px;text-align:center;color:#667085;font-weight:800}
+.fsDomResumoIndividual{margin:10px 0;border:1px solid #d7e0ee;border-radius:14px;padding:11px 13px;background:#f8fbff}.fsDomResumoIndividual b{color:#071d68}.fsDomResumoIndividual ul{margin:7px 0 0;padding-left:19px}.fsDomResumoIndividual li{margin:4px 0;font-size:12px;color:#344054}
+.fsDomPendingHead{font-size:0!important}.fsDomPendingHead:after{content:'DOMINGOS POR DATA';font-size:10px}.fsDomPendingCell select,.fsDomPendingCell small{display:none!important}.fsDomAbrirAgenda{border:1px solid #90b5ed;border-radius:9px;background:#eef5ff;color:#0b3aa4;padding:6px 8px;font-size:10px;font-weight:900;cursor:pointer}
+.fsRelDomDatas{margin:12px 18px;border:1px solid #cbd8ed;border-radius:12px;overflow:hidden}.fsRelDomDatas h3{margin:0;padding:9px 12px;background:#071d68;color:#fff;font-size:14px}.fsRelDomDatas table{width:100%;border-collapse:collapse}.fsRelDomDatas th,.fsRelDomDatas td{padding:7px 9px;border:1px solid #dce4f0;font-size:11px}.fsRelDomDatas th{background:#eef4ff;color:#071d68}
+@media(max-width:800px){.fsDomMesTopo{align-items:flex-start;flex-direction:column}.fsDomDataTabela th:nth-child(3),.fsDomDataTabela td:nth-child(3){display:none}.fsDomDataTabela th:last-child,.fsDomDataTabela td:last-child{width:42%}.fsDomDataTabela{font-size:11px}}
+</style>
+<script id="fs-v540-domingos-por-data">
+(function(){
+  const nomesMes=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const pad=n=>String(n).padStart(2,'0'), iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const br=s=>{if(!s)return'—';const [a,m,d]=s.split('-');return`${d}/${m}/${a}`};
+  function hojeMes(){const d=new Date();return`${d.getFullYear()}-${pad(d.getMonth()+1)}`}
+  function dados(){state.config=state.config||{};const x=state.config.escalaDomingosPorData=state.config.escalaDomingosPorData||{competencia:hojeMes(),itens:{}};x.competencia=x.competencia||hojeMes();x.itens=x.itens||{};return x}
+  function domingos(comp){const [a,m]=comp.split('-').map(Number),r=[],d=new Date(a,m-1,1);while(d.getMonth()===m-1){if(d.getDay()===0)r.push(iso(d));d.setDate(d.getDate()+1)}return r}
+  function folgasDepois(data){const [a,m,d]=data.split('-').map(Number),base=new Date(a,m-1,d),r=[];for(let i=1;i<=5;i++){const x=new Date(base);x.setDate(base.getDate()+i);r.push(iso(x))}return r}
+  function registro(data,id){const x=dados();x.itens[data]=x.itens[data]||{};return x.itens[data][id]||(x.itens[data][id]={trabalha:false,folgaData:''})}
+  function funcao(p){try{return formatarFuncao(p.funcao)}catch(e){return p.funcao||'—'}}
+  function horario(){let e={};try{e=window.fsGetDadosEmpresa?.()||JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')}catch(_){ }return`${e.horarioDomingoEntrada||'10:00'} às ${e.horarioDomingoSaida||'20:00'}`}
+  window.fsDomDataToggle=function(data,id,on){const r=registro(data,id);r.trabalha=!!on;if(on&&!r.folgaData)r.folgaData=folgasDepois(data)[0];if(!on)r.folgaData='';save();renderPainel()};
+  window.fsDomDataFolga=function(data,id,v){const r=registro(data,id);r.folgaData=v;save();renderPainel()};
+  window.fsDomCompetencia=function(v){dados().competencia=v||hojeMes();save();renderPainel()};
+  window.fsAbrirAgendaDomingos=function(){document.querySelector('#nav [data-page="domingo"]')?.click();setTimeout(()=>document.querySelector('.fsDomMesPainel')?.scrollIntoView({behavior:'smooth',block:'start'}),100)};
+  function linha(data,p){const r=registro(data,p.id),ops=folgasDepois(data).map(x=>`<option value="${x}" ${r.folgaData===x?'selected':''}>${br(x)}</option>`).join('');return`<tr class="${r.trabalha?'fsDomSim':'fsDomNao'}"><td><input type="checkbox" ${r.trabalha?'checked':''} onchange="fsDomDataToggle('${data}','${p.id}',this.checked)"></td><td><b>${p.nome}</b></td><td>${funcao(p)}</td><td>${r.trabalha?`<select onchange="fsDomDataFolga('${data}','${p.id}',this.value)"><option value="">Definir folga seguinte</option>${ops}</select>`:'Não escalado'}</td></tr>`}
+  function card(data){const x=dados().itens[data]||{},q=Object.values(x).filter(v=>v.trabalha).length;return`<section class="fsDomDataCard"><div class="fsDomDataHead"><b>Domingo, ${br(data)}</b><span>${q} escalado(s)</span></div><table class="fsDomDataTabela"><thead><tr><th>Vai</th><th>Colaborador</th><th>Função</th><th>Folga na semana seguinte</th></tr></thead><tbody>${(state.pessoas||[]).map(p=>linha(data,p)).join('')}</tbody></table></section>`}
+  function painel(){const x=dados(),[a,m]=x.competencia.split('-').map(Number),ds=domingos(x.competencia);return`<div class="fsDomMesPainel"><div class="fsDomMesTopo"><div><h3>📅 Escala dominical por data</h3><small>Selecione quem trabalha em cada domingo. A folga será sempre de segunda a sexta da semana subsequente.</small></div><input type="month" value="${x.competencia}" onchange="fsDomCompetencia(this.value)"></div><div class="fsDomMesGrade">${ds.length?ds.map(card).join(''):`<div class="fsDomDataVazio">Nenhum domingo encontrado em ${nomesMes[m-1]} de ${a}.</div>`}</div></div>`}
+  function renderPainel(){const sec=document.getElementById('domingo');if(!sec)return;let box=sec.querySelector('.fsDomMesPainel');if(box)box.outerHTML=painel();else sec.insertAdjacentHTML('afterbegin',painel())}
+  function limparDomingoSemanal(){(state.pessoas||[]).forEach(p=>{if(Array.isArray(p.diasAtivosIndividuais))p.diasAtivosIndividuais=p.diasAtivosIndividuais.filter(d=>d!=='domingo');if(p.horariosIndividuais)delete p.horariosIndividuais.domingo});}
+  function resumoPessoa(id){const x=dados(),it=[];Object.keys(x.itens).sort().forEach(data=>{const r=x.itens[data]?.[id];if(r?.trabalha)it.push(`<li><b>${br(data)}</b> • ${horario()} • folga em <b>${br(r.folgaData)}</b></li>`)});return`<div class="fsDomResumoIndividual"><b>📅 Domingos programados por data</b>${it.length?`<ul>${it.join('')}</ul>`:'<div style="margin-top:5px;font-size:11px;color:#667085">Nenhum domingo programado nesta competência.</div>'}</div>`}
+  function modal(){const m=document.getElementById('pessoaModal');if(!m||m.style.display==='none')return;const id=window.editIndex!=null?state.pessoas?.[window.editIndex]?.id:state.pessoas?.[typeof editIndex==='number'?editIndex:-1]?.id;if(!id)return;let old=m.querySelector('.fsDomResumoIndividual');if(old)old.remove();const anchor=m.querySelector('.fsDomingoEditorPergunta')||m.querySelector('.individualBox');if(anchor)anchor.insertAdjacentHTML('beforebegin',resumoPessoa(id))}
+  function adaptarLista(){document.querySelectorAll('#baseContent .fsDomPendingCell').forEach(td=>{if(!td.querySelector('.fsDomAbrirAgenda'))td.insertAdjacentHTML('afterbegin','<button class="fsDomAbrirAgenda" onclick="fsAbrirAgendaDomingos()">📅 Programar datas</button>')})}
+  function relatorioHtml(){const x=dados(),rows=[];Object.keys(x.itens).sort().forEach(data=>Object.entries(x.itens[data]||{}).forEach(([id,r])=>{if(!r.trabalha)return;const p=state.pessoas.find(q=>q.id===id);if(p)rows.push(`<tr><td>${br(data)}</td><td>${p.nome}</td><td>${funcao(p)}</td><td>${horario()}</td><td>${br(r.folgaData)}</td></tr>`)}));return`<div class="fsRelDomDatas"><h3>Domingos programados por data</h3><table><thead><tr><th>Domingo</th><th>Colaborador</th><th>Função</th><th>Horário</th><th>Folga subsequente</th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="5">Nenhum colaborador programado nesta competência.</td></tr>'}</tbody></table></div>`}
+  const montarAnt=window.montarRelatorioExecutivo;if(typeof montarAnt==='function'&&!montarAnt.__fs540){const fn=function(tipo){let h=montarAnt.apply(this,arguments);if(tipo==='domingo')h=h.replace(/(<\/div>\s*)$/,relatorioHtml()+'$1');return h};fn.__fs540=true;window.montarRelatorioExecutivo=fn;try{montarRelatorioExecutivo=fn}catch(e){}}
+  function ciclo(){if(document.getElementById('domingo'))renderPainel();adaptarLista();modal()}
+  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(()=>{adaptarLista();modal();if(document.getElementById('domingo')&&!document.querySelector('#domingo .fsDomMesPainel'))renderPainel()},80)}).observe(document.body,{childList:true,subtree:true});
+  setTimeout(()=>{limparDomingoSemanal();save();ciclo()},2600);
 })();
 </script>
 </body></html>
