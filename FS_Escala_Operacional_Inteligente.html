@@ -14407,4 +14407,40 @@ window.baixarImagem=function(elementId,nomeArquivo){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,2500));else setTimeout(iniciar,2500);
 })();
 </script>
+<style id="fs-v534-layout-final-sem-flash-css">
+/* Nunca exibir a estrutura-base antes da aplicacao do layout definitivo. */
+#baseContent .baseAgrupadaTable:not(.fsFinalEstavel) thead,
+#baseContent .baseAgrupadaTable:not(.fsFinalEstavel) tbody{visibility:hidden!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td{position:relative!important;height:42px!important;padding:0!important;text-align:initial!important;color:#7c3aed!important;background:linear-gradient(90deg,#f5f0ff,#fbf9ff)!important;border-top:1px solid #d8c8f3!important;border-bottom:1px solid #d8c8f3!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td>.fsGrupoFuncaoNome{position:absolute;left:54.5%;top:50%;transform:translate(-50%,-50%);display:inline-flex;align-items:center;justify-content:center;color:#7650a8;font-size:11px;font-weight:900;white-space:nowrap;letter-spacing:.1px}
+#baseContent .baseAgrupadaTable.fsTabelaDomingoCompacta .baseGrupoLinha td>.fsGrupoFuncaoNome{left:43.5%}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td>span:not(.fsGrupoFuncaoNome){position:absolute;right:9px;top:50%;transform:translateY(-50%);float:none!important;margin:0!important;color:#806b9d!important;font-size:10px!important;font-weight:900!important;text-transform:uppercase}
+#baseContent .baseAgrupadaTable td.func{text-align:center!important;color:#7650a8!important;font-size:10.5px!important;font-weight:800!important}
+@media(max-width:800px){#baseContent .baseAgrupadaTable .baseGrupoLinha td>.fsGrupoFuncaoNome{font-size:10px}#baseContent .baseAgrupadaTable .baseGrupoLinha td>span:not(.fsGrupoFuncaoNome){font-size:9px!important}}
+</style>
+<script id="fs-v534-layout-final-sem-flash">
+(function(){
+  const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  function meta(p){return Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state?.config?.modo==='6x1'?44:40)))*60}
+  function total(p){try{return Number(window.totalPessoa(p)||0)}catch(e){return 0}}
+  function idLinha(tr){const oc=tr.querySelector('[onclick*="editarPessoa"]')?.getAttribute('onclick')||'';return oc.match(/editarPessoa\(['"]([^'"]+)/)?.[1]||null}
+  function finalizar(){
+    const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;
+    tab.querySelectorAll('.baseGrupoLinha td').forEach(td=>{
+      if(td.querySelector('.fsGrupoFuncaoNome'))return;const qtd=td.querySelector(':scope > span');
+      const partes=[...td.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim());
+      const texto=partes.map(n=>n.textContent).join(' ').trim();partes.forEach(n=>n.remove());
+      const nome=document.createElement('span');nome.className='fsGrupoFuncaoNome';nome.innerHTML=texto||'Função';td.insertBefore(nome,qtd||null);
+    });
+    const hs=[...tab.querySelectorAll('thead th')],idx=hs.findIndex(x=>/situa[cç][aã]o\s+da\s+jornada|pend[eê]ncia\s+de\s+hor[aá]rio|hor[aá]rio\s+indiv/i.test(x.textContent||''));
+    if(idx>=0){hs[idx].textContent='Situação da jornada';tab.querySelectorAll('tbody tr').forEach(tr=>{const id=idLinha(tr),p=id&&state.pessoas.find(x=>x.id===id),td=tr.children[idx];if(!p||!td)return;const dif=total(p)-meta(p),novo=Math.abs(dif)<=5?'<span class="fsJornadaOk">✅ Jornada OK</span>':`<button class="fsJornadaAlerta" onclick="fsVerPendenciaJornada('${esc(id)}')">⚠ Ver pendência</button>`;if(td.innerHTML!==novo)td.innerHTML=novo;});}
+    tab.classList.add('fsFinalEstavel');
+  }
+  window.fsAplicarLayoutFinalColaboradores=finalizar;
+  const rb=window.renderBase||renderBase;if(typeof rb==='function'&&!rb.__fs534){const fn=function(){const r=rb.apply(this,arguments);finalizar();return r};fn.__fs534=true;window.renderBase=fn;try{renderBase=fn}catch(e){}}
+  let raf=0;function agendar(){cancelAnimationFrame(raf);raf=requestAnimationFrame(finalizar)}
+  function iniciar(){const base=document.getElementById('baseContent');if(base)new MutationObserver(agendar).observe(base,{childList:true,subtree:true});finalizar()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,40));else setTimeout(iniciar,40);
+})();
+</script>
 </body></html>
