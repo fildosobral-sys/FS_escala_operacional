@@ -14342,4 +14342,69 @@ window.baixarImagem=function(elementId,nomeArquivo){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,2300));else setTimeout(iniciar,2300);
 })();
 </script>
+<style id="fs-v533-diagnostico-dia-domingo-css">
+#baseContent .baseAgrupadaTable .baseGrupoLinha td{text-align:left!important;padding-left:calc(5% + 12px)!important;font-size:13px!important;line-height:1.1!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td span{font-size:11px!important;margin-right:8px}
+#baseContent .baseAgrupadaTable td.func{font-size:11px!important;color:#52657e!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fsJornadaOk{display:inline-flex;align-items:center;justify-content:center;border:1px solid #7bd5a8;border-radius:9px;background:#eafaf2;color:#08783e;padding:6px 12px;font-size:11px;font-weight:950;white-space:nowrap}
+.fsJornadaDia.fsJornadaDiaErro{border:2px solid #ef4444!important;background:#fff0f0!important;color:#991b1b!important;box-shadow:0 0 0 2px #fee2e2 inset}
+.fsJornadaDia.fsJornadaDiaErro b{color:#991b1b!important}.fsJornadaOrigem{display:inline-flex;border-radius:999px;background:#dc2626;color:#fff;padding:3px 8px;font-size:9px;font-weight:950;white-space:nowrap}
+.fsDomingoEditorPergunta{margin:12px 0;border:1px solid #efb251;border-left:7px solid #e58b00;border-radius:14px;background:#fff8e9;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:14px;color:#7a4200;font-weight:900}.fsDomingoEditorPergunta label{display:flex;align-items:center;gap:9px;margin:0;color:#7a4200;font-size:14px}.fsDomingoEditorPergunta input{width:23px;height:23px}.fsDomingoEditorPergunta small{display:block;font-size:11px;color:#8a6330;margin-top:3px}.individualDayRow.fsLinhaDomingoIndividual{border:2px solid #efb251;background:#fffaf0}.individualDayRow.fsLinhaDomingoIndividual .individualDayCheck span{color:#9a4d00;font-weight:950}
+@media(max-width:800px){#baseContent .baseAgrupadaTable .baseGrupoLinha td{padding-left:46px!important}.fsDomingoEditorPergunta{align-items:flex-start;flex-direction:column}}
+</style>
+<script id="fs-v533-diagnostico-dia-domingo">
+(function(){
+  const baseDias=['segunda','terca','quarta','quinta','sexta','sabado','domingo'];
+  const rot={segunda:'Segunda',terca:'Terça',quarta:'Quarta',quinta:'Quinta',sexta:'Sexta',sabado:'Sábado',domingo:'Domingo'};
+  const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const fmt=m=>{m=Math.max(0,Math.round(Number(m)||0));return String(Math.floor(m/60)).padStart(2,'0')+'h'+String(m%60).padStart(2,'0')};
+  function domingoUnidade(){try{return !!window.fsGetDadosEmpresa?.().abreDomingo}catch(e){return false}}
+  function pessoaAtual(){const i=document.getElementById('editIndex')?.value;return i===''?null:state.pessoas[Number(i)]}
+  function horario(p,d){try{return window.fsHorarioExatoPessoa?.(p,d)||window.horarioPessoa(p,d)}catch(e){return null}}
+  function carga(p,d){const h=horario(p,d);try{return h?Number(window.calc(h)||0):0}catch(e){return 0}}
+  function ativo(p,d){try{return !!window.workingOn(p,d)}catch(e){return (p?.diasAtivosIndividuais||[]).includes(d)}}
+  function suspeitos(p,dif){
+    const ativos=baseDias.filter(d=>ativo(p,d)),uteis=ativos.filter(d=>!['sabado','domingo'].includes(d));
+    const cargas=uteis.map(d=>carga(p,d)).filter(x=>x>0).sort((a,b)=>a-b),med=cargas.length?cargas[Math.floor(cargas.length/2)]:0,out={};
+    uteis.forEach(d=>{const delta=carga(p,d)-med;if(Math.abs(delta)>5)out[d]={delta,texto:`${delta<0?'−':'+'}${fmt(Math.abs(delta))} em relação ao padrão dos dias úteis`};});
+    if(ativos.includes('domingo')&&Math.abs(dif)>5)out.domingo={delta:dif,texto:dif>0?'Domingo é a possível origem do excesso':'Domingo participa desta divergência'};
+    return out;
+  }
+  function meta(p){return Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config.modo==='6x1'?44:40)))*60}
+  function total(p){try{return Number(window.totalPessoa(p)||0)}catch(e){return 0}}
+  function abrirDetalhe(id){
+    const p=state.pessoas.find(x=>x.id===id);if(!p)return;const t=total(p),m=meta(p),dif=t-m,sp=suspeitos(p,dif),dias=baseDias.filter(d=>ativo(p,d));
+    document.getElementById('fsJornadaPopup')?.remove();const el=document.createElement('div');el.id='fsJornadaPopup';el.className='fsJornadaPopup';
+    el.innerHTML=`<div class="fsJornadaPopupBox" role="dialog" aria-modal="true"><div class="fsJornadaPopupHead"><span>⚠ Pendência de horário</span><button class="fsJornadaPopupFechar" onclick="fsFecharPendenciaJornada()">×</button></div><div class="fsJornadaPopupBody"><h3 style="margin:0 0 12px;color:#071d68">${esc(p.nome)}</h3><div class="fsJornadaResumo"><div><b>META SEMANAL</b><strong>${fmt(m)}</strong></div><div><b>TOTAL CALCULADO</b><strong>${fmt(t)}</strong></div><div><b>DIVERGÊNCIA</b><strong>${dif<0?'−':'+'}${fmt(Math.abs(dif))}</strong></div></div><div class="fsJornadaErro">${dif<0?'Faltam':'Excedem'} <b>${fmt(Math.abs(dif))}</b>. Os dias destacados em vermelho indicam a possível origem da diferença.</div><div class="fsJornadaDias">${dias.map(d=>{const h=horario(p,d),c=carga(p,d),s=sp[d];return`<div class="fsJornadaDia ${s?'fsJornadaDiaErro':''}"><b>${rot[d]}</b><span>${h?`${esc(h.entrada)} • ${esc(h.almocoIni)}–${esc(h.almocoFim)} • ${esc(h.saida)}`:'Horário não localizado'}</span><strong>${fmt(c)}</strong>${s?`<em class="fsJornadaOrigem">${esc(s.texto)}</em>`:''}</div>`}).join('')}</div><button class="primary" onclick="fsFecharPendenciaJornada();editarPessoa('${esc(id)}')">Abrir colaborador para corrigir</button></div></div>`;
+    el.addEventListener('click',e=>{if(e.target===el)window.fsFecharPendenciaJornada()});document.body.appendChild(el);
+  }
+  window.fsVerPendenciaJornada=abrirDetalhe;
+  function diagnosticar(){
+    const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;const hs=[...tab.querySelectorAll('thead th')],idx=hs.findIndex(x=>/pend[eê]ncia\s+de\s+hor[aá]rio|hor[aá]rio\s+indiv/i.test(x.textContent||''));if(idx<0)return;hs[idx].textContent='Situação da jornada';
+    tab.querySelectorAll('tbody tr').forEach(tr=>{const oc=tr.querySelector('[onclick*="editarPessoa"]')?.getAttribute('onclick')||'',id=oc.match(/editarPessoa\(['"]([^'"]+)/)?.[1];if(!id)return;const p=state.pessoas.find(x=>x.id===id),td=tr.children[idx];if(!p||!td)return;const dif=total(p)-meta(p);td.innerHTML=Math.abs(dif)<=5?'<span class="fsJornadaOk">✅ Jornada OK</span>':`<button class="fsJornadaAlerta" onclick="fsVerPendenciaJornada('${esc(id)}')">⚠ Ver pendência</button>`;});
+  }
+  function htmlDomingo(p){
+    if(!domingoUnidade())return'';const ind=p?.horariosIndividuais?.domingo||{},pad=horario(p||{},'domingo')||{entrada:'10:00',almocoIni:'13:00',almocoFim:'14:00',saida:'20:00'},on=!!p&&(p.diasAtivosIndividuais||[]).includes('domingo');
+    return `<div class="fsDomingoEditorPergunta"><div><label><input type="checkbox" id="mTrabalhaDomingo" ${on?'checked':''}> Trabalha no domingo?</label><small>Ao desmarcar, o domingo será removido. Ao marcar pela primeira vez, será necessário definir a folga compensatória na relação de colaboradores.</small></div></div><div class="individualDayRow fsLinhaDomingoIndividual ${on?'':'fsDiaInativo'}"><div class="individualDayCheck"><input type="checkbox" id="mIndAtivo_domingo" ${on?'checked':''}> <span>Domingo</span></div><div><label>Entrada</label><input type="time" id="mIndEntrada_domingo" value="${ind.entrada||pad.entrada}"></div><div><label>Saída intervalo</label><input type="time" id="mIndIni_domingo" value="${ind.almocoIni||pad.almocoIni}"></div><div><label>Retorno intervalo</label><input type="time" id="mIndFim_domingo" value="${ind.almocoFim||pad.almocoFim}"></div><div><label>Saída final</label><input type="time" id="mIndSaida_domingo" value="${ind.saida||pad.saida}"></div></div>`;
+  }
+  function prepararDomingo(){
+    const box=document.getElementById('mHorarioIndividualBox'),modal=document.getElementById('pessoaModal');if(!box||!modal||modal.style.display==='none'||!domingoUnidade())return;
+    box.querySelector('.fsDomingoEditorPergunta')?.remove();box.querySelector('.fsLinhaDomingoIndividual')?.remove();box.insertAdjacentHTML('beforeend',htmlDomingo(pessoaAtual()));
+    const q=document.getElementById('mTrabalhaDomingo'),ck=document.getElementById('mIndAtivo_domingo'),row=ck?.closest('.individualDayRow');
+    const sync=v=>{if(q)q.checked=v;if(ck)ck.checked=v;row?.classList.toggle('fsDiaInativo',!v)};q?.addEventListener('change',()=>sync(q.checked));ck?.addEventListener('change',()=>sync(ck.checked));
+  }
+  const salvarAnt=window.salvarPessoaModal||salvarPessoaModal;
+  window.salvarPessoaModal=function(){
+    const pAntes=pessoaAtual(),id=pAntes?.id,quer=domingoUnidade()&&!!document.getElementById('mTrabalhaDomingo')?.checked,hd=quer?{ativo:true,entrada:document.getElementById('mIndEntrada_domingo')?.value||'10:00',almocoIni:document.getElementById('mIndIni_domingo')?.value||'13:00',almocoFim:document.getElementById('mIndFim_domingo')?.value||'14:00',saida:document.getElementById('mIndSaida_domingo')?.value||'20:00'}:null,reg=id?state.config?.perfisDomingoCompensado?.[state.config.modo]?.[id]:null;
+    const r=salvarAnt.apply(this,arguments);const p=id?state.pessoas.find(x=>x.id===id):null;if(!p)return r;
+    if(!quer){if(typeof window.fsDefinirFolgaDomingo==='function')window.fsDefinirFolgaDomingo(id,'nao');else{p.diasAtivosIndividuais=(p.diasAtivosIndividuais||[]).filter(d=>d!=='domingo');delete p.horariosIndividuais?.domingo;}}
+    else if(reg?.folga&&reg.folga!=='nao'){if(typeof window.fsDefinirFolgaDomingo==='function')window.fsDefinirFolgaDomingo(id,reg.folga);p.horariosIndividuais=p.horariosIndividuais||{};p.horariosIndividuais.domingo=hd;save();}
+    else{p.horariosIndividuais=p.horariosIndividuais||{};p.horariosIndividuais.domingo=hd;p.diasAtivosIndividuais=(p.diasAtivosIndividuais||[]).filter(d=>d!=='domingo');if(reg)reg.folga=null;save();setTimeout(render,80);}
+    return r;
+  };try{salvarPessoaModal=window.salvarPessoaModal}catch(e){}
+  let busy=false;function atualizar(){if(busy)return;busy=true;setTimeout(()=>{busy=false;diagnosticar();const m=document.getElementById('pessoaModal');if(m?.style.display!=='none'&&!m.querySelector('.fsDomingoEditorPergunta'))prepararDomingo()},150)}
+  function iniciar(){const b=document.getElementById('baseContent'),m=document.getElementById('pessoaModal');if(b)new MutationObserver(atualizar).observe(b,{childList:true,subtree:true});if(m)new MutationObserver(atualizar).observe(m,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});diagnosticar();setInterval(diagnosticar,1000)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,2500));else setTimeout(iniciar,2500);
+})();
+</script>
 </body></html>
