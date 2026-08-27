@@ -14582,4 +14582,40 @@ window.baixarImagem=function(elementId,nomeArquivo){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,90));else setTimeout(iniciar,90);
 })();
 </script>
+<style id="fs-v538-limpeza-faixa-hover-os-css">
+/* Blindagem: nenhum texto residual ou quantidade pode aparecer na faixa. */
+#baseContent .baseAgrupadaTable .baseGrupoLinha td{font-size:0!important;color:transparent!important;overflow:hidden!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td>*:not(.fsGrupoUnico){display:none!important;visibility:hidden!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha .fsGrupoUnico{display:inline!important;visibility:visible!important;color:#08783e!important;font-size:9.5px!important}
+/* Interacao premium nas listas operacionais. */
+#baseContent .baseAgrupadaTable tbody tr:not(.baseGrupoLinha),.board .tableWrap tbody tr{position:relative;transition:filter .18s ease,transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease}
+#baseContent .baseAgrupadaTable tbody tr:not(.baseGrupoLinha) td,.board .tableWrap tbody tr td{transition:background-color .18s ease,border-color .18s ease,color .18s ease}
+#baseContent .baseAgrupadaTable tbody tr:not(.baseGrupoLinha) td.name,.board .tableWrap tbody tr td.name{transform-origin:left center;transition:transform .2s cubic-bezier(.2,.8,.2,1),color .18s ease,text-shadow .18s ease}
+@media(hover:hover) and (pointer:fine){
+  #baseContent .baseAgrupadaTable tbody tr:not(.baseGrupoLinha):hover,.board .tableWrap tbody tr:hover{z-index:3;transform:scale(1.006);box-shadow:0 7px 22px rgba(7,29,104,.13);filter:saturate(1.04)}
+  #baseContent .baseAgrupadaTable tbody tr:not(.baseGrupoLinha):hover td,.board .tableWrap tbody tr:hover td{background:#f1f6ff!important;border-color:#c8d8f0!important}
+  #baseContent .baseAgrupadaTable tbody tr:not(.baseGrupoLinha):hover td.name,.board .tableWrap tbody tr:hover td.name{transform:translateX(5px) scale(1.018);color:#0b3aa4!important;text-shadow:0 2px 8px rgba(37,99,235,.12)}
+  #baseContent .baseAgrupadaTable tbody tr:not(.baseGrupoLinha):hover .editBtn,.board .tableWrap tbody tr:hover .editBtn{transform:scale(1.08);box-shadow:0 5px 14px rgba(37,99,235,.18)}
+}
+.editBtn{transition:transform .18s ease,box-shadow .18s ease!important}
+@media print{#baseContent .baseAgrupadaTable tbody tr,.board .tableWrap tbody tr{transform:none!important;box-shadow:none!important;filter:none!important}}
+</style>
+<script id="fs-v538-limpeza-faixa-hover-os">
+(function(){
+  function limpar(){
+    const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;
+    tab.querySelectorAll('.baseGrupoLinha').forEach(gr=>{
+      let linha=gr.nextElementSibling;while(linha&&linha.classList.contains('baseGrupoLinha'))linha=linha.nextElementSibling;
+      const func=linha?.querySelector('td.func')?.textContent?.trim()||'Função',td=gr.querySelector('td');if(!td)return;
+      let unico=td.querySelector('.fsGrupoUnico');if(!unico){td.replaceChildren();unico=document.createElement('span');unico.className='fsGrupoFuncaoNome fsGrupoUnico';td.appendChild(unico);}
+      [...td.childNodes].forEach(n=>{if(n!==unico)n.remove()});if(unico.textContent!==func)unico.textContent=func;td.colSpan=tab.querySelectorAll('thead th').length;
+    });tab.classList.add('fsFinalEstavel');
+  }
+  window.fsLimparFaixasLista=limpar;
+  const rb=window.renderBase||renderBase;if(typeof rb==='function'&&!rb.__fs538){const fn=function(){const r=rb.apply(this,arguments);limpar();return r};fn.__fs538=true;window.renderBase=fn;try{renderBase=fn}catch(e){}}
+  let raf=0;function agenda(){cancelAnimationFrame(raf);raf=requestAnimationFrame(limpar)}
+  function iniciar(){const b=document.getElementById('baseContent');if(b)new MutationObserver(agenda).observe(b,{childList:true,subtree:true});limpar()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,60));else setTimeout(iniciar,60);
+})();
+</script>
 </body></html>
