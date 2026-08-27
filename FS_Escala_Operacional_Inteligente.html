@@ -14269,7 +14269,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
           td.querySelector('small')?.remove();
           let ok=td.querySelector('.fsDomResolvidoCompacto');
           if(!ok){ok=document.createElement('button');ok.type='button';ok.className='fsDomResolvidoCompacto';ok.title='Clique para alterar a folga do domingo';ok.onclick=()=>{ok.remove();sel.style.display='';sel.focus();};td.appendChild(ok);}
-          ok.textContent=valor==='nao'?'✅ Não trabalha':'✅ '+label;
+          const textoOk=valor==='nao'?'✅ Não trabalha':'✅ '+label;if(ok.textContent!==textoOk)ok.textContent=textoOk;
         }
       });
     });
@@ -14381,7 +14381,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.fsVerPendenciaJornada=abrirDetalhe;
   function diagnosticar(){
     const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;const hs=[...tab.querySelectorAll('thead th')],idx=hs.findIndex(x=>/pend[eê]ncia\s+de\s+hor[aá]rio|hor[aá]rio\s+indiv/i.test(x.textContent||''));if(idx<0)return;hs[idx].textContent='Situação da jornada';
-    tab.querySelectorAll('tbody tr').forEach(tr=>{const oc=tr.querySelector('[onclick*="editarPessoa"]')?.getAttribute('onclick')||'',id=oc.match(/editarPessoa\(['"]([^'"]+)/)?.[1];if(!id)return;const p=state.pessoas.find(x=>x.id===id),td=tr.children[idx];if(!p||!td)return;const dif=total(p)-meta(p);td.innerHTML=Math.abs(dif)<=5?'<span class="fsJornadaOk">✅ Jornada OK</span>':`<button class="fsJornadaAlerta" onclick="fsVerPendenciaJornada('${esc(id)}')">⚠ Ver pendência</button>`;});
+    tab.querySelectorAll('tbody tr').forEach(tr=>{const oc=tr.querySelector('[onclick*="editarPessoa"]')?.getAttribute('onclick')||'',id=oc.match(/editarPessoa\(['"]([^'"]+)/)?.[1];if(!id)return;const p=state.pessoas.find(x=>x.id===id),td=tr.children[idx];if(!p||!td)return;const dif=total(p)-meta(p),novo=Math.abs(dif)<=5?'<span class="fsJornadaOk">✅ Jornada OK</span>':`<button class="fsJornadaAlerta" onclick="fsVerPendenciaJornada('${esc(id)}')">⚠ Ver pendência</button>`;if(td.innerHTML!==novo)td.innerHTML=novo;});
   }
   function htmlDomingo(p){
     if(!domingoUnidade())return'';const ind=p?.horariosIndividuais?.domingo||{},pad=horario(p||{},'domingo')||{entrada:'10:00',almocoIni:'13:00',almocoFim:'14:00',saida:'20:00'},on=!!p&&(p.diasAtivosIndividuais||[]).includes('domingo');
@@ -14441,6 +14441,62 @@ window.baixarImagem=function(elementId,nomeArquivo){
   let raf=0;function agendar(){cancelAnimationFrame(raf);raf=requestAnimationFrame(finalizar)}
   function iniciar(){const base=document.getElementById('baseContent');if(base)new MutationObserver(agendar).observe(base,{childList:true,subtree:true});finalizar()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,40));else setTimeout(iniciar,40);
+})();
+</script>
+<style id="fs-v535-auditoria-estabilidade-ios-css">
+/* Proporcao principal: nome 70%, funcao 30% dentro do bloco de identificacao. */
+#baseContent .baseAgrupadaTable.fsModo6x1 th:nth-child(2),#baseContent .baseAgrupadaTable.fsModo6x1 td:nth-child(2){width:44%!important}
+#baseContent .baseAgrupadaTable.fsModo6x1 th:nth-child(3),#baseContent .baseAgrupadaTable.fsModo6x1 td:nth-child(3){width:19%!important}
+#baseContent .baseAgrupadaTable.fsModo6x1.fsTabelaDomingoCompacta th:nth-child(2),#baseContent .baseAgrupadaTable.fsModo6x1.fsTabelaDomingoCompacta td:nth-child(2){width:35%!important}
+#baseContent .baseAgrupadaTable.fsModo6x1.fsTabelaDomingoCompacta th:nth-child(3),#baseContent .baseAgrupadaTable.fsModo6x1.fsTabelaDomingoCompacta td:nth-child(3){width:15%!important}
+#baseContent .baseAgrupadaTable td.func{text-align:left!important;padding-left:12px!important;font-size:10.5px!important;font-weight:750!important;color:#6f5b8d!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td>.fsGrupoFuncaoNome{left:58.5%!important;color:#7650a8!important;font-size:10.5px!important}
+#baseContent .baseAgrupadaTable.fsTabelaDomingoCompacta .baseGrupoLinha td>.fsGrupoFuncaoNome{left:46.5%!important}
+/* Editor individual compacto, inspirado em superficies iOS. */
+#pessoaModal{backdrop-filter:blur(12px);background:rgba(15,23,42,.42)!important}
+#pessoaModal .modalBox{width:min(780px,96vw)!important;border-radius:22px!important;box-shadow:0 28px 80px #00143d55!important}
+#pessoaModal .modalContent{padding:10px 14px 16px!important}
+#pessoaModal #mHorarioIndividualBox{border-radius:16px!important;padding:8px!important;background:#f8fafc!important}
+#pessoaModal .individualDayRow{grid-template-columns:112px repeat(4,minmax(0,1fr))!important;gap:6px!important;min-height:58px!important;margin:6px 0!important;padding:7px 8px!important;border-radius:13px!important;background:#fff!important;box-shadow:0 1px 3px #0f172a12!important;border:1px solid #e2e8f0!important;align-items:end!important}
+#pessoaModal .individualDayCheck{gap:6px!important;align-self:center!important;font-size:13px!important;line-height:1.1!important}
+#pessoaModal .individualDayCheck span{font-size:13px!important;font-weight:850!important}
+#pessoaModal .individualDayRow label{font-size:9px!important;line-height:1!important;margin:0 0 3px!important;color:#64748b!important}
+#pessoaModal .individualDayRow input[type="time"]{height:34px!important;min-height:34px!important;padding:4px 6px!important;border-radius:9px!important;font-size:11.5px!important;background:#f8fafc!important;border:1px solid #d8dee9!important}
+#pessoaModal .individualDayRow input[type="checkbox"]{width:27px!important;height:27px!important}
+#pessoaModal .individualDayRow.fsDiaInativo{min-height:48px!important;background:#f3f4f6!important;opacity:.78}
+#pessoaModal .individualDayRow.fsDiaInativo .individualDayCheck:after{font-size:9px!important;line-height:1.1!important;margin-top:2px!important}
+#pessoaModal .fsHorarioRapido{margin:6px 0 8px!important;padding:6px 8px!important;border-radius:13px!important}
+#pessoaModal .fsHorarioRapidoToggle{padding:7px 10px!important;font-size:12px!important;border-radius:9px!important}
+#pessoaModal .fsDomingoEditorPergunta{margin:7px 0!important;padding:8px 10px!important;border-radius:12px!important}.fsDomingoEditorPergunta label{font-size:12px!important}.fsDomingoEditorPergunta small{font-size:9px!important}
+#pessoaModal .fsAprendizCadastro{padding:9px 11px!important;gap:8px!important;border-radius:13px!important}.fsAprendizCheck{min-height:34px!important;font-size:12px!important}.fsAprendizCheck input{width:22px!important;height:22px!important}.fsAprendizAjuda{font-size:10px!important}
+#pessoaModal .primary,#pessoaModal .secondary{min-height:40px!important;padding:9px 12px!important;border-radius:12px!important;font-size:12px!important}
+@media(max-width:760px){#pessoaModal .individualDayRow{grid-template-columns:90px repeat(2,minmax(0,1fr))!important}.individualDayRow>div:nth-child(4),.individualDayRow>div:nth-child(5){margin-top:3px}.individualDayCheck{grid-column:auto!important}}
+</style>
+<script id="fs-v535-auditoria-estabilidade-ios">
+(function(){
+  function corrigirGrupos(){
+    const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;
+    tab.querySelectorAll('.baseGrupoLinha').forEach(gr=>{
+      let linha=gr.nextElementSibling;while(linha&&linha.classList.contains('baseGrupoLinha'))linha=linha.nextElementSibling;
+      const func=linha?.querySelector('td.func')?.textContent?.trim(),alvo=gr.querySelector('.fsGrupoFuncaoNome');if(alvo&&func&&alvo.textContent!==func)alvo.textContent=func;
+    });
+  }
+  window.fsCorrigirTitulosGrupos=corrigirGrupos;
+  const renderAtual=window.render||render;
+  if(typeof renderAtual==='function'&&!renderAtual.__fs535){
+    const controlado=function(){if(window.__fsBloquearRenderAte&&Date.now()<window.__fsBloquearRenderAte)return;const r=renderAtual.apply(this,arguments);requestAnimationFrame(corrigirGrupos);return r};controlado.__fs535=true;window.render=controlado;try{render=controlado}catch(e){}
+  }
+  const salvarAtual=window.salvarPessoaModal||salvarPessoaModal;
+  if(typeof salvarAtual==='function'&&!salvarAtual.__fs535){
+    const estavel=function(){
+      if(window.__fsSalvando535)return;window.__fsSalvando535=true;window.__fsBloquearRenderAte=Date.now()+260;
+      const botao=document.querySelector('#pessoaModal button.primary[onclick*="salvarPessoaModal"]');if(botao){botao.disabled=true;botao.textContent='Salvando…';}
+      let r;try{r=salvarAtual.apply(this,arguments);}finally{setTimeout(()=>{window.__fsSalvando535=false;window.__fsBloquearRenderAte=0;if(botao){botao.disabled=false;botao.textContent='Salvar';}try{renderAtual()}catch(e){};corrigirGrupos();},280);}return r;
+    };estavel.__fs535=true;window.salvarPessoaModal=estavel;try{salvarPessoaModal=estavel}catch(e){}
+  }
+  let pendente=false;function agendar(){if(pendente)return;pendente=true;requestAnimationFrame(()=>{pendente=false;corrigirGrupos()})}
+  function iniciar(){const b=document.getElementById('baseContent');if(b)new MutationObserver(agendar).observe(b,{childList:true,subtree:true});corrigirGrupos()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,80));else setTimeout(iniciar,80);
 })();
 </script>
 </body></html>
