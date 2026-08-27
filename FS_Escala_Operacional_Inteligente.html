@@ -14397,7 +14397,17 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.salvarPessoaModal=function(){
     const pAntes=pessoaAtual(),id=pAntes?.id,quer=domingoUnidade()&&!!document.getElementById('mTrabalhaDomingo')?.checked,hd=quer?{ativo:true,entrada:document.getElementById('mIndEntrada_domingo')?.value||'10:00',almocoIni:document.getElementById('mIndIni_domingo')?.value||'13:00',almocoFim:document.getElementById('mIndFim_domingo')?.value||'14:00',saida:document.getElementById('mIndSaida_domingo')?.value||'20:00'}:null,reg=id?state.config?.perfisDomingoCompensado?.[state.config.modo]?.[id]:null;
     const r=salvarAnt.apply(this,arguments);const p=id?state.pessoas.find(x=>x.id===id):null;if(!p)return r;
-    if(!quer){if(typeof window.fsDefinirFolgaDomingo==='function')window.fsDefinirFolgaDomingo(id,'nao');else{p.diasAtivosIndividuais=(p.diasAtivosIndividuais||[]).filter(d=>d!=='domingo');delete p.horariosIndividuais?.domingo;}}
+    if(!quer){
+      /* Remover somente o domingo. A rotina compensatoria antiga restaurava
+         todo o perfil-base e apagava ajustes recém-salvos de segunda a sábado. */
+      p.diasAtivosIndividuais=(p.diasAtivosIndividuais||[]).filter(d=>d!=='domingo');
+      if(p.horariosIndividuais)delete p.horariosIndividuais.domingo;
+      const mapa=state.config?.perfisDomingoCompensado?.[state.config.modo];
+      if(mapa?.[id])mapa[id].folga='nao';
+      const pf=state.config?.perfisEscala?.[state.config.modo];
+      if(pf?.pessoas?.[id]){pf.pessoas[id].diasAtivosIndividuais=[...(p.diasAtivosIndividuais||[])];pf.pessoas[id].horariosIndividuais=JSON.parse(JSON.stringify(p.horariosIndividuais||{}));}
+      save();
+    }
     else if(reg?.folga&&reg.folga!=='nao'){if(typeof window.fsDefinirFolgaDomingo==='function')window.fsDefinirFolgaDomingo(id,reg.folga);p.horariosIndividuais=p.horariosIndividuais||{};p.horariosIndividuais.domingo=hd;save();}
     else{p.horariosIndividuais=p.horariosIndividuais||{};p.horariosIndividuais.domingo=hd;p.diasAtivosIndividuais=(p.diasAtivosIndividuais||[]).filter(d=>d!=='domingo');if(reg)reg.folga=null;save();setTimeout(render,80);}
     return r;
@@ -14497,6 +14507,38 @@ window.baixarImagem=function(elementId,nomeArquivo){
   let pendente=false;function agendar(){if(pendente)return;pendente=true;requestAnimationFrame(()=>{pendente=false;corrigirGrupos()})}
   function iniciar(){const b=document.getElementById('baseContent');if(b)new MutationObserver(agendar).observe(b,{childList:true,subtree:true});corrigirGrupos()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,80));else setTimeout(iniciar,80);
+})();
+</script>
+<style id="fs-v536-lista-modelo-relatorio-css">
+/* Faixa de funcao seguindo a mesma linguagem do relatorio por funcao. */
+#baseContent .baseAgrupadaTable .baseGrupoLinha{height:28px!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td{height:28px!important;padding:4px 12px!important;text-align:left!important;background:#eaf7f0!important;border-top:1px solid #8bc9aa!important;border-bottom:1px solid #8bc9aa!important;line-height:1!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td>.fsGrupoFuncaoNome{position:static!important;display:inline!important;transform:none!important;left:auto!important;top:auto!important;color:#08783e!important;font-size:10px!important;font-weight:950!important;letter-spacing:.15px!important;text-transform:uppercase!important;white-space:nowrap!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td>.fsGrupoQtdInline{position:static!important;display:inline!important;transform:none!important;float:none!important;margin-left:5px!important;color:#52709c!important;font-size:9px!important;font-weight:900!important;text-transform:uppercase!important;white-space:nowrap!important}
+#baseContent .baseAgrupadaTable td.name{font-weight:900!important;color:#162033!important}
+#baseContent .baseAgrupadaTable td.func{text-align:left!important;padding-left:12px!important;color:#52657e!important;font-size:10.5px!important;font-weight:750!important}
+</style>
+<script id="fs-v536-lista-modelo-relatorio">
+(function(){
+  function qtdGrupo(gr){let n=0,x=gr.nextElementSibling;while(x&&!x.classList.contains('baseGrupoLinha')){if(x.querySelector('[onclick*="editarPessoa"]'))n++;x=x.nextElementSibling;}return n}
+  function aplicar(){
+    const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;
+    tab.querySelectorAll('.baseGrupoLinha').forEach(gr=>{
+      let linha=gr.nextElementSibling;while(linha&&linha.classList.contains('baseGrupoLinha'))linha=linha.nextElementSibling;
+      const func=linha?.querySelector('td.func')?.textContent?.trim()||'Função',q=qtdGrupo(gr),td=gr.querySelector('td');if(!td)return;
+      const nome=td.querySelector('.fsGrupoFuncaoNome'),qtd=td.querySelector('.fsGrupoQtdInline');
+      if(!nome||!qtd){td.innerHTML=`<span class="fsGrupoFuncaoNome"></span><span class="fsGrupoQtdInline"></span>`;}
+      const n2=td.querySelector('.fsGrupoFuncaoNome'),q2=td.querySelector('.fsGrupoQtdInline'),qt=`— ${q} ${q===1?'colaborador':'colaboradores'}`;
+      if(n2.textContent!==func)n2.textContent=func;if(q2.textContent!==qt)q2.textContent=qt;
+      td.colSpan=td.closest('table')?.querySelectorAll('thead th').length||td.colSpan;
+    });
+    tab.classList.add('fsFinalEstavel');
+  }
+  window.fsAplicarListaComoRelatorio=aplicar;
+  const rb=window.renderBase||renderBase;if(typeof rb==='function'&&!rb.__fs536){const fn=function(){const r=rb.apply(this,arguments);aplicar();return r};fn.__fs536=true;window.renderBase=fn;try{renderBase=fn}catch(e){}}
+  let raf=0;function agenda(){cancelAnimationFrame(raf);raf=requestAnimationFrame(aplicar)}
+  function iniciar(){const b=document.getElementById('baseContent');if(b)new MutationObserver(agenda).observe(b,{childList:true,subtree:true});aplicar()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,70));else setTimeout(iniciar,70);
 })();
 </script>
 </body></html>
