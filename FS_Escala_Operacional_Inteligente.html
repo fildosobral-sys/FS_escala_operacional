@@ -14522,6 +14522,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 (function(){
   function qtdGrupo(gr){let n=0,x=gr.nextElementSibling;while(x&&!x.classList.contains('baseGrupoLinha')){if(x.querySelector('[onclick*="editarPessoa"]'))n++;x=x.nextElementSibling;}return n}
   function aplicar(){
+    if(window.__fsFaixaUnica537)return;
     const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;
     tab.querySelectorAll('.baseGrupoLinha').forEach(gr=>{
       let linha=gr.nextElementSibling;while(linha&&linha.classList.contains('baseGrupoLinha'))linha=linha.nextElementSibling;
@@ -14539,6 +14540,46 @@ window.baixarImagem=function(elementId,nomeArquivo){
   let raf=0;function agenda(){cancelAnimationFrame(raf);raf=requestAnimationFrame(aplicar)}
   function iniciar(){const b=document.getElementById('baseContent');if(b)new MutationObserver(agenda).observe(b,{childList:true,subtree:true});aplicar()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,70));else setTimeout(iniciar,70);
+})();
+</script>
+<style id="fs-v537-faixas-regras-compactas-css">
+#baseContent .baseAgrupadaTable .baseGrupoLinha,#baseContent .baseAgrupadaTable .baseGrupoLinha td{height:20px!important;min-height:20px!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha td{padding:2px 11px!important;background:#eaf7f0!important}
+#baseContent .baseAgrupadaTable .baseGrupoLinha .fsGrupoUnico{position:static!important;display:inline!important;transform:none!important;left:auto!important;top:auto!important;color:#08783e!important;font-size:9.5px!important;line-height:1!important;font-weight:950!important;text-transform:uppercase!important;white-space:nowrap!important}
+.fsModalRegrasBox.fsRegrasAtualizadas{width:min(900px,96vw)!important;max-height:90vh!important;border-radius:22px!important}
+.fsModalRegrasBox.fsRegrasAtualizadas .fsModalRegrasHeader{padding:14px 18px!important}.fsModalRegrasBox.fsRegrasAtualizadas .fsModalRegrasHeader h2{font-size:20px!important;margin:0 0 3px!important}.fsModalRegrasBox.fsRegrasAtualizadas .fsModalRegrasHeader p{font-size:11px!important;margin:0!important}
+.fsModalRegrasBox.fsRegrasAtualizadas .fsModalRegrasBody{padding:12px!important}.fsRegrasResumoAtual{background:#fff8e8;border:1px solid #f1cd83;border-left:5px solid #e58b00;border-radius:11px;padding:8px 11px;color:#754200;font-size:11px;font-weight:850;margin-bottom:9px}
+.fsRegrasGridAtual{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fsRegraAtual{border:1px solid #dbe5f4;border-radius:13px;background:#fff;padding:9px 11px;box-shadow:0 3px 10px #071d680d}.fsRegraAtual h3{margin:0 0 5px;color:#071d68;font-size:13px}.fsRegraAtual ul{margin:0;padding-left:16px;color:#344054;font-size:10.5px;line-height:1.35}.fsRegraAtual li+li{margin-top:3px}.fsRegraAtual .fsRegraDestaque{display:inline-flex;margin-top:6px;border-radius:999px;background:#eef5ff;color:#1747a6;padding:3px 7px;font-size:9px;font-weight:950}
+.fsModalRegrasBox.fsRegrasAtualizadas .fsModalRegrasFooter{padding:8px 12px!important}.fsModalRegrasBox.fsRegrasAtualizadas .fsBtnRegras{min-height:36px!important;padding:7px 13px!important;font-size:11px!important;border-radius:10px!important}
+@media(max-width:760px){.fsRegrasGridAtual{grid-template-columns:1fr}.fsModalRegrasBox.fsRegrasAtualizadas .fsModalRegrasHeader h2{font-size:17px!important}}
+</style>
+<script id="fs-v537-faixas-regras-compactas">
+(function(){
+  window.__fsFaixaUnica537=true;
+  function aplicarFaixas(){
+    const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;
+    tab.querySelectorAll('.baseGrupoLinha').forEach(gr=>{
+      let linha=gr.nextElementSibling;while(linha&&linha.classList.contains('baseGrupoLinha'))linha=linha.nextElementSibling;
+      const func=linha?.querySelector('td.func')?.textContent?.trim()||'Função',td=gr.querySelector('td');if(!td)return;
+      let unico=td.querySelector('.fsGrupoUnico');if(!unico||td.children.length!==1){td.innerHTML='<span class="fsGrupoFuncaoNome fsGrupoUnico"></span>';unico=td.firstElementChild;}
+      if(unico.textContent!==func)unico.textContent=func;td.colSpan=tab.querySelectorAll('thead th').length;
+    });
+    tab.classList.add('fsFinalEstavel');
+  }
+  function regrasHtml(){return `<div class="fsRegrasResumoAtual">A plataforma preserva cada modalidade separadamente e só aplica alterações depois da confirmação da gestão. Os horários sempre respeitam a configuração da filial.</div><div class="fsRegrasGridAtual">
+    <section class="fsRegraAtual"><h3>1. Modalidades e metas</h3><ul><li><b>6x1:</b> até 6 dias e 44 horas semanais.</li><li><b>5x2:</b> até 5 dias e 40 horas semanais.</li><li>Folga distribuída e Dia especial + sábado mantêm perfis próprios.</li></ul><span class="fsRegraDestaque">Cada perfil volta exatamente como foi salvo</span></section>
+    <section class="fsRegraAtual"><h3>2. Horários da filial</h3><ul><li>Nunca sugere entrada antes da abertura.</li><li>Nunca sugere saída após o fechamento.</li><li>Ajustes podem usar entrada, saída e intervalo.</li><li>O horário individual prevalece sobre o padrão da equipe.</li></ul></section>
+    <section class="fsRegraAtual"><h3>3. Domingo e compensação</h3><ul><li>Abrir a filial no domingo não escala todos automaticamente.</li><li>Cada colaborador é marcado como trabalha ou não trabalha.</li><li>Quem trabalha escolhe folga compensatória de segunda a sexta.</li><li>O horário real aparece; a compensação interna vale o dia integral, sem débito.</li></ul></section>
+    <section class="fsRegraAtual"><h3>4. Jornada individual</h3><ul><li>A plataforma soma somente os dias ativos.</li><li>Mostra Jornada OK, falta ou excesso de horas.</li><li>A pendência destaca o possível dia que originou a diferença.</li><li>Jovem aprendiz usa a meta individual cadastrada.</li></ul></section>
+    <section class="fsRegraAtual"><h3>5. Cobertura da operação</h3><ul><li>Folgas e intervalos devem preservar pessoas da mesma função em atividade.</li><li>O sistema alterna equipes e horários quando possível.</li><li>Função sem substituto gera alerta para decisão da gestão.</li></ul></section>
+    <section class="fsRegraAtual"><h3>6. Salvamento e relatórios</h3><ul><li>Alterações individuais ficam salvas somente no perfil ativo.</li><li>Remover domingo não altera segunda a sábado.</li><li>Lista, cronograma e relatórios usam a mesma fonte de horários.</li><li>Nenhuma sugestão automática é aplicada sem confirmação.</li></ul></section>
+  </div>`}
+  function atualizarRegras(){const modal=document.getElementById('fsModalRegrasEscala'),box=modal?.querySelector('.fsModalRegrasBox'),body=modal?.querySelector('.fsModalRegrasBody');if(!box||!body)return;box.classList.add('fsRegrasAtualizadas');if(!body.querySelector('.fsRegrasGridAtual'))body.innerHTML=regrasHtml();const foot=modal.querySelector('.fsModalRegrasFooter');if(foot)foot.innerHTML='<button type="button" class="fsBtnRegras" onclick="fsFecharModalRegras()">Entendi</button>';}
+  window.fsAtualizarRegrasInteligentes=atualizarRegras;
+  const abrir=window.fsAbrirModalRegras;if(typeof abrir==='function'){window.fsAbrirModalRegras=function(){const r=abrir.apply(this,arguments);setTimeout(atualizarRegras,0);return r};}
+  let raf=0;function agenda(){cancelAnimationFrame(raf);raf=requestAnimationFrame(aplicarFaixas)}
+  function iniciar(){const b=document.getElementById('baseContent');if(b)new MutationObserver(agenda).observe(b,{childList:true,subtree:true});aplicarFaixas();atualizarRegras();const m=document.body;new MutationObserver(()=>{if(document.getElementById('fsModalRegrasEscala'))atualizarRegras()}).observe(m,{childList:true});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,90));else setTimeout(iniciar,90);
 })();
 </script>
 </body></html>
