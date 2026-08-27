@@ -14718,7 +14718,11 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   window.fsOrdenarEquipesPorHorario=()=>normalizar(true);
   function alfabetizar(){document.querySelectorAll('.board tbody').forEach(tb=>{const atuais=[...tb.rows].filter(r=>r.querySelector('td.name')),ordenadas=[...atuais].sort((a,b)=>(a.querySelector('td.name')?.textContent||'').localeCompare(b.querySelector('td.name')?.textContent||'','pt-BR',{sensitivity:'base'})),mudou=atuais.some((r,i)=>r!==ordenadas[i]);ordenadas.forEach((r,i)=>{const n=r.querySelector('td.ncol'),num=String(i+1).padStart(2,'0');if(n&&n.textContent!==num)n.textContent=num});if(mudou)ordenadas.forEach(r=>tb.appendChild(r))})}
-  let busy=false;setInterval(()=>{if(busy)return;busy=true;try{normalizar(false);alfabetizar()}finally{busy=false}},350);setTimeout(()=>{normalizar(true);alfabetizar()},500);
+  /* A classificação automática só é executada quando a gestão solicita uma
+     nova distribuição. O carregamento e o F5 nunca remapeiam ajustes manuais. */
+  const distribuirAnt=window.aplicarDistribuicao||aplicarDistribuicao;
+  if(typeof distribuirAnt==='function'&&!distribuirAnt.__fs542){const fn=function(){const r=distribuirAnt.apply(this,arguments);setTimeout(()=>normalizar(true),30);return r};fn.__fs542=true;window.aplicarDistribuicao=fn;try{aplicarDistribuicao=fn}catch(e){}}
+  setInterval(alfabetizar,500);setTimeout(alfabetizar,500);
 })();
 </script>
 <style id="fs-v543-status-domingo-final-css">
