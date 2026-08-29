@@ -1,12 +1,12 @@
-const CACHE_NAME = 'fs-escala-local-v8';
+const CACHE_NAME = 'fs-escala-local-v9';
 const CORE_FILES = [
   './',
   './index.html',
   './FS_Escala_Operacional_Inteligente.html',
   './fs-runtime-guard.js',
   './fs-stability.css',
-  './fs-continuity.js',
-  './fs-continuity.css',
+  './fs-continuity-v2.js',
+  './fs-continuity-v2.css',
   './manifest.webmanifest',
   './LOGO%20ATUAL.png',
   './icone-192.png',
