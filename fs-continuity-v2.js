@@ -57,15 +57,29 @@ function layoutTree(){
   let width=720,height=0;
   if(useExecutiveLayout){
     const workers=wraps.filter(w=>w!==leaderWrap&&w!==creditWrap).sort((a,b)=>{const ga=gBy.get(a.dataset.key),gb=gBy.get(b.dataset.key);return sectorBucket(ga)-sectorBucket(gb)||order(ga)-order(gb)||ga.name.localeCompare(gb.name,'pt-BR')});
-    const marginX=40,rowGap=28;
-    width=Math.max(980,marginX*2+workers.length*nodeW+Math.max(0,workers.length-1)*rowGap);
-    const workerCenters=workers.map((w,i)=>marginX+i*(nodeW+rowGap)+nodeW/2);
+    const marginX=30,rowGap=18;
+    const workerW=Math.max(304,...workers.map(w=>Math.ceil(w.getBoundingClientRect().width)));
+    width=Math.max(980,marginX*2+workers.length*workerW+Math.max(0,workers.length-1)*rowGap);
+    const workerCenters=workers.map((w,i)=>marginX+i*(workerW+rowGap)+workerW/2);
     const leaderH=Math.ceil(leaderWrap.getBoundingClientRect().height),creditH=Math.ceil(creditWrap.getBoundingClientRect().height);
-    const leaderY=28;
-    const leaderX=Math.max(nodeW/2+60,Math.min(width-nodeW/2-60,width*0.46));
-    const creditY=leaderY+Math.max(92,Math.round(leaderH*.54));
-    const creditX=Math.max(leaderX+nodeW+72,Math.min(width-nodeW/2-54,width*.70));
-    const bottomY=Math.max(leaderY+leaderH+170,creditY+creditH+86);
+    const leaderW=Math.ceil(leaderWrap.getBoundingClientRect().width),creditW=Math.ceil(creditWrap.getBoundingClientRect().width);
+    const leaderY=18;
+    const leaderX=Math.max(leaderW/2+30,Math.min(width-leaderW/2-30,width*.44));
+    const creditY=leaderY+Math.max(72,Math.round(leaderH*.48));
+    // V588: a Gerência de Crédito fica no lado esquerdo, posicionada sobre os setores
+    // que respondem diretamente a ela. Isso mantém a leitura de subgerência sem
+    // colocá-la abaixo do Gerente de Vendas e torna a relação com seus setores explícita.
+    const creditKey=creditWrap.dataset.key;
+    const creditWorkerIndexes=[];
+    workers.forEach((w,i)=>{
+      const g=gBy.get(w.dataset.key),f=g?ensure(g):null;
+      if(f&&f.parentKey===creditKey) creditWorkerIndexes.push(i);
+    });
+    const linkedCenter=creditWorkerIndexes.length
+      ? creditWorkerIndexes.reduce((sum,i)=>sum+workerCenters[i],0)/creditWorkerIndexes.length
+      : width*.27;
+    const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,linkedCenter));
+    const bottomY=Math.max(leaderY+leaderH+92,creditY+creditH+54);
     leaderWrap.style.left=Math.round(leaderX-leaderWrap.getBoundingClientRect().width/2)+'px';leaderWrap.style.top=leaderY+'px';
     creditWrap.style.left=Math.round(creditX-creditWrap.getBoundingClientRect().width/2)+'px';creditWrap.style.top=creditY+'px';
     workers.forEach((w,i)=>{w.style.left=Math.round(workerCenters[i]-w.getBoundingClientRect().width/2)+'px';w.style.top=Math.round(bottomY)+'px'});
@@ -150,9 +164,9 @@ function executiveMeta(){
   const now=new Date(),month=now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
   return{filial,data:now.toLocaleDateString('pt-BR'),month};
 }
-function executiveHeaderHeight(w){return Math.round(Math.max(250,Math.min(410,w*.057)))}
+function executiveHeaderHeight(w){return Math.round(Math.max(220,Math.min(330,w*.072)))}
 async function paintExecutiveHeader(ctx,w,h,{titleRight='ORGANOGRAMA FUNCIONAL',footer='FS Escala Operacional Inteligente • Estrutura hierárquica e continuidade da filial'}={}){
-  const {filial,data,month}=executiveMeta(),k=Math.max(1,Math.min(1.7,w/4961)),headerH=executiveHeaderHeight(w);
+  const {filial,data,month}=executiveMeta(),k=Math.max(.92,Math.min(1.55,w/3200)),headerH=executiveHeaderHeight(w);
   ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#071d68';ctx.fillRect(0,0,w,Math.round(12*k));
   const logo=await coLoadImage('./LOGO ATUAL.png');if(logo){const maxLogoW=Math.round(430*k),maxLogoH=Math.round(126*k),ls=Math.min(maxLogoW/logo.width,maxLogoH/logo.height);ctx.drawImage(logo,Math.round(70*k),Math.round(68*k),logo.width*ls,logo.height*ls)}
   const cardW=Math.round(760*k),cardH=Math.round(190*k),cardX=w-cardW-Math.round(70*k),cardY=Math.round(46*k),r=Math.round(24*k);
@@ -165,15 +179,20 @@ async function paintExecutiveHeader(ctx,w,h,{titleRight='ORGANOGRAMA FUNCIONAL',
   ctx.fillStyle='#64748b';ctx.font=`600 ${Math.round(13*k)}px Arial, sans-serif`;ctx.textAlign='center';ctx.fillText(footer,w/2,h-Math.round(28*k));
   return headerH;
 }
+function paintExecutiveLegend(ctx,w,y){
+  const k=Math.max(.9,Math.min(1.35,w/3200)),items=[['#2457b8','Titular'],['#b9d7ff','Substituto(a)'],['#20a455','Linha de Gestão'],['#5d789f','Apoio / Atuação Integrada']];
+  ctx.save();ctx.textAlign='left';ctx.font=`700 ${Math.round(14*k)}px Arial, sans-serif`;let x=Math.round(w*.27);
+  items.forEach((it,idx)=>{ctx.fillStyle='#334155';if(idx<2){ctx.beginPath();ctx.fillStyle=it[0];ctx.arc(x,y,Math.round(8*k),0,Math.PI*2);ctx.fill();ctx.fillStyle='#334155';ctx.fillText(it[1],x+Math.round(15*k),y+Math.round(5*k));x+=Math.round((idx===0?185:220)*k)}else{ctx.strokeStyle=it[0];ctx.lineWidth=Math.max(2,2*k);ctx.setLineDash(idx===3?[8*k,6*k]:[]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.round(42*k),y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#334155';ctx.fillText(it[1],x+Math.round(52*k),y+Math.round(5*k));x+=Math.round((idx===2?235:300)*k)}});ctx.restore();
+}
 async function makeExecutiveCanvas(mode='a4'){
   const raw=await captureTreeCanvas();if(!raw)return null;const minWidth=4961,minHeight=3508;
   if(mode==='full'){
-    const marginX=76,bottom=86;const out=document.createElement('canvas');out.width=Math.max(minWidth,raw.width+marginX*2);const headerH=executiveHeaderHeight(out.width);out.height=Math.max(minHeight,headerH+raw.height+bottom);const ctx=out.getContext('2d');await paintExecutiveHeader(ctx,out.width,out.height,{titleRight:'ORGANOGRAMA FUNCIONAL'});const freeX=Math.max(0,out.width-raw.width-marginX*2),treeX=Math.max(48,Math.round((out.width-raw.width)/2)),treeY=headerH+18;ctx.drawImage(raw,treeX,treeY,raw.width,raw.height);return{canvas:out,scale:1}
+    const marginX=58,bottom=150,targetW=Math.max(3200,raw.width+marginX*2);const out=document.createElement('canvas');out.width=targetW;const headerH=executiveHeaderHeight(out.width);const maxTreeW=out.width-marginX*2,treeScale=Math.max(1,Math.min(1.34,maxTreeW/raw.width)),dw=raw.width*treeScale,dh=raw.height*treeScale;out.height=Math.max(2160,Math.ceil(headerH+dh+bottom));const ctx=out.getContext('2d');await paintExecutiveHeader(ctx,out.width,out.height,{titleRight:'ORGANOGRAMA FUNCIONAL'});const treeX=Math.round((out.width-dw)/2),treeY=headerH+8;ctx.drawImage(raw,treeX,treeY,dw,dh);paintExecutiveLegend(ctx,out.width,out.height-70);return{canvas:out,scale:treeScale}
   }
   const out=document.createElement('canvas');out.width=minWidth;out.height=minHeight;const ctx=out.getContext('2d');const headerH=await paintExecutiveHeader(ctx,out.width,out.height);const marginLeft=84,marginRight=84,bottom=78,contentTop=headerH+10,maxW=out.width-marginLeft-marginRight,maxH=out.height-contentTop-bottom,s=Math.min(maxW/raw.width,maxH/raw.height),dw=raw.width*s,dh=raw.height*s,dx=marginLeft+Math.max(0,(maxW-dw)/2),dy=contentTop+Math.max(0,(maxH-dh)/2);ctx.drawImage(raw,dx,dy,dw,dh);return{canvas:out,scale:s}
 }
 function coLoadImage(src){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src})}
-async function exportImage(){if(tab!=='mapa')return;const prior=detailMode,priorLinks=hierarchyLinks;detailMode='summary';hierarchyLinks='all';render();await new Promise(r=>setTimeout(r,180));if(typeof html2canvas!=='function'){detailMode=prior;hierarchyLinks=priorLinks;render();return alert('O exportador de imagem ainda não carregou. Aguarde alguns segundos e tente novamente.')}const result=await makeExecutiveCanvas('full');if(!result){detailMode=prior;hierarchyLinks=priorLinks;render();return alert('Não foi possível gerar a imagem.')}const data=new Date().toLocaleDateString('pt-BR');const a=document.createElement('a');a.download=`Organograma_Filial_${data.replace(/\//g,'-')}_HD.png`;a.href=result.canvas.toDataURL('image/png');a.click();detailMode=prior;hierarchyLinks=priorLinks;render()}
+async function exportImage(){if(tab!=='mapa')return;const prior=detailMode,priorLinks=hierarchyLinks;detailMode='detailed';hierarchyLinks='all';render();await new Promise(r=>setTimeout(r,180));if(typeof html2canvas!=='function'){detailMode=prior;hierarchyLinks=priorLinks;render();return alert('O exportador de imagem ainda não carregou. Aguarde alguns segundos e tente novamente.')}const result=await makeExecutiveCanvas('full');if(!result){detailMode=prior;hierarchyLinks=priorLinks;render();return alert('Não foi possível gerar a imagem.')}const data=new Date().toLocaleDateString('pt-BR');const a=document.createElement('a');a.download=`Organograma_Filial_${data.replace(/\//g,'-')}_HD.png`;a.href=result.canvas.toDataURL('image/png');a.click();detailMode=prior;hierarchyLinks=priorLinks;render()}
 function updateLauncher(){let b=document.getElementById('fsCoLauncher');if(!b){b=document.createElement('button');b.id='fsCoLauncher';b.className='fsCoHomeCard';b.type='button';(document.querySelector('#visao>.cards')||document.body).appendChild(b)}const m=metrics();b.innerHTML=`<div class="fsCoLaunchTop"><i>🧩</i><span>Continuidade Operacional</span></div><div class="fsCoLaunchIndex"><span>Cobertura da filial</span><strong>${m.index}%</strong></div><div class="fsCoLaunchStats"><span>🟢 ${m.full}</span><span>🟡 ${m.partial}</span><span>🔴 ${m.none}</span></div>`}
 function updateSupportFloating(){let b=document.getElementById('fsSupportFloating');if(!b){b=document.createElement('button');b.id='fsSupportFloating';b.type='button';b.className='fsSupportFloating';b.setAttribute('aria-label','Abrir suporte');b.title='Suporte';b.innerHTML='<span>✦</span><b>Suporte</b>';document.body.appendChild(b)}const visao=document.getElementById('visao'),show=!!visao?.classList.contains('active')&&!document.documentElement.classList.contains('coOpen');b.classList.toggle('show',show)}
 document.documentElement.addEventListener('change',e=>{if(e.target?.id==='coRespFilter'){responsibilityFocus=e.target.value;render()}});
