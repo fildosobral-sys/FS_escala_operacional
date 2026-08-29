@@ -1,10 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"><title>FS Operacional Inteligente</title><script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
-function fsAssinaturaExportacao(){
-  return '<div class="fsExportSignatureBar"><span class="fsDevSignature">Developed by FildoSobral © 2026</span></div>';
-}
-
-</script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"><title>FS Operacional Inteligente</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="./icone-192.png"><meta name="theme-color" content="#020617"><script src="./fs-runtime-guard.js"></script>
 <script>
 /* ===== v508: terceiro modo operacional — dias normais 6x1 / 44h ===== */
 document.addEventListener('DOMContentLoaded',function(){
@@ -942,7 +937,7 @@ table{min-width:900px!important}td{padding:7px 7px!important}th{padding:7px 7px!
 
 
 .cronoLogoSlot,.execLogoBox{
-background-image:url('https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png') !important;
+background-image:url('LOGO%20ATUAL.png') !important;
 background-repeat:no-repeat !important;
 background-position:center !important;
 background-size:contain !important;
@@ -952,7 +947,7 @@ color:transparent !important;
 
 
 /* ===== v425: LOGO DEFINITIVA EM TODOS OS RELATÓRIOS E EXPORTAÇÕES ===== */
-:root{--fs-logo-url:url("https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png");}
+:root{--fs-logo-url:url("LOGO%20ATUAL.png");}
 
 .execLogoBox,
 .cronoLogoSlot,
@@ -4811,8 +4806,8 @@ body{
 
 </style>
 <script>
-const LOGO_EMPRESA_URL = "https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png";
-const LOGO_EMPRESA_HTML = '<img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous">';
+const LOGO_EMPRESA_URL = "LOGO%20ATUAL.png";
+const LOGO_EMPRESA_HTML = '<img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous">';
 </script>
 
 
@@ -5416,7 +5411,7 @@ html.fsBooting,html.fsBooting body{overflow:hidden!important}.fsStartup{position
 </head><body><script>document.documentElement.classList.add('fsBooting')</script><div id="fsStartup" class="fsStartup" aria-label="Carregando plataforma"><div class="fsStartupCard"><img src="LOGO ATUAL.png" alt="Zenir"><div class="fsStartupSpin"></div><div class="fsStartupText">Preparando o quadro operacional…</div></div></div><div class="app"><div id="captureTop" class="captureArea"><header class="top"><div class="header"><h1>QUADRO OPERACIONAL</h1><p>ESCALA 5x2 | JORNADA <span id="tituloCarga">40H</span></p></div><div class="line"></div><div class="meta metaPro">
   <div class="metaItem metaEmpregador">
     <div class="empTitle">EMPREGADOR</div>
-    <img class="empLogoGrande" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous">
+    <img class="empLogoGrande" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous">
     <div class="empNome" id="topEmpregador">J. ALVES E OLIVEIRA LTDA</div>
   </div>
   <div class="metaItem metaFilial">
@@ -5868,7 +5863,7 @@ function cronoResumoCompacto(total){
 }
 function cronoLogoGrande(){
   return `<div class="cronoLogoGrande">
-    <img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous">
+    <img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous">
   </div>`;
 }
 
@@ -6008,8 +6003,8 @@ function execHeaderHtml(subtitulo){
     <div class="execHeaderMain"><h1>QUADRO OPERACIONAL</h1><p>${subtitulo}</p></div>
     <div class="execLine"></div>
     <div class="execMeta">
-      <div><span style="font-size:24px"><img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></span><span><b>EMPREGADOR</b>${html(document.getElementById('topEmpregador')?.innerText||'J. ALVES E OLIVEIRA LTDA')}</span></div>
-      <div><span style="font-size:24px"><img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></span><span><b>FILIAL</b>${html((document.getElementById('topFilial')?.innerText||'ZENIR MÓVEIS E ELETROS IGUATU III')).replace(/\n/g,'<br>')}</span></div>
+      <div><span style="font-size:24px"><img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></span><span><b>EMPREGADOR</b>${html(document.getElementById('topEmpregador')?.innerText||'J. ALVES E OLIVEIRA LTDA')}</span></div>
+      <div><span style="font-size:24px"><img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></span><span><b>FILIAL</b>${html((document.getElementById('topFilial')?.innerText||'ZENIR MÓVEIS E ELETROS IGUATU III')).replace(/\n/g,'<br>')}</span></div>
       <div><span style="font-size:24px">🛒</span><span><b>ATIVIDADE</b>${html(document.getElementById('topAtividade')?.innerText||'COMÉRCIO VAREJISTA')}</span></div>
     </div>
   </div>`;
@@ -6073,7 +6068,7 @@ function execResumoHtml(lista,titulo){
   const dist=byFunc(lista).map(([f,q])=>`<li><span class="qtdFunc">${q}</span><span class="nomeFunc">${formatarFuncao(f)}</span></li>`).join('');
   const data=new Date().toLocaleDateString('pt-BR');
   const modelo=state.config.modo==='distribuido'?'Distribuído':'Especial + Sábado';
-  return `<div class="execMiniCards"><div class="execSumCard"><b>👥 Total escalado</b><span>${total}</span><small>colaborador(es)</small></div><div class="execSumCard"><b>${principal.emoji} ${principal.label}</b><span>${principal.qtd}</span><small>função predominante</small></div><div class="execSumCard"><b>🏷️ Funções</b><span>${funcs}</span><small>tipo(s) no quadro</small></div><div class="execSumCard"><b>📌 Modelo</b><span style="font-size:25px">${modelo}</span><small>escala atual</small></div></div><div class="execBottomGrid"><div class="execFunctionList"><h3>${titulo||'Resumo operacional do dia'}</h3><ul>${dist||'<li>Nenhum colaborador</li>'}</ul></div><div class="execLogoBox logoOnly"><img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"><img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Empresa" crossorigin="anonymous"></div>`;
+  return `<div class="execMiniCards"><div class="execSumCard"><b>👥 Total escalado</b><span>${total}</span><small>colaborador(es)</small></div><div class="execSumCard"><b>${principal.emoji} ${principal.label}</b><span>${principal.qtd}</span><small>função predominante</small></div><div class="execSumCard"><b>🏷️ Funções</b><span>${funcs}</span><small>tipo(s) no quadro</small></div><div class="execSumCard"><b>📌 Modelo</b><span style="font-size:25px">${modelo}</span><small>escala atual</small></div></div><div class="execBottomGrid"><div class="execFunctionList"><h3>${titulo||'Resumo operacional do dia'}</h3><ul>${dist||'<li>Nenhum colaborador</li>'}</ul></div><div class="execLogoBox logoOnly"><img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"><img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Empresa" crossorigin="anonymous"></div>`;
 }
 function montarRelatorioDia(dia){
   const grupos=agruparSlots(pessoasDia(dia),dia);
@@ -6474,7 +6469,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
         </div>
         <div class="execCollMainGrid">
           <div class="execCollListBox"><div class="execCollBoxTitle">📋 Lista geral de colaboradores</div><table class="execCollAllTable"><thead><tr><th class="num">Nº</th><th>Nome do colaborador</th><th>Função</th></tr></thead><tbody>${rows}</tbody></table></div>
-          <div class="execCollSideBox"><div class="execCollBoxTitle">📊 Resumo por função</div><div class="execCollFuncDash">${fitems}</div><div class="execCollLogoBox"><img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></div>
+          <div class="execCollSideBox"><div class="execCollBoxTitle">📊 Resumo por função</div><div class="execCollFuncDash">${fitems}</div><div class="execCollLogoBox"><img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></div>
         <div class="execCollNote">ⓘ Relação geral, sem divisão por Grupo A/B. O relatório acompanha automaticamente a base cadastrada na plataforma, funções e modelo atual da escala.</div>
       </div>
     </div>`;
@@ -6526,7 +6521,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <script>
 (function(){
   function fsAplicarLogoGlobal(){
-    const url = "https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png";
+    const url = "LOGO%20ATUAL.png";
     const seletores = [
       ".execLogoBox",".cronoLogoSlot",".relLogoBox",".relatorioLogoBox",
       ".logo-area",".logoArea",".reportLogo",".relLogo",".companyLogoBox",
@@ -6597,7 +6592,9 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
 
   function fsTextoHtml(v){
-    return String(v || "").replace(/\n/g, "<br>");
+    return String(v || "")
+      .replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]); })
+      .replace(/\n/g, "<br>");
   }
 
   function fsAplicarDadosEmpresa(root){
@@ -6735,7 +6732,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <script>
 /* ===== v430: Cabeçalho proporcional seguro ===== */
 (function(){
-  const logoUrl = "https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png";
+  const logoUrl = "LOGO%20ATUAL.png";
   function fsCabecalhoProporcional(){
     const meta = document.querySelector(".top .meta");
     if(!meta || meta.classList.contains("metaPro")) return;
@@ -6788,7 +6785,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <script>
 /* ===== v431: limpeza do slot de logo no cronograma antes de visualizar/baixar ===== */
 (function(){
-  const logoUrl = "https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png";
+  const logoUrl = "LOGO%20ATUAL.png";
   function fsCorrigirLogoCronograma(){
     document.querySelectorAll(".cronoLogoGrande").forEach(box => {
       box.innerHTML = '<img class="fsLogoImg" src="' + logoUrl + '" alt="Logo Zenir" crossorigin="anonymous">';
@@ -6818,7 +6815,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <script>
 /* ===== v432: Sanitizador específico do Cronograma Executivo ===== */
 (function(){
-  const logoUrl = "https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png";
+  const logoUrl = "LOGO%20ATUAL.png";
   function fsLogoCronogramaFinal(){
     document.querySelectorAll(".cronoLogoGrande").forEach(box => {
       box.innerHTML = '<img class="fsLogoImg" src="' + logoUrl + '" alt="Logo Zenir" crossorigin="anonymous">';
@@ -6997,7 +6994,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     const dist=byFunc(lista).map(([f,q])=>`<li><span class="qtdFunc">${q}</span><span class="nomeFunc">${formatarFuncao(f)}</span></li>`).join('');
     const modelo=state.config.modo==='distribuido'?'Distribuído':'Especial + Sábado';
     const tituloFinal=(titulo||'Composição operacional do dia').replace('Resumo operacional','Composição operacional');
-    return `<div class="execMiniCards"><div class="execSumCard"><b>👥 Total escalado</b><span>${total}</span><small>colaborador(es)</small></div><div class="execSumCard"><b>${principal.emoji} ${principal.label}</b><span>${principal.qtd}</span><small>função predominante</small></div><div class="execSumCard"><b>🏷️ Funções</b><span>${funcs}</span><small>tipo(s) no quadro</small></div><div class="execSumCard"><b>📌 Modelo</b><span style="font-size:25px">${modelo}</span><small>escala atual</small></div></div><div class="execBottomGrid"><div class="execFunctionList"><h3>${tituloFinal}</h3><ul>${dist||'<li>Nenhum colaborador</li>'}</ul></div><div class="execLogoBox logoOnly"><img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></div></div>`;
+    return `<div class="execMiniCards"><div class="execSumCard"><b>👥 Total escalado</b><span>${total}</span><small>colaborador(es)</small></div><div class="execSumCard"><b>${principal.emoji} ${principal.label}</b><span>${principal.qtd}</span><small>função predominante</small></div><div class="execSumCard"><b>🏷️ Funções</b><span>${funcs}</span><small>tipo(s) no quadro</small></div><div class="execSumCard"><b>📌 Modelo</b><span style="font-size:25px">${modelo}</span><small>escala atual</small></div></div><div class="execBottomGrid"><div class="execFunctionList"><h3>${tituloFinal}</h3><ul>${dist||'<li>Nenhum colaborador</li>'}</ul></div><div class="execLogoBox logoOnly"><img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></div></div>`;
   };
 
   window.montarRelatorioDia=function(dia){
@@ -7097,7 +7094,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     const dist=byFunc(lista).map(([f,q])=>`<li><span class="qtdFunc">${q}</span><span class="nomeFunc">${formatarFuncao(f)}</span></li>`).join('');
     const modelo=state.config.modo==='distribuido'?'Distribuído':'Especial + Sábado';
     const tituloFinal=(titulo||'Composição operacional do dia').replace('Resumo operacional','Composição operacional');
-    return `<div class="execMiniCards"><div class="execSumCard"><b>👥 Total escalado</b><span>${total}</span><small>colaborador(es)</small></div><div class="execSumCard"><b>${principal.emoji} ${principal.label}</b><span>${principal.qtd}</span><small>função predominante</small></div><div class="execSumCard"><b>🏷️ Funções</b><span>${funcs}</span><small>tipo(s) no quadro</small></div><div class="execSumCard"><b>📌 Modelo</b><span style="font-size:25px">${modelo}</span><small>escala atual</small></div></div><div class="execBottomGrid"><div class="execFunctionList"><h3>${tituloFinal}</h3><ul>${dist||'<li>Nenhum colaborador</li>'}</ul></div><div class="execLogoBox logoOnly"><img class="fsLogoImg" src="https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></div></div>${fsGestorResponsavelHtml()}`;
+    return `<div class="execMiniCards"><div class="execSumCard"><b>👥 Total escalado</b><span>${total}</span><small>colaborador(es)</small></div><div class="execSumCard"><b>${principal.emoji} ${principal.label}</b><span>${principal.qtd}</span><small>função predominante</small></div><div class="execSumCard"><b>🏷️ Funções</b><span>${funcs}</span><small>tipo(s) no quadro</small></div><div class="execSumCard"><b>📌 Modelo</b><span style="font-size:25px">${modelo}</span><small>escala atual</small></div></div><div class="execBottomGrid"><div class="execFunctionList"><h3>${tituloFinal}</h3><ul>${dist||'<li>Nenhum colaborador</li>'}</ul></div><div class="execLogoBox logoOnly"><img class="fsLogoImg" src="LOGO%20ATUAL.png" alt="Logo Zenir" crossorigin="anonymous"></div></div>${fsGestorResponsavelHtml()}`;
   };
 
   window.montarRelatorioDia = function(dia){
@@ -13540,7 +13537,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 /* Jornada geral executiva: colunas de horário, cabeçalho institucional e paginação A4 retrato. */
 (function(){
   const MAX_POR_PAGINA=22, uteis=['segunda','terca','quarta','quinta','sexta'];
-  const logo='https://fildosobral-sys.github.io/FS_escala_operacional/LOGO%20ATUAL.png';
+  const logo='LOGO%20ATUAL.png';
   function e(v){return typeof html==='function'?html(String(v||'')):String(v||'');}
   function partes(arr,n){const o=[];for(let i=0;i<arr.length;i+=n)o.push(arr.slice(i,i+n));return o.length?o:[[]];}
   function inter(h){if(!h||h.almocoIni===h.almocoFim)return '—';return `${h.almocoIni}/${h.almocoFim}`;}
@@ -15223,4 +15220,4 @@ window.baixarImagem=function(elementId,nomeArquivo){
   let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizar,55)}).observe(document.body,{childList:true,subtree:true});setInterval(atualizar,500);setTimeout(atualizar,850);
 })();
 </script>
-</body></html>
+<link rel="stylesheet" href="./fs-stability.css"></body></html>
