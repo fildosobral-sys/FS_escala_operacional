@@ -172,3 +172,74 @@ html.coOpen #fsSupportFloating{display:none!important}
 @media(max-width:1100px){.coStructureTable{min-width:1350px!important}.coStructurePreviewHead{align-items:stretch;flex-direction:column}.coStructurePreviewHead .coBtn{width:100%}}
 
 @media(max-width:800px){.coGuidedSetupCard h3{font-size:26px}.coGuidedSetupCard p{font-size:16px}.coSupportDevBtn{font-size:12px;padding:9px 12px}.coContinuityBox{width:100%}.coStructurePreviewCanvas{max-height:520px}}
+
+/* v582 — compactação final da configuração e suporte */
+.coSupportPanel{width:min(660px,94vw)!important;border-radius:20px!important}
+.coSupportPanel>header{padding:14px 16px!important;gap:10px!important}
+.coSupportTitle b{font-size:17px!important;line-height:1.15!important}
+.coSupportTitle small{font-size:11px!important}
+.coSupportHeaderActions{gap:6px!important;align-items:center!important}
+.coSupportDevBtn{font-size:10px!important;padding:7px 9px!important;border-radius:10px!important;min-width:auto!important;white-space:nowrap!important}
+.coSupportCloseText{width:auto!important;height:auto!important;padding:6px 8px!important;border:0!important;background:transparent!important;color:#718096!important;font-size:10px!important;font-weight:800!important}
+.coSupportQuick{padding:10px 14px!important;gap:6px!important}
+.coSupportQuick button{font-size:10px!important;padding:7px 9px!important}
+.coSupportChat{min-height:190px!important;max-height:300px!important;padding:14px!important}
+.coSupportMsg p{font-size:13px!important;line-height:1.45!important;padding:10px 12px!important}
+.coSupportPanel form{padding:11px 14px!important;gap:8px!important}
+.coSupportPanel input{font-size:13px!important;padding:11px 12px!important}
+.coSupportPanel form button{font-size:13px!important;padding:10px 15px!important}
+.coSupportPanel>footer{font-size:9px!important;padding:8px 12px 10px!important}
+
+.coStructureTableWrap{overflow-x:hidden!important;padding:10px 12px 14px!important}
+.coStructureTable{width:100%!important;min-width:0!important;table-layout:fixed!important;border-spacing:0 8px!important}
+.coStructureTable th{font-size:10px!important;padding:10px 7px!important}
+.coStructureTable th:nth-child(1),.coStructureTable td:nth-child(1){width:15%!important}
+.coStructureTable th:nth-child(2),.coStructureTable td:nth-child(2){width:15%!important}
+.coStructureTable th:nth-child(3),.coStructureTable td:nth-child(3){width:14%!important}
+.coStructureTable th:nth-child(4),.coStructureTable td:nth-child(4){width:14%!important}
+.coStructureTable th:nth-child(5),.coStructureTable td:nth-child(5){width:24%!important}
+.coStructureTable th:nth-child(6),.coStructureTable td:nth-child(6){width:18%!important}
+.coStructureTable td{padding:10px 7px!important;height:auto!important;min-height:0!important}
+.coStructureTable tbody td>b{font-size:12px!important;line-height:1.2!important}
+.coStructureTable tbody td>small{font-size:9px!important;margin-top:3px!important}
+.coStructureTable select{min-width:0!important;width:100%!important;max-width:100%!important;height:38px!important;padding:7px 9px!important;font-size:11px!important;border-radius:10px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.coMiniPlans{gap:5px!important;min-width:0!important}
+.coMiniPlans label{grid-template-columns:68px minmax(0,1fr)!important;gap:5px!important;font-size:9px!important}
+.coMiniPlans select{height:34px!important;font-size:10px!important;padding:5px 7px!important}
+.coContinuityBox{width:100%!important;max-width:180px!important;padding:10px 8px!important;margin:0 auto!important;border-radius:12px!important;gap:6px!important}
+.coContinuityBox>strong{font-size:10px!important}
+.coContinuityBox fieldset{gap:5px!important;margin:0!important;padding:0!important}
+.coContinuityBox legend{font-size:9px!important;margin-bottom:4px!important}
+.coRadioPill{min-width:52px!important;height:30px!important;font-size:10px!important}
+.coCriticalToggle{font-size:9px!important;padding-top:6px!important;margin-top:2px!important}
+.coContinuityBox>small{font-size:8px!important;line-height:1.25!important;max-width:150px!important}
+.coStructureNote{font-size:11px!important;line-height:1.45!important;padding:12px 14px!important;margin:12px 14px 6px!important}
+.coStructureFlow{padding:14px 12px 8px!important;gap:7px!important}
+.coFlowStep{min-width:0!important;padding:9px 12px!important;border-radius:14px!important}
+.coFlowStep span{font-size:11px!important}
+.coFlowStep strong{width:24px!important;height:24px!important;font-size:11px!important}
+.coStructureSaveFooter{margin:10px 12px 0!important;padding:12px 14px!important;gap:12px!important}
+.coStructureSaveFooter>div b{font-size:11px!important}
+.coStructureSaveFooter>div span{font-size:9px!important}
+.coStructureSaveFooter .coBtn{min-height:42px!important;padding:10px 14px!important;font-size:12px!important}
+.coStructurePreview{margin:14px 12px!important}
+.coStructurePreviewCanvas{max-height:540px!important;padding:8px!important}
+.coStructurePreviewHead{padding:12px 14px!important}
+.coStructurePreviewHead b{font-size:14px!important}
+.coStructurePreviewHead span{font-size:10px!important}
+.coStructurePreviewHead .coBtn{font-size:11px!important;padding:9px 12px!important}
+.coStructurePreview .coMemberOrder,.coStructurePreview .coNode>header button,.coStructurePreview .coMemberTop i{display:none!important}
+
+.coGuidedSetupCard{width:min(560px,92vw)!important;padding:28px 28px!important}
+.coGuidedSetupCard h3{font-size:27px!important}
+.coGuidedSetupCard p{font-size:15px!important;line-height:1.6!important}
+.coGuidedSetupCard button{font-size:15px!important;padding:12px 18px!important}
+
+@media(max-width:1200px){
+  .coStructureTable th:nth-child(1),.coStructureTable td:nth-child(1){width:14%!important}
+  .coStructureTable th:nth-child(2),.coStructureTable td:nth-child(2){width:15%!important}
+  .coStructureTable th:nth-child(3),.coStructureTable td:nth-child(3){width:14%!important}
+  .coStructureTable th:nth-child(4),.coStructureTable td:nth-child(4){width:14%!important}
+  .coStructureTable th:nth-child(5),.coStructureTable td:nth-child(5){width:25%!important}
+  .coStructureTable th:nth-child(6),.coStructureTable td:nth-child(6){width:18%!important}
+}

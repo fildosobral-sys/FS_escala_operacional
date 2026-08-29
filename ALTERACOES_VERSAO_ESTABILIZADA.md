@@ -123,3 +123,14 @@ Antes de migrar, gere um backup na versão antiga e faça uma conferência visua
 - Impressão/PDF mantidos em A4, com fallback paginado para operações maiores.
 - Captura do organograma para exportação/ impressão limpa controles visuais temporários para evitar setas, ícones e perdas de conteúdo.
 - Cards de colaborador deixam de depender de `<button>` como container principal, reduzindo falhas de renderização no exportador.
+
+## v582 — correção visual e fluxo de configuração
+- Assistente de suporte compactado; botão “Desenvolvedor” reduzido e alinhado no canto, sem ícone X grande.
+- Fechamento do suporte por botão textual discreto e clique fora da janela.
+- Entrada em Continuidade Operacional volta a conduzir primeiro para Configurar Estrutura com orientação inicial.
+- Pré-visualização do organograma não aparece mais apenas porque existia configuração antiga: ela só surge após salvar a configuração na sessão atual.
+- Tabela de Configurar Estrutura compactada para caber melhor na área visível, reduzindo espaços em branco e eliminando a dependência de largura fixa exagerada.
+- Coluna Continuidade centralizada e reduzida, com Sim/Não e Função crítica mais legíveis.
+- Campos de substituição e superiores ajustados para ocupar menos espaço sem perder legibilidade.
+- Pré-visualização reduzida e limpa, sem controles de ordenação/edição visíveis.
+- Cache do aplicativo atualizado para carregar obrigatoriamente a nova versão do JS/CSS.
