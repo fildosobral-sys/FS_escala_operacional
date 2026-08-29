@@ -33,6 +33,17 @@
 - Cadastros padrão, cálculos, distribuição de equipes, jornadas individuais, domingos e relatórios não foram modificados.
 - O formato de dados salvo no navegador foi mantido.
 
+## Módulo Continuidade Operacional
+
+- Novo quinto card na faixa de indicadores da Visão Geral, com índice e resumo de cobertura.
+- Mapa construído dinamicamente a partir dos colaboradores e funções já cadastrados.
+- Configuração livre de Plano A, Plano B e Plano C, sem relações fixas entre cargos.
+- Status de preparação, avaliação, responsável, observações e competências por substituto.
+- Dashboard automático, mapa estrutural, matriz com filtros, riscos, capacitação e simulação por data.
+- Alertas de função crítica sem cobertura, titular único, substituto removido, treinamento, dependência excessiva e possível efeito cascata.
+- Histórico local das alterações do módulo.
+- Exportação em imagem e impressão/PDF.
+
 ## Verificações realizadas
 
 - carregamento da tela inicial;
