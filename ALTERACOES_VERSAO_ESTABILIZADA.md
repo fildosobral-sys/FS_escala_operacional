@@ -110,3 +110,16 @@ Antes de migrar, gere um backup na versão antiga e faça uma conferência visua
 - Removido o bloco duplicado de “Visualizar mapa estrutural” no topo da configuração.
 - Após salvar a estrutura, o organograma é gerado automaticamente e aparece como pré-visualização editável logo abaixo do botão de salvar.
 - Botão para abrir o Mapa Estrutural permanece dentro da pré-visualização.
+
+## Ajustes complementares v581 — onboarding, legibilidade e organograma executivo
+- Reforço da entrada guiada: ao detectar operação sem configuração hierárquica concluída, o módulo abre direto em **Configurar Estrutura** e volta a exibir o convite inicial desta etapa.
+- Modal de onboarding ampliado para melhor leitura, com hierarquia visual mais forte e CTA principal mais claro.
+- Assistente de suporte ampliado, com fonte maior, área útil mais larga e botão **Falar com o desenvolvedor** sem quebra de linha.
+- Coluna **Continuidade** reorganizada para evitar sobreposição e melhorar centralização de “Sim / Não” e “Função crítica”.
+- Pré-visualização do organograma mantida logo abaixo do salvamento, mas com renderização mais limpa e sem controles visuais desnecessários.
+- O mapa estrutural passa a considerar **todos os vínculos** por padrão, preservando a distinção visual entre vínculo direto e adicional.
+- Controles de ordenação dos colaboradores permanecem funcionais, porém ficam ocultos até hover/foco, evitando poluição visual.
+- Exportação de imagem ajustada para **PNG HD completo**, preservando a estrutura inteira sem cortar dados.
+- Impressão/PDF mantidos em A4, com fallback paginado para operações maiores.
+- Captura do organograma para exportação/ impressão limpa controles visuais temporários para evitar setas, ícones e perdas de conteúdo.
+- Cards de colaborador deixam de depender de `<button>` como container principal, reduzindo falhas de renderização no exportador.
