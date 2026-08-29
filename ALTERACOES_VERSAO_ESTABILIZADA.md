@@ -66,3 +66,20 @@ Antes de migrar, gere um backup na versão antiga e faça uma conferência visua
 - A configuração não depende de nomes fixos de cargos e pode ser usada em operações pequenas ou grandes.
 - Impressão/PDF usa uma única A4 quando a leitura é adequada e passa automaticamente para relatório hierárquico paginado quando a estrutura ficaria pequena demais.
 - Exportação PNG continua em A4 paisagem; em operações muito grandes funciona como visão geral e o PDF é recomendado para leitura completa.
+
+## v573 — centralização, fluxo guiado e acabamento diretoria
+- Menu lateral reorganizado: Visão Geral → Configurar Estrutura → Mapa Estrutural.
+- Botão de ocultar menu removido do cabeçalho e substituído por seta lateral.
+- Cabeçalho superior centralizado com melhor alinhamento da data e ações.
+- Abertura guiada: quando a estrutura ainda não estiver configurada, a plataforma orienta primeiro a configurar o organograma.
+- Fluxo da Configuração da Estrutura reorganizado com etapas visuais e ordem hierárquica mais lógica das funções.
+- Botão “Gerar sugestão automática” passa a aparecer após o primeiro salvamento da estrutura.
+- Mapa estrutural com maior centralização, mais respiro entre os blocos e acabamento executivo.
+- Impressão/PDF refinados para apresentação mais elegante.
+
+## v574 — suporte interno
+- Adicionado pequeno botão “Suporte” na Visão Geral da Continuidade Operacional.
+- Ao clicar, abre um assistente em formato de chat com perguntas rápidas.
+- O assistente responde dúvidas sobre hierarquia, superiores, substitutos, responsabilidades, modo resumido/detalhado, cobertura, riscos e exportação A4.
+- As respostas de cobertura e quantidade de funções usam os dados atuais do próprio módulo.
+- Funciona localmente, sem depender de internet ou API externa.
