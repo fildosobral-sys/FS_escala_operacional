@@ -299,3 +299,19 @@ html.coOpen #fsSupportFloating{display:none!important}
 .coTreeCanvas{padding:8px 18px 18px!important}
 
 @media(max-width:900px){.coTreeNodeWrap{width:312px!important}.coTreeNodeWrap .coNode,.coNode{width:312px!important}}
+
+
+/* v585 - ajustes finais de suporte, legibilidade e organograma A4 */
+.coSupportPanel{width:min(760px,95vw)!important}
+.coSupportPanel>header{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}
+.coSupportTitle{min-width:0!important;padding-right:10px!important}
+.coSupportHeaderActions{margin-left:auto!important;align-self:flex-start!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:nowrap!important;min-width:auto!important}
+.coSupportPanel>header button{flex:0 0 auto!important}
+.coSupportDevBtn{width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;display:grid!important;place-items:center!important;font-size:0!important;border-radius:12px!important;background:#eef9f2!important;border:1px solid #cfe6d6!important;color:#20a24b!important}
+.coSupportDevBtn .coSupportWaIcon{width:20px!important;height:20px!important;display:block!important;line-height:0!important}
+.coSupportDevBtn .coSupportWaIcon svg{width:20px!important;height:20px!important;display:block!important;fill:currentColor!important}
+.coSupportCloseText{width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:12px!important;background:#16a34a!important;border:1px solid #15803d!important;color:#fff!important;font-size:18px!important;font-weight:900!important;line-height:1!important}
+.coTreeLines .coAdditionalLine{stroke:#5d789f!important;stroke-width:2.15!important;opacity:.92!important;stroke-dasharray:8 6!important}
+.coTreeLines .coDirectLine{stroke:#1f314f!important;stroke-width:2.6!important}
+.coMemberTop b{overflow-wrap:anywhere!important;word-break:break-word!important}
+.coSub b{line-height:1.22!important}
