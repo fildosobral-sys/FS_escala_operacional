@@ -83,3 +83,10 @@ Antes de migrar, gere um backup na versão antiga e faça uma conferência visua
 - O assistente responde dúvidas sobre hierarquia, superiores, substitutos, responsabilidades, modo resumido/detalhado, cobertura, riscos e exportação A4.
 - As respostas de cobertura e quantidade de funções usam os dados atuais do próprio módulo.
 - Funciona localmente, sem depender de internet ou API externa.
+
+## v576 — legibilidade e suporte flutuante
+- Cabeçalho da tabela de Configurar Estrutura com contraste reforçado e textos brancos legíveis.
+- Nomes e campos da configuração com tipografia mais forte.
+- Botão de suporte pequeno, discreto e flutuante no canto inferior direito da Visão Geral principal.
+- Suporte flutuante abre o mesmo assistente interno e mantém o encaminhamento ao WhatsApp do desenvolvedor.
+- Cache PWA atualizado para evitar carregar estilos antigos.
