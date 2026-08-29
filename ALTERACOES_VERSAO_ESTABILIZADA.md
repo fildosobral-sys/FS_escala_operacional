@@ -97,3 +97,16 @@ Antes de migrar, gere um backup na versão antiga e faça uma conferência visua
 - Vínculos adicionais são desenhados de forma mais discreta para análise, sem confundir com a linha principal.
 - Exportação de imagem A4 e impressão/PDF utilizam somente a hierarquia principal para preservar legibilidade e apresentação executiva.
 - Mantidos os modos Resumido e Detalhado de pessoas/atribuições.
+
+## v579 — suporte simplificado e ordenação manual
+- Suporte reorganizado: dúvidas rápidas em destaque e botão “Falar com o desenvolvedor” no cabeçalho.
+- Removida a duplicidade entre “tirar dúvida” e “falar com especialista”.
+- Quando não houver resposta segura, o assistente pergunta se o usuário deseja falar com o desenvolvedor.
+- Inclusão de ordenação manual dos colaboradores dentro do card da função (subir/descer), permitindo posicionar líderes no topo sem alterar cargo ou função.
+
+## v580 — onboarding guiado e pré-visualização editável
+- Ao abrir Continuidade Operacional pela primeira vez nesta versão, o sistema direciona para Configurar Estrutura e exibe orientação inicial.
+- Coluna Continuidade centralizada e compactada para evitar sobreposição com Substituição.
+- Removido o bloco duplicado de “Visualizar mapa estrutural” no topo da configuração.
+- Após salvar a estrutura, o organograma é gerado automaticamente e aparece como pré-visualização editável logo abaixo do botão de salvar.
+- Botão para abrir o Mapa Estrutural permanece dentro da pré-visualização.
