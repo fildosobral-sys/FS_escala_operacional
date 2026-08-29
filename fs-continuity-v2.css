@@ -315,3 +315,9 @@ html.coOpen #fsSupportFloating{display:none!important}
 .coTreeLines .coDirectLine{stroke:#1f314f!important;stroke-width:2.6!important}
 .coMemberTop b{overflow-wrap:anywhere!important;word-break:break-word!important}
 .coSub b{line-height:1.22!important}
+
+/* v586 — organograma executivo: liderança lateral + exportação com cabeçalho nos cantos */
+.coTreeCanvas[data-layout="executive"]{min-height:620px!important}
+.coTreeCanvas[data-layout="executive"] .coLeadershipLine{stroke:#5d789f!important;stroke-width:2.2!important;stroke-dasharray:8 6!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coNode,
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_credito"] .coNode{box-shadow:0 7px 22px rgba(15,35,75,.08)!important}
