@@ -64,11 +64,9 @@ function layoutTree(){
     const leaderH=Math.ceil(leaderWrap.getBoundingClientRect().height),creditH=Math.ceil(creditWrap.getBoundingClientRect().height);
     const leaderW=Math.ceil(leaderWrap.getBoundingClientRect().width),creditW=Math.ceil(creditWrap.getBoundingClientRect().width);
     const leaderY=18;
-    const leaderX=Math.max(leaderW/2+30,Math.min(width-leaderW/2-30,width*.44));
-    const creditY=leaderY+Math.max(72,Math.round(leaderH*.48));
-    // V588: a Gerência de Crédito fica no lado esquerdo, posicionada sobre os setores
-    // que respondem diretamente a ela. Isso mantém a leitura de subgerência sem
-    // colocá-la abaixo do Gerente de Vendas e torna a relação com seus setores explícita.
+    // V589: a Gerência de Crédito fica no lado ESQUERDO e é centralizada sobre
+    // os setores que têm Gerente de Crédito como Superior 1. O Gerente de Vendas
+    // é deslocado para a direita somente o necessário para impedir sobreposição.
     const creditKey=creditWrap.dataset.key;
     const creditWorkerIndexes=[];
     workers.forEach((w,i)=>{
@@ -79,6 +77,10 @@ function layoutTree(){
       ? creditWorkerIndexes.reduce((sum,i)=>sum+workerCenters[i],0)/creditWorkerIndexes.length
       : width*.27;
     const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,linkedCenter));
+    const minLeadershipGap=(leaderW+creditW)/2+42;
+    const leaderTarget=Math.max(width*.52,creditX+minLeadershipGap);
+    const leaderX=Math.max(leaderW/2+30,Math.min(width-leaderW/2-30,leaderTarget));
+    const creditY=leaderY+Math.max(72,Math.round(leaderH*.48));
     const bottomY=Math.max(leaderY+leaderH+92,creditY+creditH+54);
     leaderWrap.style.left=Math.round(leaderX-leaderWrap.getBoundingClientRect().width/2)+'px';leaderWrap.style.top=leaderY+'px';
     creditWrap.style.left=Math.round(creditX-creditWrap.getBoundingClientRect().width/2)+'px';creditWrap.style.top=creditY+'px';
@@ -169,13 +171,14 @@ async function paintExecutiveHeader(ctx,w,h,{titleRight='ORGANOGRAMA FUNCIONAL',
   const {filial,data,month}=executiveMeta(),k=Math.max(.92,Math.min(1.55,w/3200)),headerH=executiveHeaderHeight(w);
   ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#071d68';ctx.fillRect(0,0,w,Math.round(12*k));
   const logo=await coLoadImage('./LOGO ATUAL.png');if(logo){const maxLogoW=Math.round(430*k),maxLogoH=Math.round(126*k),ls=Math.min(maxLogoW/logo.width,maxLogoH/logo.height);ctx.drawImage(logo,Math.round(70*k),Math.round(68*k),logo.width*ls,logo.height*ls)}
-  const cardW=Math.round(760*k),cardH=Math.round(190*k),cardX=w-cardW-Math.round(70*k),cardY=Math.round(46*k),r=Math.round(24*k);
+  const cardW=Math.round(790*k),cardH=Math.round(205*k),cardX=w-cardW-Math.round(70*k),cardY=Math.round(42*k),r=Math.round(24*k);
   ctx.fillStyle='#f8fafc';ctx.strokeStyle='#d8e0eb';ctx.lineWidth=Math.max(2,2*k);ctx.beginPath();ctx.roundRect(cardX,cardY,cardW,cardH,r);ctx.fill();ctx.stroke();
-  const tx=cardX+Math.round(36*k);ctx.textAlign='left';ctx.fillStyle='#071d68';ctx.font=`900 ${Math.round(25*k)}px Arial, sans-serif`;ctx.fillText(titleRight,tx,cardY+Math.round(42*k));
-  ctx.font=`800 ${Math.round(15*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Unidade:',tx,cardY+Math.round(79*k));ctx.font=`600 ${Math.round(15*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(filial,tx+Math.round(86*k),cardY+Math.round(79*k));
-  ctx.font=`800 ${Math.round(15*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Atualização:',tx,cardY+Math.round(112*k));ctx.font=`600 ${Math.round(15*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(month,tx+Math.round(116*k),cardY+Math.round(112*k));
-  ctx.font=`800 ${Math.round(15*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Objetivo:',tx,cardY+Math.round(145*k));ctx.font=`600 ${Math.round(15*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText('Visualizar a hierarquia e os responsáveis por função',tx+Math.round(90*k),cardY+Math.round(145*k));
-  ctx.font=`600 ${Math.round(11*k)}px Arial, sans-serif`;ctx.fillStyle='#64748b';ctx.fillText('Emitido em '+data,tx,cardY+Math.round(173*k));
+  const tx=cardX+Math.round(38*k);ctx.textAlign='left';ctx.fillStyle='#071d68';ctx.font=`900 ${Math.round(28*k)}px Arial, sans-serif`;ctx.fillText(titleRight,tx,cardY+Math.round(44*k));
+  const unit=String(filial||'').replace(/^ZENIR M[ÓO]VEIS E ELETROS\s*[•-]?\s*/i,'').trim()||filial;
+  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Unidade:',tx,cardY+Math.round(84*k));ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(unit,tx+Math.round(98*k),cardY+Math.round(84*k));
+  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Atualização:',tx,cardY+Math.round(122*k));ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(month,tx+Math.round(134*k),cardY+Math.round(122*k));
+  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Finalidade:',tx,cardY+Math.round(160*k));ctx.font=`650 ${Math.round(16*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText('Hierarquia, responsáveis e continuidade',tx+Math.round(116*k),cardY+Math.round(160*k));
+  ctx.font=`600 ${Math.round(13*k)}px Arial, sans-serif`;ctx.fillStyle='#64748b';ctx.fillText('Emitido em '+data,tx,cardY+Math.round(190*k));
   ctx.fillStyle='#64748b';ctx.font=`600 ${Math.round(13*k)}px Arial, sans-serif`;ctx.textAlign='center';ctx.fillText(footer,w/2,h-Math.round(28*k));
   return headerH;
 }
@@ -192,7 +195,7 @@ async function makeExecutiveCanvas(mode='a4'){
   const out=document.createElement('canvas');out.width=minWidth;out.height=minHeight;const ctx=out.getContext('2d');const headerH=await paintExecutiveHeader(ctx,out.width,out.height);const marginLeft=84,marginRight=84,bottom=78,contentTop=headerH+10,maxW=out.width-marginLeft-marginRight,maxH=out.height-contentTop-bottom,s=Math.min(maxW/raw.width,maxH/raw.height),dw=raw.width*s,dh=raw.height*s,dx=marginLeft+Math.max(0,(maxW-dw)/2),dy=contentTop+Math.max(0,(maxH-dh)/2);ctx.drawImage(raw,dx,dy,dw,dh);return{canvas:out,scale:s}
 }
 function coLoadImage(src){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src})}
-async function exportImage(){if(tab!=='mapa')return;const prior=detailMode,priorLinks=hierarchyLinks;detailMode='detailed';hierarchyLinks='all';render();await new Promise(r=>setTimeout(r,180));if(typeof html2canvas!=='function'){detailMode=prior;hierarchyLinks=priorLinks;render();return alert('O exportador de imagem ainda não carregou. Aguarde alguns segundos e tente novamente.')}const result=await makeExecutiveCanvas('full');if(!result){detailMode=prior;hierarchyLinks=priorLinks;render();return alert('Não foi possível gerar a imagem.')}const data=new Date().toLocaleDateString('pt-BR');const a=document.createElement('a');a.download=`Organograma_Filial_${data.replace(/\//g,'-')}_HD.png`;a.href=result.canvas.toDataURL('image/png');a.click();detailMode=prior;hierarchyLinks=priorLinks;render()}
+async function exportImage(){if(tab!=='mapa')return;if(typeof html2canvas!=='function')return alert('O exportador de imagem ainda não carregou. Aguarde alguns segundos e tente novamente.');layoutTree();await new Promise(r=>setTimeout(r,80));const result=await makeExecutiveCanvas('full');if(!result)return alert('Não foi possível gerar a imagem.');const data=new Date().toLocaleDateString('pt-BR');const mode=detailMode==='detailed'?'Detalhado':'Resumido';const a=document.createElement('a');a.download=`Organograma_Filial_${data.replace(/\//g,'-')}_${mode}_HD.png`;a.href=result.canvas.toDataURL('image/png');a.click()}
 function updateLauncher(){let b=document.getElementById('fsCoLauncher');if(!b){b=document.createElement('button');b.id='fsCoLauncher';b.className='fsCoHomeCard';b.type='button';(document.querySelector('#visao>.cards')||document.body).appendChild(b)}const m=metrics();b.innerHTML=`<div class="fsCoLaunchTop"><i>🧩</i><span>Continuidade Operacional</span></div><div class="fsCoLaunchIndex"><span>Cobertura da filial</span><strong>${m.index}%</strong></div><div class="fsCoLaunchStats"><span>🟢 ${m.full}</span><span>🟡 ${m.partial}</span><span>🔴 ${m.none}</span></div>`}
 function updateSupportFloating(){let b=document.getElementById('fsSupportFloating');if(!b){b=document.createElement('button');b.id='fsSupportFloating';b.type='button';b.className='fsSupportFloating';b.setAttribute('aria-label','Abrir suporte');b.title='Suporte';b.innerHTML='<span>✦</span><b>Suporte</b>';document.body.appendChild(b)}const visao=document.getElementById('visao'),show=!!visao?.classList.contains('active')&&!document.documentElement.classList.contains('coOpen');b.classList.toggle('show',show)}
 document.documentElement.addEventListener('change',e=>{if(e.target?.id==='coRespFilter'){responsibilityFocus=e.target.value;render()}});
