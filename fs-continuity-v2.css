@@ -271,3 +271,31 @@ html.coOpen #fsSupportFloating{display:none!important}
 .coTreeCanvas{padding:8px 32px 18px!important}
 
 @media(max-width:900px){.coTreeNodeWrap{width:300px!important}.coTreeNodeWrap .coNode,.coNode{width:300px!important}}
+
+
+/* v584 — suporte final, legibilidade do organograma e exportação executiva */
+.coSupportHeaderActions{margin-left:auto;align-self:flex-start;display:flex;align-items:center;gap:8px;flex-wrap:nowrap!important;justify-content:flex-end;min-width:auto!important}
+.coSupportDevBtn{overflow:hidden;text-indent:0;color:#20a24b!important;font-size:0!important}
+.coSupportDevBtn .coSupportWaIcon{width:18px;height:18px;display:block;line-height:0}
+.coSupportDevBtn .coSupportWaIcon svg{width:18px;height:18px;display:block;fill:currentColor}
+.coSupportCloseText{background:#20a24b!important;color:#fff!important;border:1px solid #17853b!important}
+
+.coTreeLines .coAdditionalLine{stroke:#7b8fb1;stroke-width:1.7;opacity:.78;stroke-dasharray:7 5}
+.coTreeLines .coDirectLine{stroke:#233247;stroke-width:2.4}
+.coTreeNodeWrap{width:352px!important}
+.coTreeNodeWrap .coNode,.coNode{width:352px!important}
+.coNode>header b{font-size:14px!important;line-height:1.24!important}
+.coNode>header small{font-size:11px!important;line-height:1.3!important}
+.coMemberTop{grid-template-columns:42px 1fr auto!important;gap:9px!important}
+.coAvatar{width:42px;height:42px}
+.coAvatar.tiny{width:28px;height:28px}
+.coMemberTop b{font-size:12.5px!important;line-height:1.24!important}
+.coMemberTop small{font-size:9.5px!important;line-height:1.2!important}
+.coChain{gap:7px!important;padding:9px!important}
+.coSub{min-width:116px!important}
+.coSub b{font-size:9px!important;line-height:1.18!important}
+.coSub small{font-size:8.2px!important}
+.coMapViewport{padding:20px 18px 10px!important}
+.coTreeCanvas{padding:8px 18px 18px!important}
+
+@media(max-width:900px){.coTreeNodeWrap{width:312px!important}.coTreeNodeWrap .coNode,.coNode{width:312px!important}}
