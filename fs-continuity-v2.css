@@ -243,3 +243,31 @@ html.coOpen #fsSupportFloating{display:none!important}
   .coStructureTable th:nth-child(5),.coStructureTable td:nth-child(5){width:25%!important}
   .coStructureTable th:nth-child(6),.coStructureTable td:nth-child(6){width:18%!important}
 }
+
+/* v583 ajustes finais de suporte, fluxo e legibilidade */
+.coSupportPanel{width:min(760px,95vw)!important}
+.coSupportPanel>header{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;padding:14px 16px 12px!important;gap:12px!important}
+.coSupportTitle{min-width:0;display:flex;flex-direction:column;gap:3px}
+.coSupportHeaderActions{margin-left:auto;align-self:flex-start;display:flex;align-items:center;gap:8px;flex-wrap:nowrap!important}
+.coSupportDevBtn{width:34px!important;height:34px!important;min-width:34px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:11px!important;background:#eef9f2!important;border:1px solid #cfe6d6!important;color:#20a24b!important;font-size:18px!important;font-weight:900!important;line-height:1!important}
+.coSupportDevBtn span{line-height:1}
+.coSupportCloseText{width:34px!important;height:34px!important;min-width:34px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:11px!important;background:#20a24b!important;border:1px solid #17853b!important;color:#fff!important;font-size:16px!important;font-weight:900!important;line-height:1!important}
+.coSupportQuickTop{padding-top:10px!important;padding-bottom:10px!important}
+.coSupportPanel>footer{padding-top:8px!important}
+
+.coStructureSaveFooter{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.coStructureSaveFooter .coBtn{min-width:280px;justify-content:center}
+@media(max-width:900px){.coStructureSaveFooter{flex-direction:column;align-items:stretch}.coStructureSaveFooter .coBtn{min-width:0;width:100%}}
+
+.coTreeNodeWrap{width:340px!important}
+.coTreeNodeWrap .coNode,.coNode{width:340px!important}
+.coNode>header b{font-size:14px!important;line-height:1.2}
+.coNode>header small{line-height:1.25}
+.coMemberTop b{font-size:12px!important;line-height:1.22!important;white-space:normal!important;overflow-wrap:anywhere}
+.coMemberTop small{font-size:9px!important;line-height:1.2}
+.coSub b{font-size:8.5px!important;line-height:1.18!important;white-space:normal!important;overflow-wrap:anywhere}
+.coChain{gap:6px!important}
+.coMapViewport{padding:20px 14px 10px!important}
+.coTreeCanvas{padding:8px 32px 18px!important}
+
+@media(max-width:900px){.coTreeNodeWrap{width:300px!important}.coTreeNodeWrap .coNode,.coNode{width:300px!important}}
