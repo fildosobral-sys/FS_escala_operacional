@@ -28,3 +28,7 @@ Os dados permanecem somente no navegador utilizado. Faça backups periódicos pe
 - manifesto e ícones corrigidos.
 
 As regras de cálculo e distribuição da escala não foram alteradas.
+
+### Estrutura hierárquica e operações grandes
+
+No módulo Continuidade Operacional, a aba **Configurar Estrutura** usa as funções e os colaboradores já cadastrados/importados. Defina apenas os vínculos de superior imediato, apoio funcional e continuidade. Em estruturas grandes, a impressão/PDF é paginada automaticamente para preservar a legibilidade.

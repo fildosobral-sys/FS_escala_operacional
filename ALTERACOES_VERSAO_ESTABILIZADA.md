@@ -56,3 +56,13 @@
 - inspeção do console durante os principais fluxos.
 
 Antes de migrar, gere um backup na versão antiga e faça uma conferência visual após importar na nova versão.
+
+## v570 — Hierarquia escalável da operação
+
+- O módulo passou a aproveitar automaticamente colaboradores e funções já importados na plataforma, sem exigir recadastro.
+- Nova tela **Configurar Estrutura** para definir superior imediato local, autoridade funcional/apoio, substitutos, criticidade e necessidade de cobertura.
+- Vínculos de chefia direta aparecem com linha contínua e vínculos de apoio funcional com linha tracejada.
+- Sugestão automática de estrutura pode ser revisada antes de salvar.
+- A configuração não depende de nomes fixos de cargos e pode ser usada em operações pequenas ou grandes.
+- Impressão/PDF usa uma única A4 quando a leitura é adequada e passa automaticamente para relatório hierárquico paginado quando a estrutura ficaria pequena demais.
+- Exportação PNG continua em A4 paisagem; em operações muito grandes funciona como visão geral e o PDF é recomendado para leitura completa.
