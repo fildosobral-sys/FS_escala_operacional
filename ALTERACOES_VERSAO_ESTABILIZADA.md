@@ -90,3 +90,10 @@ Antes de migrar, gere um backup na versão antiga e faça uma conferência visua
 - Botão de suporte pequeno, discreto e flutuante no canto inferior direito da Visão Geral principal.
 - Suporte flutuante abre o mesmo assistente interno e mantém o encaminhamento ao WhatsApp do desenvolvedor.
 - Cache PWA atualizado para evitar carregar estilos antigos.
+
+## v577 — hierarquia principal e vínculos adicionais sob demanda
+- Mapa Estrutural passa a abrir com **Hierarquia principal** por padrão.
+- Superior 2 e Superior 3 deixam de poluir a visão geral e podem ser exibidos pelo botão **Todos os vínculos**.
+- Vínculos adicionais são desenhados de forma mais discreta para análise, sem confundir com a linha principal.
+- Exportação de imagem A4 e impressão/PDF utilizam somente a hierarquia principal para preservar legibilidade e apresentação executiva.
+- Mantidos os modos Resumido e Detalhado de pessoas/atribuições.
