@@ -19,3 +19,18 @@ html.coOpen,html.coOpen body{overflow:hidden!important}.coOverlay{position:fixed
 .coTop>div:last-child{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .coMapViewport{padding:14px 8px 6px}.coTreeCanvas{margin:0 auto}.coOverlay.coSidebarCollapsed .coBody{padding-left:14px;padding-right:14px}
 @media print{.coNode>header button,.coMemberTop i,#coToggleSidebar{display:none!important}.coOverlay{grid-template-columns:1fr!important}.coOverlay aside{display:none!important}}
+
+/* v569 — fechamento visual da Visão Geral */
+#visao>.cards{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:9px!important;align-items:stretch!important}
+#visao>.cards>.card,#visao>.cards>.fsCoHomeCard{min-height:142px!important;height:142px!important;border-radius:22px!important;padding:14px!important;margin:0!important;box-shadow:0 14px 30px rgba(7,29,104,.14)!important}
+#visao>.cards>.card{display:flex!important;flex-direction:column!important;justify-content:flex-start!important}
+#visao>.cards>.card small{font-size:12px!important}
+#visao>.cards>.card strong{font-size:30px!important;line-height:1.08!important;margin-top:5px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchTop{font-size:13px!important;gap:7px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchTop i{font-size:21px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchIndex{align-items:flex-end!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchIndex span{font-size:11px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchIndex strong{font-size:31px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchStats{font-size:10px!important;gap:8px!important}
+@media(max-width:1050px){#visao>.cards{grid-template-columns:repeat(3,1fr)!important}#visao>.cards>.card,#visao>.cards>.fsCoHomeCard{height:auto!important;min-height:138px!important}}
+@media(max-width:700px){#visao>.cards{grid-template-columns:repeat(2,1fr)!important}}
