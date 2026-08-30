@@ -369,3 +369,14 @@ html.coOpen #fsSupportFloating{display:none!important}
 .coTreeCanvas[data-layout="executive"] .coSub .coAvatar.tiny{width:27px;height:27px;flex-basis:27px;font-size:8.5px}
 .coTreeCanvas[data-layout="executive"] .coSub small{font-size:7.5px!important}
 .coTreeCanvas[data-layout="executive"] .coSub b{font-size:8.4px!important;line-height:1.2!important}
+
+/* v594 — apoios das lideranças e rodapé sem sobreposição */
+.coSimpleChain{justify-content:flex-start!important}
+.coLeadershipSupportChain{position:relative!important;overflow:hidden!important;padding-top:14px!important;isolation:isolate}
+.coLeadershipSupportChain>.coLeadershipOrigin{width:8px;height:8px;border-radius:50%;background:#2457b8;box-shadow:0 0 0 3px #dcecff;flex:0 0 8px;position:relative;z-index:2}
+.coLeadershipSupportChain>.coSupportStep{position:relative;z-index:2}
+.coLeadershipSupportChain>.coSupportStep>i{color:#6b7fa4!important;font-size:11px!important}
+.coLeadershipSupportChain .coSub{background:#f7f9fc;border-radius:8px;padding:2px 3px}
+.coLeadershipSupportChain .coSub small{color:#47617e!important;font-weight:700}
+.coLeadershipDirectRoutes{position:absolute;z-index:1;left:8px;right:8px;top:1px;width:calc(100% - 16px);height:25px;overflow:visible;pointer-events:none}
+.coLeadershipDirectRoutes path{fill:none;stroke:#8fa6c2;stroke-width:1.15;stroke-dasharray:2.8 2.8;vector-effect:non-scaling-stroke}
