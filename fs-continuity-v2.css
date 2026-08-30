@@ -351,3 +351,14 @@ html.coOpen #fsSupportFloating{display:none!important}
 .coTreeCanvas[data-layout="executive"] .coMembers{gap:6px!important;padding:8px!important}
 .coTreeCanvas[data-layout="executive"] .coChain{margin:0 8px 8px!important;padding:7px!important}
 .coTreeCanvas[data-layout="executive"] .coLeadershipLine{stroke:#5d789f!important;stroke-width:2.3!important;stroke-dasharray:8 6!important}
+
+/* v590 — cadeia completa sem barra interna e leitura executiva do mapa */
+.coTreeCanvas[data-layout="executive"] .coChain{overflow:hidden!important;gap:4px!important}
+.coTreeCanvas[data-layout="executive"] .coChainStart{flex:0 0 auto;font-size:8.4px!important}
+.coTreeCanvas[data-layout="executive"] .coSubStep{flex:1 1 0;min-width:0;gap:2px!important}
+.coTreeCanvas[data-layout="executive"] .coSubStep>i{flex:0 0 auto;font-size:11px}
+.coTreeCanvas[data-layout="executive"] .coSub{flex:1 1 0;min-width:0!important;gap:3px!important}
+.coTreeCanvas[data-layout="executive"] .coSub .coAvatar.tiny{width:25px;height:25px;flex:0 0 25px;font-size:8px}
+.coTreeCanvas[data-layout="executive"] .coSub>span:last-child{min-width:0;overflow:hidden}
+.coTreeCanvas[data-layout="executive"] .coSub small{font-size:7px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coTreeCanvas[data-layout="executive"] .coSub b{font-size:7.6px!important;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere!important}
