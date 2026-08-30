@@ -372,11 +372,10 @@ html.coOpen #fsSupportFloating{display:none!important}
 
 /* v594 — apoios das lideranças e rodapé sem sobreposição */
 .coSimpleChain{justify-content:flex-start!important}
-.coLeadershipSupportChain{position:relative!important;overflow:hidden!important;padding-top:14px!important;isolation:isolate}
-.coLeadershipSupportChain>.coLeadershipOrigin{width:8px;height:8px;border-radius:50%;background:#2457b8;box-shadow:0 0 0 3px #dcecff;flex:0 0 8px;position:relative;z-index:2}
+.coLeadershipSupportChain{position:relative!important;overflow:hidden!important;padding-top:26px!important;isolation:isolate;justify-content:space-around!important}
 .coLeadershipSupportChain>.coSupportStep{position:relative;z-index:2}
 .coLeadershipSupportChain>.coSupportStep>i{color:#6b7fa4!important;font-size:11px!important}
 .coLeadershipSupportChain .coSub{background:#f7f9fc;border-radius:8px;padding:2px 3px}
 .coLeadershipSupportChain .coSub small{color:#47617e!important;font-weight:700}
-.coLeadershipDirectRoutes{position:absolute;z-index:1;left:8px;right:8px;top:1px;width:calc(100% - 16px);height:25px;overflow:visible;pointer-events:none}
-.coLeadershipDirectRoutes path{fill:none;stroke:#8fa6c2;stroke-width:1.15;stroke-dasharray:2.8 2.8;vector-effect:non-scaling-stroke}
+.coLeadershipDirectRoutes{position:absolute;z-index:1;left:8px;right:8px;top:0;width:calc(100% - 16px);height:25px;overflow:visible;pointer-events:none}
+.coLeadershipDirectRoutes path{fill:none;stroke:#8fa6c2;stroke-width:1.2;stroke-dasharray:2.8 2.8;vector-effect:non-scaling-stroke}
