@@ -64,11 +64,12 @@ function layoutTree(){
     const leaderH=Math.ceil(leaderWrap.getBoundingClientRect().height),creditH=Math.ceil(creditWrap.getBoundingClientRect().height);
     const leaderW=Math.ceil(leaderWrap.getBoundingClientRect().width),creditW=Math.ceil(creditWrap.getBoundingClientRect().width);
     const leaderY=18;
-    // V590: Gerente de Vendas fica realmente CENTRALIZADO. A Gerência de Crédito
-    // fica no lado DIREITO, próxima ao gerente (espelhamento da antiga posição à esquerda),
-    // sem ser empurrada para a extremidade do organograma.
+    // V591: Gerente de Vendas fica CENTRALIZADO. A Gerência de Crédito fica no lado
+    // DIREITO, mas sem invadir/sobrepor o card do gerente. O afastamento horizontal é
+    // calculado pelas larguras reais dos dois cards + um respiro visual fixo.
     const leaderX=width/2;
-    const leadershipOffset=Math.max(295,Math.min(325,width*.16));
+    const leadershipGap=72;
+    const leadershipOffset=(leaderW+creditW)/2+leadershipGap;
     const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,leaderX+leadershipOffset));
     const creditY=leaderY+Math.max(72,Math.round(leaderH*.48));
     const bottomY=Math.max(leaderY+leaderH+92,creditY+creditH+54);
