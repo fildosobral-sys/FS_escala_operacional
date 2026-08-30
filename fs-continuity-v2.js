@@ -45,8 +45,7 @@ function substitute(pl,k){if(!pl.enabled)return'';const p=person(pl.personId),na
 function node(g,opts={}){const f=ensure(g),s=status(g),compact=detailMode==='summary'&&g.people.length>=6,showOrder=opts.showOrder!==false,showEdit=opts.showEdit!==false;return`<article class="coNode ${s.type} ${showOrder?'':'coNodeClean'}" data-node="${esc(g.key)}"><header><span><b>${esc(g.name)}</b><small>${g.people.length} colaborador${g.people.length===1?'':'es'} · ${esc(f.sector)}</small></span>${showEdit?`<button data-edit="${esc(g.key)}" title="Editar função e hierarquia">⚙</button>`:''}</header><div class="coMembers ${compact?'compact':''}">${g.people.map(p=>compact?memberCompact(p,{showOrder}):member(p,false,{showOrder})).join('')}</div>${f.coverageEnabled?`<div class="coChain"><span class="coChainStart">Titular(es)</span>${PLANS.map(k=>substitute(f.plans[k],k)).join('')}</div>`:''}</article>`}
 function hierarchyData(){const gs=groups(),by=new Map(gs.map(g=>[g.key,g])),children=new Map([['',[]]]);gs.forEach(g=>children.set(g.key,[]));gs.forEach(g=>{let p=ensure(g).parentKey;if(!by.has(p)||p===g.key)p='';children.get(p).push(g)});children.forEach(a=>a.sort((x,y)=>sectorBucket(x)-sectorBucket(y)||order(x)-order(y)||x.name.localeCompare(y.name,'pt-BR')));return{gs,by,children}}
 function tree(opts={}){const {gs,children,by}=hierarchyData(),seen=new Set(),flat=[];const depthMemo=new Map();function depthFor(key,seenSet=new Set()){if(depthMemo.has(key))return depthMemo.get(key);if(!by.has(key))return 0;if(seenSet.has(key))return 0;seenSet.add(key);const p=ensure(by.get(key)).parentKey,val=p&&by.has(p)?depthFor(p,new Set(seenSet))+1:0;depthMemo.set(key,val);return val}function walk(g,depth,parent=''){if(seen.has(g.key))return;seen.add(g.key);flat.push({g,depth:depthFor(g.key),parent});(children.get(g.key)||[]).forEach(ch=>walk(ch,depth+1,g.key))}(children.get('')||[]).forEach(g=>walk(g,0,''));gs.filter(g=>!seen.has(g.key)).forEach(g=>walk(g,0,''));return`<div class="coMapViewport"><div class="coTreeCanvas" id="coTreeCanvas"><svg class="coTreeLines" id="coTreeLines" aria-hidden="true"></svg><div class="coTreeNodes">${flat.map(x=>`<div class="coTreeNodeWrap" data-key="${esc(x.g.key)}" data-parent="${esc(x.parent)}" data-depth="${x.depth}">${node(x.g,opts)}</div>`).join('')}</div></div></div>`}
-function centerTreeOnLeadership(){const viewport=document.querySelector('.coMapViewport'),canvas=document.getElementById('coTreeCanvas');if(!viewport||!canvas||viewport.dataset.centered==='1')return;const leader=[...canvas.querySelectorAll('.coTreeNodeWrap')].find(w=>/gerente de vendas|gerente da filial|gerente geral/.test(norm(groups().find(g=>g.key===w.dataset.key)?.name||'')));if(!leader)return;const center=(parseFloat(leader.style.left)||0)+leader.offsetWidth/2;viewport.scrollLeft=Math.max(0,center-viewport.clientWidth/2);viewport.dataset.centered='1'}
-function scheduleTreeLayout(){requestAnimationFrame(()=>requestAnimationFrame(()=>{layoutTree();centerTreeOnLeadership()}))}
+function scheduleTreeLayout(){requestAnimationFrame(()=>requestAnimationFrame(layoutTree))}
 function layoutTree(){
   const canvas=document.getElementById('coTreeCanvas');if(!canvas)return;
   const wraps=[...canvas.querySelectorAll('.coTreeNodeWrap')];if(!wraps.length)return;
@@ -65,22 +64,20 @@ function layoutTree(){
     const leaderH=Math.ceil(leaderWrap.getBoundingClientRect().height),creditH=Math.ceil(creditWrap.getBoundingClientRect().height);
     const leaderW=Math.ceil(leaderWrap.getBoundingClientRect().width),creditW=Math.ceil(creditWrap.getBoundingClientRect().width);
     const leaderY=18;
-    // V589: a Gerência de Crédito fica no lado ESQUERDO e é centralizada sobre
-    // os setores que têm Gerente de Crédito como Superior 1. O Gerente de Vendas
-    // é deslocado para a direita somente o necessário para impedir sobreposição.
-    const creditKey=creditWrap.dataset.key;
-    const creditWorkerIndexes=[];
-    workers.forEach((w,i)=>{
-      const g=gBy.get(w.dataset.key),f=g?ensure(g):null;
-      if(f&&f.parentKey===creditKey) creditWorkerIndexes.push(i);
-    });
-    const linkedCenter=creditWorkerIndexes.length
-      ? creditWorkerIndexes.reduce((sum,i)=>sum+workerCenters[i],0)/creditWorkerIndexes.length
-      : width*.27;
-    const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,linkedCenter));
-    const minLeadershipGap=(leaderW+creditW)/2+42;
-    const leaderTarget=Math.max(width*.52,creditX+minLeadershipGap);
-    const leaderX=Math.max(leaderW/2+30,Math.min(width-leaderW/2-30,leaderTarget));
+    // V590: Gerente de Vendas centralizado no organograma. A Gerência de Crédito,
+    // subordinada imediata, fica alinhada entre Operadora de Caixa e Atendente de Loja.
+    const leaderX=width/2;
+    const caixaIndex=workers.findIndex(w=>/operador.*caixa|operadora.*caixa/.test(norm(gBy.get(w.dataset.key)?.name||'')));
+    const atendenteIndex=workers.findIndex(w=>/atendente/.test(norm(gBy.get(w.dataset.key)?.name||'')));
+    let creditTarget=width*.40;
+    if(caixaIndex>=0&&atendenteIndex>=0){
+      creditTarget=(workerCenters[caixaIndex]+workerCenters[atendenteIndex])/2;
+    }else if(atendenteIndex>=0){
+      creditTarget=workerCenters[atendenteIndex]-workerW*.55;
+    }else if(caixaIndex>=0){
+      creditTarget=workerCenters[caixaIndex]+workerW*.55;
+    }
+    const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,creditTarget));
     const creditY=leaderY+Math.max(72,Math.round(leaderH*.48));
     const bottomY=Math.max(leaderY+leaderH+92,creditY+creditH+54);
     leaderWrap.style.left=Math.round(leaderX-leaderWrap.getBoundingClientRect().width/2)+'px';leaderWrap.style.top=leaderY+'px';
@@ -171,19 +168,15 @@ function executiveHeaderHeight(w){return Math.round(Math.max(220,Math.min(330,w*
 async function paintExecutiveHeader(ctx,w,h,{titleRight='ORGANOGRAMA FUNCIONAL',footer='FS Escala Operacional Inteligente • Estrutura hierárquica e continuidade da filial'}={}){
   const {filial,data,month}=executiveMeta(),k=Math.max(.92,Math.min(1.55,w/3200)),headerH=executiveHeaderHeight(w);
   ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#071d68';ctx.fillRect(0,0,w,Math.round(12*k));
-  const logo=await coLoadImage('./LOGO ATUAL.png');if(logo){const maxLogoW=Math.round(520*k),maxLogoH=Math.round(150*k),ls=Math.min(maxLogoW/logo.width,maxLogoH/logo.height);ctx.drawImage(logo,Math.round(70*k),Math.round(58*k),logo.width*ls,logo.height*ls)}
-  const cardW=Math.round(900*k),cardH=Math.round(225*k),cardX=w-cardW-Math.round(70*k),cardY=Math.round(35*k),r=Math.round(24*k);
+  const logo=await coLoadImage('./LOGO ATUAL.png');if(logo){const maxLogoW=Math.round(430*k),maxLogoH=Math.round(126*k),ls=Math.min(maxLogoW/logo.width,maxLogoH/logo.height);ctx.drawImage(logo,Math.round(70*k),Math.round(68*k),logo.width*ls,logo.height*ls)}
+  const cardW=Math.round(790*k),cardH=Math.round(205*k),cardX=w-cardW-Math.round(70*k),cardY=Math.round(42*k),r=Math.round(24*k);
   ctx.fillStyle='#f8fafc';ctx.strokeStyle='#d8e0eb';ctx.lineWidth=Math.max(2,2*k);ctx.beginPath();ctx.roundRect(cardX,cardY,cardW,cardH,r);ctx.fill();ctx.stroke();
-  const centerLeft=Math.round(660*k),centerRight=cardX-Math.round(55*k),centerX=(centerLeft+centerRight)/2;
-  ctx.textAlign='center';ctx.fillStyle='#071d68';ctx.font=`900 ${Math.round(36*k)}px Arial, sans-serif`;ctx.fillText('ORGANOGRAMA E CONTINUIDADE OPERACIONAL',centerX,Math.round(100*k),Math.max(300,centerRight-centerLeft));
-  ctx.fillStyle='#64748b';ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillText('Estrutura hierárquica, responsáveis e plano de substituição',centerX,Math.round(142*k),Math.max(300,centerRight-centerLeft));
-  const ruleW=Math.min(Math.round(390*k),Math.max(180,(centerRight-centerLeft)*.32));ctx.strokeStyle='#e5b100';ctx.lineWidth=Math.max(4,4*k);ctx.beginPath();ctx.moveTo(centerX-ruleW/2,Math.round(169*k));ctx.lineTo(centerX+ruleW/2,Math.round(169*k));ctx.stroke();
-  const tx=cardX+Math.round(38*k);ctx.textAlign='left';ctx.fillStyle='#071d68';ctx.font=`900 ${Math.round(30*k)}px Arial, sans-serif`;ctx.fillText(titleRight,tx,cardY+Math.round(46*k));
+  const tx=cardX+Math.round(38*k);ctx.textAlign='left';ctx.fillStyle='#071d68';ctx.font=`900 ${Math.round(28*k)}px Arial, sans-serif`;ctx.fillText(titleRight,tx,cardY+Math.round(44*k));
   const unit=String(filial||'').replace(/^ZENIR M[ÓO]VEIS E ELETROS\s*[•-]?\s*/i,'').trim()||filial;
-  ctx.font=`800 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Unidade:',tx,cardY+Math.round(88*k));ctx.font=`650 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(unit,tx+Math.round(104*k),cardY+Math.round(88*k),cardW-Math.round(180*k));
-  ctx.font=`800 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Atualização:',tx,cardY+Math.round(130*k));ctx.font=`650 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(month,tx+Math.round(142*k),cardY+Math.round(130*k));
-  ctx.font=`800 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Finalidade:',tx,cardY+Math.round(172*k));ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText('Hierarquia, responsáveis e continuidade',tx+Math.round(124*k),cardY+Math.round(172*k),cardW-Math.round(190*k));
-  ctx.font=`600 ${Math.round(14*k)}px Arial, sans-serif`;ctx.fillStyle='#64748b';ctx.fillText('Emitido em '+data,tx,cardY+Math.round(207*k));
+  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Unidade:',tx,cardY+Math.round(84*k));ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(unit,tx+Math.round(98*k),cardY+Math.round(84*k));
+  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Atualização:',tx,cardY+Math.round(122*k));ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(month,tx+Math.round(134*k),cardY+Math.round(122*k));
+  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Finalidade:',tx,cardY+Math.round(160*k));ctx.font=`650 ${Math.round(16*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText('Hierarquia, responsáveis e continuidade',tx+Math.round(116*k),cardY+Math.round(160*k));
+  ctx.font=`600 ${Math.round(13*k)}px Arial, sans-serif`;ctx.fillStyle='#64748b';ctx.fillText('Emitido em '+data,tx,cardY+Math.round(190*k));
   ctx.fillStyle='#64748b';ctx.font=`600 ${Math.round(13*k)}px Arial, sans-serif`;ctx.textAlign='center';ctx.fillText(footer,w/2,h-Math.round(28*k));
   return headerH;
 }
@@ -198,19 +191,6 @@ async function makeExecutiveCanvas(mode='a4'){
     const marginX=58,bottom=150,targetW=Math.max(3200,raw.width+marginX*2);const out=document.createElement('canvas');out.width=targetW;const headerH=executiveHeaderHeight(out.width);const maxTreeW=out.width-marginX*2,treeScale=Math.max(1,Math.min(1.34,maxTreeW/raw.width)),dw=raw.width*treeScale,dh=raw.height*treeScale;out.height=Math.max(2160,Math.ceil(headerH+dh+bottom));const ctx=out.getContext('2d');await paintExecutiveHeader(ctx,out.width,out.height,{titleRight:'ORGANOGRAMA FUNCIONAL'});const treeX=Math.round((out.width-dw)/2),treeY=headerH+8;ctx.drawImage(raw,treeX,treeY,dw,dh);paintExecutiveLegend(ctx,out.width,out.height-70);return{canvas:out,scale:treeScale}
   }
   const out=document.createElement('canvas');out.width=minWidth;out.height=minHeight;const ctx=out.getContext('2d');const headerH=await paintExecutiveHeader(ctx,out.width,out.height);const marginLeft=84,marginRight=84,bottom=78,contentTop=headerH+10,maxW=out.width-marginLeft-marginRight,maxH=out.height-contentTop-bottom,s=Math.min(maxW/raw.width,maxH/raw.height),dw=raw.width*s,dh=raw.height*s,dx=marginLeft+Math.max(0,(maxW-dw)/2),dy=contentTop+Math.max(0,(maxH-dh)/2);ctx.drawImage(raw,dx,dy,dw,dh);return{canvas:out,scale:s}
-}
-async function fitPrint(){
-  if(tab!=='mapa')return window.print();
-  let book=document.getElementById('coPrintBook');if(book)book.remove();
-  if(typeof html2canvas==='function'){
-    const result=await makeExecutiveCanvas('a4');
-    if(result){book=document.createElement('div');book.id='coPrintBook';book.className='coPrintBook';const page=document.createElement('section');page.className='coPrintPage coPrintImagePage';const img=document.createElement('img');img.alt='Organograma funcional da filial';img.src=result.canvas.toDataURL('image/png');page.appendChild(img);book.appendChild(page);document.documentElement.appendChild(book)}
-  }
-  if(!book)book=buildLargePrintBook();
-  document.documentElement.classList.add('coPrintingBook');
-  await new Promise(r=>setTimeout(r,80));
-  window.print();
-  setTimeout(()=>{document.documentElement.classList.remove('coPrintingBook');book?.remove()},1200);
 }
 function coLoadImage(src){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src})}
 async function exportImage(){if(tab!=='mapa')return;if(typeof html2canvas!=='function')return alert('O exportador de imagem ainda não carregou. Aguarde alguns segundos e tente novamente.');layoutTree();await new Promise(r=>setTimeout(r,80));const result=await makeExecutiveCanvas('full');if(!result)return alert('Não foi possível gerar a imagem.');const data=new Date().toLocaleDateString('pt-BR');const mode=detailMode==='detailed'?'Detalhado':'Resumido';const a=document.createElement('a');a.download=`Organograma_Filial_${data.replace(/\//g,'-')}_${mode}_HD.png`;a.href=result.canvas.toDataURL('image/png');a.click()}
