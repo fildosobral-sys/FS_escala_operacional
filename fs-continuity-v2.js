@@ -64,22 +64,12 @@ function layoutTree(){
     const leaderH=Math.ceil(leaderWrap.getBoundingClientRect().height),creditH=Math.ceil(creditWrap.getBoundingClientRect().height);
     const leaderW=Math.ceil(leaderWrap.getBoundingClientRect().width),creditW=Math.ceil(creditWrap.getBoundingClientRect().width);
     const leaderY=18;
-    // V590: Gerente de Vendas centralizado; Gerente de Crédito no lado OPOSTO (direita).
-    // Mantém a hierarquia e apenas corrige a composição visual do organograma.
-    const creditKey=creditWrap.dataset.key;
-    const creditWorkerIndexes=[];
-    workers.forEach((w,i)=>{
-      const g=gBy.get(w.dataset.key),f=g?ensure(g):null;
-      if(f&&f.parentKey===creditKey) creditWorkerIndexes.push(i);
-    });
-    const linkedCenter=creditWorkerIndexes.length
-      ? creditWorkerIndexes.reduce((sum,i)=>sum+workerCenters[i],0)/creditWorkerIndexes.length
-      : width*.27;
-    const minLeadershipGap=(leaderW+creditW)/2+42;
-    const leaderX=Math.max(leaderW/2+30,Math.min(width-leaderW/2-30,width*.50));
-    const mirroredCreditCenter=width-linkedCenter;
-    const creditTarget=Math.max(width*.68,mirroredCreditCenter,leaderX+minLeadershipGap);
-    const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,creditTarget));
+    // V590: Gerente de Vendas fica realmente CENTRALIZADO. A Gerência de Crédito
+    // fica no lado DIREITO, próxima ao gerente (espelhamento da antiga posição à esquerda),
+    // sem ser empurrada para a extremidade do organograma.
+    const leaderX=width/2;
+    const leadershipOffset=Math.max(295,Math.min(325,width*.16));
+    const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,leaderX+leadershipOffset));
     const creditY=leaderY+Math.max(72,Math.round(leaderH*.48));
     const bottomY=Math.max(leaderY+leaderH+92,creditY+creditH+54);
     leaderWrap.style.left=Math.round(leaderX-leaderWrap.getBoundingClientRect().width/2)+'px';leaderWrap.style.top=leaderY+'px';
