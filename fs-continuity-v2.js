@@ -64,19 +64,21 @@ function layoutTree(){
     const leaderH=Math.ceil(leaderWrap.getBoundingClientRect().height),creditH=Math.ceil(creditWrap.getBoundingClientRect().height);
     const leaderW=Math.ceil(leaderWrap.getBoundingClientRect().width),creditW=Math.ceil(creditWrap.getBoundingClientRect().width);
     const leaderY=18;
-    // V590: Gerente de Vendas centralizado no organograma. A Gerência de Crédito,
-    // subordinada imediata, fica alinhada entre Operadora de Caixa e Atendente de Loja.
-    const leaderX=width/2;
-    const caixaIndex=workers.findIndex(w=>/operador.*caixa|operadora.*caixa/.test(norm(gBy.get(w.dataset.key)?.name||'')));
-    const atendenteIndex=workers.findIndex(w=>/atendente/.test(norm(gBy.get(w.dataset.key)?.name||'')));
-    let creditTarget=width*.40;
-    if(caixaIndex>=0&&atendenteIndex>=0){
-      creditTarget=(workerCenters[caixaIndex]+workerCenters[atendenteIndex])/2;
-    }else if(atendenteIndex>=0){
-      creditTarget=workerCenters[atendenteIndex]-workerW*.55;
-    }else if(caixaIndex>=0){
-      creditTarget=workerCenters[caixaIndex]+workerW*.55;
-    }
+    // V590: Gerente de Vendas centralizado; Gerente de Crédito no lado OPOSTO (direita).
+    // Mantém a hierarquia e apenas corrige a composição visual do organograma.
+    const creditKey=creditWrap.dataset.key;
+    const creditWorkerIndexes=[];
+    workers.forEach((w,i)=>{
+      const g=gBy.get(w.dataset.key),f=g?ensure(g):null;
+      if(f&&f.parentKey===creditKey) creditWorkerIndexes.push(i);
+    });
+    const linkedCenter=creditWorkerIndexes.length
+      ? creditWorkerIndexes.reduce((sum,i)=>sum+workerCenters[i],0)/creditWorkerIndexes.length
+      : width*.27;
+    const minLeadershipGap=(leaderW+creditW)/2+42;
+    const leaderX=Math.max(leaderW/2+30,Math.min(width-leaderW/2-30,width*.50));
+    const mirroredCreditCenter=width-linkedCenter;
+    const creditTarget=Math.max(width*.68,mirroredCreditCenter,leaderX+minLeadershipGap);
     const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,creditTarget));
     const creditY=leaderY+Math.max(72,Math.round(leaderH*.48));
     const bottomY=Math.max(leaderY+leaderH+92,creditY+creditH+54);
@@ -195,7 +197,7 @@ async function makeExecutiveCanvas(mode='a4'){
 function coLoadImage(src){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src})}
 async function exportImage(){if(tab!=='mapa')return;if(typeof html2canvas!=='function')return alert('O exportador de imagem ainda não carregou. Aguarde alguns segundos e tente novamente.');layoutTree();await new Promise(r=>setTimeout(r,80));const result=await makeExecutiveCanvas('full');if(!result)return alert('Não foi possível gerar a imagem.');const data=new Date().toLocaleDateString('pt-BR');const mode=detailMode==='detailed'?'Detalhado':'Resumido';const a=document.createElement('a');a.download=`Organograma_Filial_${data.replace(/\//g,'-')}_${mode}_HD.png`;a.href=result.canvas.toDataURL('image/png');a.click()}
 function updateLauncher(){let b=document.getElementById('fsCoLauncher');if(!b){b=document.createElement('button');b.id='fsCoLauncher';b.className='fsCoHomeCard';b.type='button';(document.querySelector('#visao>.cards')||document.body).appendChild(b)}const m=metrics();b.innerHTML=`<div class="fsCoLaunchTop"><i>🧩</i><span>Continuidade Operacional</span></div><div class="fsCoLaunchIndex"><span>Cobertura da filial</span><strong>${m.index}%</strong></div><div class="fsCoLaunchStats"><span>🟢 ${m.full}</span><span>🟡 ${m.partial}</span><span>🔴 ${m.none}</span></div>`}
-function updateSupportFloating(){let b=document.getElementById('fsSupportFloating');if(!b){b=document.createElement('button');b.id='fsSupportFloating';b.type='button';b.className='fsSupportFloating';b.setAttribute('aria-label','Abrir suporte');b.title='Suporte';b.innerHTML='<span>✦</span><b>Suporte</b>';document.body.appendChild(b)}const visao=document.getElementById('visao'),show=!!visao?.classList.contains('active')&&!document.documentElement.classList.contains('coOpen');b.classList.toggle('show',show)}
+function updateSupportFloating(){document.getElementById('fsSupportFloating')?.remove()}
 document.documentElement.addEventListener('change',e=>{if(e.target?.id==='coRespFilter'){responsibilityFocus=e.target.value;render()}});
 document.documentElement.addEventListener('submit',e=>{if(e.target?.id!=='coSupportForm')return;e.preventDefault();sendSupport(document.getElementById('coSupportInput')?.value||'')});
 document.documentElement.addEventListener('click',e=>{const t=e.target.closest('#fsCoLauncher,#fsSupportFloating,#coOverlay,#coDialog,#coSupportDialog,#coGuidedSetup');if(!t)return;e.stopPropagation();const a=e.target.closest('[data-tab],[data-edit],[data-person],[data-move-person],[data-dialog-close],[data-save-function],[data-save-person],[data-detail],[data-links],[data-resp-mode],[data-resp-edit],[data-save-resp],#coNewResp,#fsCoLauncher,#coClose,#coPrint,#coExport,#coRemovePhoto,#coToggleSidebar,#coSidebarHandle,#coSuggestStructure,#coSaveStructure,#coViewMap,#coSupportBtn,#fsSupportFloating,#coSupportClose,#coGuidedSetupOk,[data-support-q],[data-support-whatsapp],[data-support-dismiss]');if(!a)return;if(a.id==='fsCoLauncher')open();else if(a.id==='coGuidedSetupOk'){db.config.guidedSetupV580=true;db.config.guideVersion=581;persist('Orientação inicial da estrutura concluída');document.getElementById('coGuidedSetup')?.remove();tab='estrutura';render()}else if(a.id==='coSupportBtn'||a.id==='fsSupportFloating')openSupport();else if(a.id==='coSupportClose')document.getElementById('coSupportDialog')?.remove();else if(a.hasAttribute('data-support-whatsapp'))openDeveloperWhatsApp();else if(a.hasAttribute('data-support-dismiss'))a.closest('.coSupportEscalate')?.remove();else if(a.dataset.supportQ)sendSupport(a.dataset.supportQ);else if(a.id==='coClose')close();else if(a.id==='coToggleSidebar'||a.id==='coSidebarHandle')toggleSidebar();else if(a.id==='coSuggestStructure')applySuggestedStructure();else if(a.id==='coSaveStructure')saveStructure();else if(a.id==='coViewMap'){tab='mapa';hierarchyLinks='all';render();}else if(a.dataset.tab){tab=a.dataset.tab;if(tab==='estrutura')previewReady=false;render()}else if(a.dataset.detail){detailMode=a.dataset.detail;render()}else if(a.dataset.links){hierarchyLinks=a.dataset.links;render()}else if(a.dataset.respMode){responsibilityMode=a.dataset.respMode;render()}else if(a.dataset.respEdit)editResponsibility(a.dataset.respEdit);else if(a.hasAttribute('data-save-resp'))saveResponsibility(a.dataset.saveResp);else if(a.id==='coNewResp')newResponsibility();else if(a.dataset.edit)editFunction(a.dataset.edit);else if(a.dataset.movePerson){const [id,dir]=a.dataset.movePerson.split(':');movePerson(id,dir)}else if(a.dataset.person)editPerson(a.dataset.person);else if(a.hasAttribute('data-dialog-close'))document.getElementById('coDialog')?.remove();else if(a.dataset.saveFunction)saveFunction(a.dataset.saveFunction);else if(a.dataset.savePerson)savePerson(a.dataset.savePerson);else if(a.id==='coRemovePhoto'){const id=document.querySelector('[data-save-person]')?.dataset.savePerson;if(id){removePhoto(id);a.closest('#coDialog')?.remove();editPerson(id)}}else if(a.id==='coPrint')fitPrint();else if(a.id==='coExport')exportImage()});
