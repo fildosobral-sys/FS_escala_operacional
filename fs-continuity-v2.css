@@ -372,10 +372,13 @@ html.coOpen #fsSupportFloating{display:none!important}
 
 /* v594 — apoios das lideranças e rodapé sem sobreposição */
 .coSimpleChain{justify-content:flex-start!important}
-.coLeadershipSupportChain{position:relative!important;overflow:hidden!important;padding-top:26px!important;isolation:isolate;justify-content:space-around!important}
-.coLeadershipSupportChain>.coSupportStep{position:relative;z-index:2}
-.coLeadershipSupportChain>.coSupportStep>i{color:#6b7fa4!important;font-size:11px!important}
+.coLeadershipSupportChain{position:relative!important;overflow:hidden!important;padding-top:26px!important;padding-bottom:4px!important;isolation:isolate;justify-content:space-around!important;align-items:flex-start!important}
+.coLeadershipSupportChain[data-support-count="2"]{min-height:70px}.coLeadershipSupportChain[data-support-count="3"]{min-height:86px}
+.coLeadershipSupportChain>.coSupportStep{position:relative;z-index:2;align-items:flex-start!important}
+.coLeadershipSupportChain>.coSupportLevel2{margin-top:14px}.coLeadershipSupportChain>.coSupportLevel3{margin-top:28px}
+.coLeadershipSupportChain>.coSupportStep>.coSupportStepArrow{display:block!important;position:relative;width:25px;height:13px;margin:0 5px 0 1px;border-left:1.5px solid #58789f;border-bottom:1.5px solid #58789f;flex:0 0 25px;color:transparent!important}
+.coLeadershipSupportChain>.coSupportStep>.coSupportStepArrow::after{content:'';position:absolute;right:-1px;bottom:-4px;width:6px;height:6px;border-right:1.5px solid #58789f;border-bottom:1.5px solid #58789f;transform:rotate(-45deg);background:transparent}
 .coLeadershipSupportChain .coSub{background:#f7f9fc;border-radius:8px;padding:2px 3px}
 .coLeadershipSupportChain .coSub small{color:#47617e!important;font-weight:700}
-.coLeadershipDirectRoutes{position:absolute;z-index:1;left:8px;right:8px;top:0;width:calc(100% - 16px);height:25px;overflow:visible;pointer-events:none}
+.coLeadershipDirectRoutes{position:absolute;z-index:1;left:8px;right:8px;top:0;width:calc(100% - 16px);height:auto;overflow:visible;pointer-events:none}
 .coLeadershipDirectRoutes path{fill:none;stroke:#8fa6c2;stroke-width:1.2;stroke-dasharray:2.8 2.8;vector-effect:non-scaling-stroke}
