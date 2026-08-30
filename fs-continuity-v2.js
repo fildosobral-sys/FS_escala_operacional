@@ -41,11 +41,12 @@ function shortName(name,maxWords=3,maxChars=28){const parts=String(name||'').tri
 function memberBase(p,{compact=false,forceDetailed=false,showOrder=true}={}){const order=showOrder?`<span class="coMemberOrder"><button type="button" class="coOrderBtn" data-move-person="${esc(p.id)}:up" title="Mover para cima">↑</button><button type="button" class="coOrderBtn" data-move-person="${esc(p.id)}:down" title="Mover para baixo">↓</button></span>`:'';const displayName=shortName(p.nome,compact?3:3,compact?32:40);return`<div class="coMemberWrap ${compact?'compact':''} ${showOrder?'':'noOrder'}"><div class="coMember ${compact?'coMemberCompact':''}" data-person="${esc(p.id)}" title="${esc(p.nome)}" role="button" tabindex="0"><span class="coMemberTop">${avatar(p,compact?'tiny':'')}<span><b title="${esc(p.nome)}">${esc(displayName)}</b><small>${esc(role(p))}</small></span><i>✎</i></span>${compact?'':dutiesHtml(p,forceDetailed)}</div>${order}</div>`}
 function member(p,forceDetailed=false,opts={}){return memberBase(p,Object.assign({compact:false,forceDetailed,showOrder:true},opts))}
 function memberCompact(p,opts={}){return memberBase(p,Object.assign({compact:true,forceDetailed:false,showOrder:true},opts))}
-function substitute(pl,k){if(!pl.enabled)return'';const p=person(pl.personId),name=p?shortName(p.nome,3,30):'Não definido';return`<span class="coSubStep"><i>→</i><span class="coSub">${p?avatar(p,'tiny'):'<span class="coAvatar coInitial tiny">?</span>'}<span><b title="${esc(p?.nome||'Não definido')}">${esc(name)}</b></span></span></span>`}
-function node(g,opts={}){const f=ensure(g),s=status(g),compact=detailMode==='summary'&&g.people.length>=6,showOrder=opts.showOrder!==false,showEdit=opts.showEdit!==false;return`<article class="coNode ${s.type} ${showOrder?'':'coNodeClean'}" data-node="${esc(g.key)}"><header><span><b>${esc(g.name)}</b><small>${g.people.length} colaborador${g.people.length===1?'':'es'} · ${esc(f.sector)}</small></span>${showEdit?`<button data-edit="${esc(g.key)}" title="Editar função e hierarquia">⚙</button>`:''}</header><div class="coMembers ${compact?'compact':''}">${g.people.map(p=>compact?memberCompact(p,{showOrder}):member(p,false,{showOrder})).join('')}</div>${f.coverageEnabled?`<div class="coChain">${PLANS.map(k=>substitute(f.plans[k],k)).join('')}</div>`:''}</article>`}
+function substitute(pl,k){if(!pl.enabled)return'';const p=person(pl.personId),name=p?shortName(p.nome,3,30):'Não definido';return`<span class="coSubStep"><i>→</i><span class="coSub">${p?avatar(p,'tiny'):'<span class="coAvatar coInitial tiny">?</span>'}<span><small>${LABEL[k]}</small><b title="${esc(p?.nome||'Não definido')}">${esc(name)}</b></span></span></span>`}
+function node(g,opts={}){const f=ensure(g),s=status(g),compact=detailMode==='summary'&&g.people.length>=6,showOrder=opts.showOrder!==false,showEdit=opts.showEdit!==false;return`<article class="coNode ${s.type} ${showOrder?'':'coNodeClean'}" data-node="${esc(g.key)}"><header><span><b>${esc(g.name)}</b><small>${g.people.length} colaborador${g.people.length===1?'':'es'} · ${esc(f.sector)}</small></span>${showEdit?`<button data-edit="${esc(g.key)}" title="Editar função e hierarquia">⚙</button>`:''}</header><div class="coMembers ${compact?'compact':''}">${g.people.map(p=>compact?memberCompact(p,{showOrder}):member(p,false,{showOrder})).join('')}</div>${f.coverageEnabled?`<div class="coChain"><span class="coChainStart">Titular(es)</span>${PLANS.map(k=>substitute(f.plans[k],k)).join('')}</div>`:''}</article>`}
 function hierarchyData(){const gs=groups(),by=new Map(gs.map(g=>[g.key,g])),children=new Map([['',[]]]);gs.forEach(g=>children.set(g.key,[]));gs.forEach(g=>{let p=ensure(g).parentKey;if(!by.has(p)||p===g.key)p='';children.get(p).push(g)});children.forEach(a=>a.sort((x,y)=>sectorBucket(x)-sectorBucket(y)||order(x)-order(y)||x.name.localeCompare(y.name,'pt-BR')));return{gs,by,children}}
 function tree(opts={}){const {gs,children,by}=hierarchyData(),seen=new Set(),flat=[];const depthMemo=new Map();function depthFor(key,seenSet=new Set()){if(depthMemo.has(key))return depthMemo.get(key);if(!by.has(key))return 0;if(seenSet.has(key))return 0;seenSet.add(key);const p=ensure(by.get(key)).parentKey,val=p&&by.has(p)?depthFor(p,new Set(seenSet))+1:0;depthMemo.set(key,val);return val}function walk(g,depth,parent=''){if(seen.has(g.key))return;seen.add(g.key);flat.push({g,depth:depthFor(g.key),parent});(children.get(g.key)||[]).forEach(ch=>walk(ch,depth+1,g.key))}(children.get('')||[]).forEach(g=>walk(g,0,''));gs.filter(g=>!seen.has(g.key)).forEach(g=>walk(g,0,''));return`<div class="coMapViewport"><div class="coTreeCanvas" id="coTreeCanvas"><svg class="coTreeLines" id="coTreeLines" aria-hidden="true"></svg><div class="coTreeNodes">${flat.map(x=>`<div class="coTreeNodeWrap" data-key="${esc(x.g.key)}" data-parent="${esc(x.parent)}" data-depth="${x.depth}">${node(x.g,opts)}</div>`).join('')}</div></div></div>`}
-function scheduleTreeLayout(){requestAnimationFrame(()=>requestAnimationFrame(layoutTree))}
+function centerTreeOnLeadership(){const viewport=document.querySelector('.coMapViewport'),canvas=document.getElementById('coTreeCanvas');if(!viewport||!canvas||viewport.dataset.centered==='1')return;const leader=[...canvas.querySelectorAll('.coTreeNodeWrap')].find(w=>/gerente de vendas|gerente da filial|gerente geral/.test(norm(groups().find(g=>g.key===w.dataset.key)?.name||'')));if(!leader)return;const center=(parseFloat(leader.style.left)||0)+leader.offsetWidth/2;viewport.scrollLeft=Math.max(0,center-viewport.clientWidth/2);viewport.dataset.centered='1'}
+function scheduleTreeLayout(){requestAnimationFrame(()=>requestAnimationFrame(()=>{layoutTree();centerTreeOnLeadership()}))}
 function layoutTree(){
   const canvas=document.getElementById('coTreeCanvas');if(!canvas)return;
   const wraps=[...canvas.querySelectorAll('.coTreeNodeWrap')];if(!wraps.length)return;
@@ -63,14 +64,26 @@ function layoutTree(){
     const workerCenters=workers.map((w,i)=>marginX+i*(workerW+rowGap)+workerW/2);
     const leaderH=Math.ceil(leaderWrap.getBoundingClientRect().height),creditH=Math.ceil(creditWrap.getBoundingClientRect().height);
     const leaderW=Math.ceil(leaderWrap.getBoundingClientRect().width),creditW=Math.ceil(creditWrap.getBoundingClientRect().width);
-    const leaderY=18;
-    // V591: Gerente de Vendas fica CENTRALIZADO. A Gerência de Crédito fica no lado
-    // DIREITO, mas sem invadir/sobrepor o card do gerente. O afastamento horizontal é
-    // calculado pelas larguras reais dos dois cards + um respiro visual fixo.
-    const leaderX=width/2;
-    const leadershipGap=72;
-    const leadershipOffset=(leaderW+creditW)/2+leadershipGap;
-    const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,leaderX+leadershipOffset));
+    const leaderY=4;
+    // V591: a Gerência de Crédito é posicionada exatamente sobre a Operadora de
+    // Caixa, no centro visual do bloco Faturista + Caixa + Atendimento. O vínculo
+    // salvo continua intacto; esta regra organiza somente a leitura executiva.
+    const creditKey=creditWrap.dataset.key;
+    const creditWorkerIndexes=[];
+    workers.forEach((w,i)=>{
+      const g=gBy.get(w.dataset.key),f=g?ensure(g):null;
+      if(f&&f.parentKey===creditKey) creditWorkerIndexes.push(i);
+    });
+    const linkedCenter=creditWorkerIndexes.length
+      ? creditWorkerIndexes.reduce((sum,i)=>sum+workerCenters[i],0)/creditWorkerIndexes.length
+      : width*.27;
+    const creditVisualIndexes=workers.map((w,i)=>({i,name:norm(gBy.get(w.dataset.key)?.name||'')})).filter(x=>/faturista|operador(?:a)? de caixa|atendente de loja/.test(x.name)).map(x=>x.i);
+    const operatorIndex=workers.findIndex(w=>/operador(?:a)? de caixa/.test(norm(gBy.get(w.dataset.key)?.name||'')));
+    const visualCenter=operatorIndex>=0?workerCenters[operatorIndex]:(creditVisualIndexes.length?creditVisualIndexes.reduce((sum,i)=>sum+workerCenters[i],0)/creditVisualIndexes.length:linkedCenter);
+    const creditX=Math.max(creditW/2+30,Math.min(width-creditW/2-30,visualCenter));
+    const minLeadershipGap=(leaderW+creditW)/2+42;
+    const leaderTarget=Math.max(width*.52,creditX+minLeadershipGap);
+    const leaderX=Math.max(leaderW/2+30,Math.min(width-leaderW/2-30,leaderTarget));
     const creditY=leaderY+Math.max(72,Math.round(leaderH*.48));
     const bottomY=Math.max(leaderY+leaderH+92,creditY+creditH+54);
     leaderWrap.style.left=Math.round(leaderX-leaderWrap.getBoundingClientRect().width/2)+'px';leaderWrap.style.top=leaderY+'px';
@@ -96,8 +109,9 @@ function layoutTree(){
   let paths='';
   wraps.forEach(w=>{const g=gBy.get(w.dataset.key),f=g&&ensure(g);if(!f)return;let primary=w.dataset.parent,extras=hierarchyLinks==='all'?(f.extraParents||[]):[];
     if(useExecutiveLayout&&w===creditWrap&&leaderWrap){primary='';extras=[];const px=(parseFloat(leaderWrap.style.left)||0)+leaderWrap.offsetWidth/2,py=(parseFloat(leaderWrap.style.top)||0)+leaderWrap.offsetHeight,cx=(parseFloat(w.style.left)||0)+w.offsetWidth/2,cy=(parseFloat(w.style.top)||0),mid=Math.round(py+32);paths+=`<path class="coAdditionalLine coLeadershipLine" d="M ${px} ${py} V ${mid} H ${cx} V ${cy}"/>`;return}
+    if(useExecutiveLayout&&w!==leaderWrap&&w!==creditWrap){const workerName=norm(g?.name||''),inCreditBlock=/faturista|operador(?:a)? de caixa|atendente de loja/.test(workerName);if(inCreditBlock){primary=creditWrap.dataset.key;extras=extras.filter(k=>k!==primary)}else if(primary===creditWrap.dataset.key){primary=leaderWrap.dataset.key}}
     const parents=[primary,...extras].filter((p,i,a)=>p&&a.indexOf(p)===i&&map.has(p));const cx=(parseFloat(w.style.left)||0)+w.offsetWidth/2,cy=(parseFloat(w.style.top)||0);
-    parents.forEach((p,idx)=>{const pw=map.get(p),px=(parseFloat(pw.style.left)||0)+pw.offsetWidth/2,py=(parseFloat(pw.style.top)||0)+pw.offsetHeight;let mid=Math.round((py+cy)/2);if(useExecutiveLayout&&w!==creditWrap)mid=Math.round(cy-42);const cls=idx===0?'coDirectLine':'coAdditionalLine';paths+=`<path class="${cls}" d="M ${px} ${py} V ${mid} H ${cx} V ${cy}"/>`})
+      parents.forEach((p,idx)=>{const pw=map.get(p),px=(parseFloat(pw.style.left)||0)+pw.offsetWidth/2,py=(parseFloat(pw.style.top)||0)+pw.offsetHeight;let mid=Math.round((py+cy)/2);if(useExecutiveLayout&&w!==creditWrap)mid=Math.round(cy-(p===creditWrap.dataset.key?58:34)-idx*10);const cls=idx===0?'coDirectLine':'coAdditionalLine';paths+=`<path class="${cls}" d="M ${px} ${py} V ${mid} H ${cx} V ${cy}"/>`})
   });
   svg.innerHTML=paths;
 }
@@ -161,22 +175,22 @@ function executiveHeaderHeight(w){return Math.round(Math.max(220,Math.min(330,w*
 async function paintExecutiveHeader(ctx,w,h,{titleRight='ORGANOGRAMA FUNCIONAL',footer='FS Escala Operacional Inteligente • Estrutura hierárquica e continuidade da filial'}={}){
   const {filial,data,month}=executiveMeta(),k=Math.max(.92,Math.min(1.55,w/3200)),headerH=executiveHeaderHeight(w);
   ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#071d68';ctx.fillRect(0,0,w,Math.round(12*k));
-  const logo=await coLoadImage('./LOGO ATUAL.png');if(logo){const maxLogoW=Math.round(430*k),maxLogoH=Math.round(126*k),ls=Math.min(maxLogoW/logo.width,maxLogoH/logo.height);ctx.drawImage(logo,Math.round(70*k),Math.round(68*k),logo.width*ls,logo.height*ls)}
-  const cardW=Math.round(790*k),cardH=Math.round(205*k),cardX=w-cardW-Math.round(70*k),cardY=Math.round(42*k),r=Math.round(24*k);
+  const logo=await coLoadImage('./LOGO ATUAL.png');if(logo){const maxLogoW=Math.round(520*k),maxLogoH=Math.round(150*k),ls=Math.min(maxLogoW/logo.width,maxLogoH/logo.height);ctx.drawImage(logo,Math.round(70*k),Math.round(58*k),logo.width*ls,logo.height*ls)}
+  const cardW=Math.round(900*k),cardH=Math.round(225*k),cardX=w-cardW-Math.round(70*k),cardY=Math.round(35*k),r=Math.round(24*k);
   ctx.fillStyle='#f8fafc';ctx.strokeStyle='#d8e0eb';ctx.lineWidth=Math.max(2,2*k);ctx.beginPath();ctx.roundRect(cardX,cardY,cardW,cardH,r);ctx.fill();ctx.stroke();
-  const tx=cardX+Math.round(38*k);ctx.textAlign='left';ctx.fillStyle='#071d68';ctx.font=`900 ${Math.round(28*k)}px Arial, sans-serif`;ctx.fillText(titleRight,tx,cardY+Math.round(44*k));
+  const tx=cardX+Math.round(38*k);ctx.textAlign='left';ctx.fillStyle='#071d68';ctx.font=`900 ${Math.round(36*k)}px Arial, sans-serif`;ctx.fillText(titleRight,tx,cardY+Math.round(50*k),cardW-Math.round(76*k));
   const unit=String(filial||'').replace(/^ZENIR M[ÓO]VEIS E ELETROS\s*[•-]?\s*/i,'').trim()||filial;
-  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Unidade:',tx,cardY+Math.round(84*k));ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(unit,tx+Math.round(98*k),cardY+Math.round(84*k));
-  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Atualização:',tx,cardY+Math.round(122*k));ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(month,tx+Math.round(134*k),cardY+Math.round(122*k));
-  ctx.font=`800 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Finalidade:',tx,cardY+Math.round(160*k));ctx.font=`650 ${Math.round(16*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText('Hierarquia, responsáveis e continuidade',tx+Math.round(116*k),cardY+Math.round(160*k));
-  ctx.font=`600 ${Math.round(13*k)}px Arial, sans-serif`;ctx.fillStyle='#64748b';ctx.fillText('Emitido em '+data,tx,cardY+Math.round(190*k));
-  ctx.fillStyle='#64748b';ctx.font=`600 ${Math.round(13*k)}px Arial, sans-serif`;ctx.textAlign='center';ctx.fillText(footer,w/2,h-Math.round(28*k));
+  ctx.font=`800 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Unidade:',tx,cardY+Math.round(88*k));ctx.font=`650 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(unit,tx+Math.round(104*k),cardY+Math.round(88*k),cardW-Math.round(180*k));
+  ctx.font=`800 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Atualização:',tx,cardY+Math.round(130*k));ctx.font=`650 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText(month,tx+Math.round(142*k),cardY+Math.round(130*k));
+  ctx.font=`800 ${Math.round(18*k)}px Arial, sans-serif`;ctx.fillStyle='#071d68';ctx.fillText('Finalidade:',tx,cardY+Math.round(172*k));ctx.font=`650 ${Math.round(17*k)}px Arial, sans-serif`;ctx.fillStyle='#334155';ctx.fillText('Hierarquia, responsáveis e continuidade',tx+Math.round(124*k),cardY+Math.round(172*k),cardW-Math.round(190*k));
+  ctx.font=`600 ${Math.round(14*k)}px Arial, sans-serif`;ctx.fillStyle='#64748b';ctx.fillText('Emitido em '+data,tx,cardY+Math.round(207*k));
+  ctx.fillStyle='#64748b';ctx.font=`600 ${Math.round(17*k)}px Arial, sans-serif`;ctx.textAlign='center';ctx.fillText(footer,w/2,h-Math.round(28*k));
   return headerH;
 }
 function paintExecutiveLegend(ctx,w,y){
   const k=Math.max(.9,Math.min(1.35,w/3200)),items=[['#2457b8','Titular'],['#b9d7ff','Substituto(a)'],['#20a455','Linha de Gestão'],['#5d789f','Apoio / Atuação Integrada']];
-  ctx.save();ctx.textAlign='left';ctx.font=`700 ${Math.round(14*k)}px Arial, sans-serif`;let x=Math.round(w*.27);
-  items.forEach((it,idx)=>{ctx.fillStyle='#334155';if(idx<2){ctx.beginPath();ctx.fillStyle=it[0];ctx.arc(x,y,Math.round(8*k),0,Math.PI*2);ctx.fill();ctx.fillStyle='#334155';ctx.fillText(it[1],x+Math.round(15*k),y+Math.round(5*k));x+=Math.round((idx===0?185:220)*k)}else{ctx.strokeStyle=it[0];ctx.lineWidth=Math.max(2,2*k);ctx.setLineDash(idx===3?[8*k,6*k]:[]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.round(42*k),y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#334155';ctx.fillText(it[1],x+Math.round(52*k),y+Math.round(5*k));x+=Math.round((idx===2?235:300)*k)}});ctx.restore();
+  ctx.save();ctx.textAlign='left';ctx.font=`700 ${Math.round(20*k)}px Arial, sans-serif`;let x=Math.round(w*.235);
+  items.forEach((it,idx)=>{ctx.fillStyle='#334155';if(idx<2){ctx.beginPath();ctx.fillStyle=it[0];ctx.arc(x,y,Math.round(10*k),0,Math.PI*2);ctx.fill();ctx.fillStyle='#334155';ctx.fillText(it[1],x+Math.round(20*k),y+Math.round(7*k));x+=Math.round((idx===0?235:285)*k)}else{ctx.strokeStyle=it[0];ctx.lineWidth=Math.max(3,3*k);ctx.setLineDash(idx===3?[10*k,7*k]:[]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.round(52*k),y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#334155';ctx.fillText(it[1],x+Math.round(64*k),y+Math.round(7*k));x+=Math.round((idx===2?315:390)*k)}});ctx.restore();
 }
 async function makeExecutiveCanvas(mode='a4'){
   const raw=await captureTreeCanvas();if(!raw)return null;const minWidth=4961,minHeight=3508;
@@ -185,10 +199,23 @@ async function makeExecutiveCanvas(mode='a4'){
   }
   const out=document.createElement('canvas');out.width=minWidth;out.height=minHeight;const ctx=out.getContext('2d');const headerH=await paintExecutiveHeader(ctx,out.width,out.height);const marginLeft=84,marginRight=84,bottom=78,contentTop=headerH+10,maxW=out.width-marginLeft-marginRight,maxH=out.height-contentTop-bottom,s=Math.min(maxW/raw.width,maxH/raw.height),dw=raw.width*s,dh=raw.height*s,dx=marginLeft+Math.max(0,(maxW-dw)/2),dy=contentTop+Math.max(0,(maxH-dh)/2);ctx.drawImage(raw,dx,dy,dw,dh);return{canvas:out,scale:s}
 }
+async function fitPrint(){
+  if(tab!=='mapa')return window.print();
+  let book=document.getElementById('coPrintBook');if(book)book.remove();
+  if(typeof html2canvas==='function'){
+    const result=await makeExecutiveCanvas('a4');
+    if(result){book=document.createElement('div');book.id='coPrintBook';book.className='coPrintBook';const page=document.createElement('section');page.className='coPrintPage coPrintImagePage';const img=document.createElement('img');img.alt='Organograma funcional da filial';img.src=result.canvas.toDataURL('image/png');page.appendChild(img);book.appendChild(page);document.documentElement.appendChild(book)}
+  }
+  if(!book)book=buildLargePrintBook();
+  document.documentElement.classList.add('coPrintingBook');
+  await new Promise(r=>setTimeout(r,80));
+  window.print();
+  setTimeout(()=>{document.documentElement.classList.remove('coPrintingBook');book?.remove()},1200);
+}
 function coLoadImage(src){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src})}
 async function exportImage(){if(tab!=='mapa')return;if(typeof html2canvas!=='function')return alert('O exportador de imagem ainda não carregou. Aguarde alguns segundos e tente novamente.');layoutTree();await new Promise(r=>setTimeout(r,80));const result=await makeExecutiveCanvas('full');if(!result)return alert('Não foi possível gerar a imagem.');const data=new Date().toLocaleDateString('pt-BR');const mode=detailMode==='detailed'?'Detalhado':'Resumido';const a=document.createElement('a');a.download=`Organograma_Filial_${data.replace(/\//g,'-')}_${mode}_HD.png`;a.href=result.canvas.toDataURL('image/png');a.click()}
 function updateLauncher(){let b=document.getElementById('fsCoLauncher');if(!b){b=document.createElement('button');b.id='fsCoLauncher';b.className='fsCoHomeCard';b.type='button';(document.querySelector('#visao>.cards')||document.body).appendChild(b)}const m=metrics();b.innerHTML=`<div class="fsCoLaunchTop"><i>🧩</i><span>Continuidade Operacional</span></div><div class="fsCoLaunchIndex"><span>Cobertura da filial</span><strong>${m.index}%</strong></div><div class="fsCoLaunchStats"><span>🟢 ${m.full}</span><span>🟡 ${m.partial}</span><span>🔴 ${m.none}</span></div>`}
-function updateSupportFloating(){document.getElementById('fsSupportFloating')?.remove()}
+function updateSupportFloating(){let b=document.getElementById('fsSupportFloating');if(!b){b=document.createElement('button');b.id='fsSupportFloating';b.type='button';b.className='fsSupportFloating';b.setAttribute('aria-label','Abrir suporte');b.title='Suporte';b.innerHTML='<span>✦</span><b>Suporte</b>';document.body.appendChild(b)}const visao=document.getElementById('visao'),show=!!visao?.classList.contains('active')&&!document.documentElement.classList.contains('coOpen');b.classList.toggle('show',show)}
 document.documentElement.addEventListener('change',e=>{if(e.target?.id==='coRespFilter'){responsibilityFocus=e.target.value;render()}});
 document.documentElement.addEventListener('submit',e=>{if(e.target?.id!=='coSupportForm')return;e.preventDefault();sendSupport(document.getElementById('coSupportInput')?.value||'')});
 document.documentElement.addEventListener('click',e=>{const t=e.target.closest('#fsCoLauncher,#fsSupportFloating,#coOverlay,#coDialog,#coSupportDialog,#coGuidedSetup');if(!t)return;e.stopPropagation();const a=e.target.closest('[data-tab],[data-edit],[data-person],[data-move-person],[data-dialog-close],[data-save-function],[data-save-person],[data-detail],[data-links],[data-resp-mode],[data-resp-edit],[data-save-resp],#coNewResp,#fsCoLauncher,#coClose,#coPrint,#coExport,#coRemovePhoto,#coToggleSidebar,#coSidebarHandle,#coSuggestStructure,#coSaveStructure,#coViewMap,#coSupportBtn,#fsSupportFloating,#coSupportClose,#coGuidedSetupOk,[data-support-q],[data-support-whatsapp],[data-support-dismiss]');if(!a)return;if(a.id==='fsCoLauncher')open();else if(a.id==='coGuidedSetupOk'){db.config.guidedSetupV580=true;db.config.guideVersion=581;persist('Orientação inicial da estrutura concluída');document.getElementById('coGuidedSetup')?.remove();tab='estrutura';render()}else if(a.id==='coSupportBtn'||a.id==='fsSupportFloating')openSupport();else if(a.id==='coSupportClose')document.getElementById('coSupportDialog')?.remove();else if(a.hasAttribute('data-support-whatsapp'))openDeveloperWhatsApp();else if(a.hasAttribute('data-support-dismiss'))a.closest('.coSupportEscalate')?.remove();else if(a.dataset.supportQ)sendSupport(a.dataset.supportQ);else if(a.id==='coClose')close();else if(a.id==='coToggleSidebar'||a.id==='coSidebarHandle')toggleSidebar();else if(a.id==='coSuggestStructure')applySuggestedStructure();else if(a.id==='coSaveStructure')saveStructure();else if(a.id==='coViewMap'){tab='mapa';hierarchyLinks='all';render();}else if(a.dataset.tab){tab=a.dataset.tab;if(tab==='estrutura')previewReady=false;render()}else if(a.dataset.detail){detailMode=a.dataset.detail;render()}else if(a.dataset.links){hierarchyLinks=a.dataset.links;render()}else if(a.dataset.respMode){responsibilityMode=a.dataset.respMode;render()}else if(a.dataset.respEdit)editResponsibility(a.dataset.respEdit);else if(a.hasAttribute('data-save-resp'))saveResponsibility(a.dataset.saveResp);else if(a.id==='coNewResp')newResponsibility();else if(a.dataset.edit)editFunction(a.dataset.edit);else if(a.dataset.movePerson){const [id,dir]=a.dataset.movePerson.split(':');movePerson(id,dir)}else if(a.dataset.person)editPerson(a.dataset.person);else if(a.hasAttribute('data-dialog-close'))document.getElementById('coDialog')?.remove();else if(a.dataset.saveFunction)saveFunction(a.dataset.saveFunction);else if(a.dataset.savePerson)savePerson(a.dataset.savePerson);else if(a.id==='coRemovePhoto'){const id=document.querySelector('[data-save-person]')?.dataset.savePerson;if(id){removePhoto(id);a.closest('#coDialog')?.remove();editPerson(id)}}else if(a.id==='coPrint')fitPrint();else if(a.id==='coExport')exportImage()});

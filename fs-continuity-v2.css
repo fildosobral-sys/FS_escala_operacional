@@ -362,3 +362,10 @@ html.coOpen #fsSupportFloating{display:none!important}
 .coTreeCanvas[data-layout="executive"] .coSub>span:last-child{min-width:0;overflow:hidden}
 .coTreeCanvas[data-layout="executive"] .coSub small{font-size:7px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .coTreeCanvas[data-layout="executive"] .coSub b{font-size:7.6px!important;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere!important}
+
+/* v592 — leitura aprimorada no detalhado e na exportação HD */
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coDuties{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px!important;row-gap:1px!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coDuties em{min-width:0;overflow-wrap:anywhere}
+.coTreeCanvas[data-layout="executive"] .coSub .coAvatar.tiny{width:27px;height:27px;flex-basis:27px;font-size:8.5px}
+.coTreeCanvas[data-layout="executive"] .coSub small{font-size:7.5px!important}
+.coTreeCanvas[data-layout="executive"] .coSub b{font-size:8.4px!important;line-height:1.2!important}
