@@ -11416,6 +11416,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 
   document.addEventListener("DOMContentLoaded", function(){
     setTimeout(function(){
+      if(state?.config?.fsRestauracaoFiel) return;
       window.fsRedistribuirEquipesPorFuncao();
       try{ if(typeof render === "function") render(); }catch(e){}
     }, 900);
@@ -11651,6 +11652,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 
   document.addEventListener("DOMContentLoaded", function(){
     setTimeout(function(){
+      if(state?.config?.fsRestauracaoFiel) return;
       window.fsRedistribuirEquipesPorFuncao();
       try{ if(typeof render === "function") render(); }catch(e){}
     }, 1000);
@@ -15147,7 +15149,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.fsV560DistribuirDia=distribuirDia;window.fsV560DistribuirTudo=distribuirTudo;window.fsV560OrdenarHorarios=ordenarHorarios;
   const anterior=window.aplicarDistribuicao||((typeof aplicarDistribuicao==='function')?aplicarDistribuicao:null);if(anterior&&!anterior.__fsV560){const fn=function(){const r=anterior.apply(this,arguments);distribuirTudo(true);setTimeout(()=>distribuirTudo(true),70);return r};fn.__fsV560=true;window.aplicarDistribuicao=fn;try{aplicarDistribuicao=fn}catch(e){}}
   document.addEventListener('change',e=>{const t=e.target;if(t?.closest?.('.dayScheduleCard')||t?.closest?.('.fsDomingoScheduleCard'))setTimeout(()=>distribuirTudo(true),40)},true);
-  function iniciar(){if(!state.config?.fsDistribuicaoFuncaoV560)distribuirTudo(true);else DS.forEach(ordenarHorarios);window.fsV559SincronizarTudo?.()}
+  function iniciar(){if(state.config?.fsRestauracaoFiel){window.fsV559SincronizarTudo?.();return}if(!state.config?.fsDistribuicaoFuncaoV560)distribuirTudo(true);else DS.forEach(ordenarHorarios);window.fsV559SincronizarTudo?.()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,500));else setTimeout(iniciar,500);
 })();
 </script>
@@ -15339,7 +15341,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function storageAtual(){const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k!=null)o[k]=localStorage.getItem(k)}return o}
   function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}`}
   function baixarArquivo(nome,obj){const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},350)}
-  function backup(){const atual=estadoAtual(),storage=storageAtual();if(atual)storage[STORAGE]=JSON.stringify(atual);return{tipo:'FS_BACKUP_COMPLETO',titulo:'FS Operacional Inteligente',versaoBackup:612,geradoEm:new Date().toISOString(),state:atual||{},localStorage:storage,manifesto:{estadoCanonico:STORAGE,colaboradores:atual?.pessoas?.length||0,modalidade:atual?.config?.modo||'',cargaMeta:Number(atual?.cargaMeta||0),preservaEstrutura:true}}}
+  function backup(){const atual=estadoAtual(),storage=storageAtual();if(atual)storage[STORAGE]=JSON.stringify(atual);return{tipo:'FS_BACKUP_COMPLETO',titulo:'FS Operacional Inteligente',versaoBackup:613,geradoEm:new Date().toISOString(),state:atual||{},localStorage:storage,manifesto:{estadoCanonico:STORAGE,colaboradores:atual?.pessoas?.length||0,modalidade:atual?.config?.modo||'',cargaMeta:Number(atual?.cargaMeta||0),preservaEstrutura:true}}}
   function estadoDoArquivo(data){
     const candidatos=[];
     if(data?.localStorage?.[STORAGE]){try{candidatos.push(JSON.parse(data.localStorage[STORAGE]))}catch(e){}}
@@ -15353,7 +15355,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     if(!file||window.__fsRestaurandoBackupV612)return;
     const reader=new FileReader();reader.onload=function(){
       try{
-        const data=JSON.parse(reader.result),canon=estadoDoArquivo(data);if(!canon)throw new Error('O arquivo não contém um estado operacional válido.');
+        const data=JSON.parse(reader.result),canon=estadoDoArquivo(data);if(!canon)throw new Error('O arquivo não contém um estado operacional válido.');canon.config=canon.config||{};canon.config.fsRestauracaoFiel=true;canon.config.fsDistribuicaoFuncaoV560=true;
         const ls=data.localStorage&&typeof data.localStorage==='object'?data.localStorage:{},identidade=identidadeLocal();
         window.__fsRestaurandoBackupV612=true;
         try{localStorage.clear();sessionStorage.clear()}catch(e){}

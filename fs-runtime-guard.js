@@ -40,104 +40,9 @@
     return '<div class="fsExportSignatureBar"><span class="fsDevSignature">Developed by FildoSobral © 2026</span></div>';
   };
 
-
-
-  function installBuiltInCanvasFallback() {
-    if (typeof window.html2canvas === 'function') return;
-
-    async function fallbackHtml2Canvas(element, options) {
-      if (!element) throw new Error('Elemento de exportação não encontrado.');
-      const supplied = options || {};
-      const rect = element.getBoundingClientRect();
-      const width = Math.max(1, Math.ceil(Number(supplied.width) || element.scrollWidth || element.offsetWidth || rect.width || 1200));
-      const height = Math.max(1, Math.ceil(Number(supplied.height) || element.scrollHeight || element.offsetHeight || rect.height || 900));
-      const requestedScale = Math.max(0.5, Number(supplied.scale) || 1);
-      const maxPixels = 26000000;
-      const safeScale = Math.max(0.5, Math.min(requestedScale, Math.sqrt(maxPixels / Math.max(1, width * height)), 8192 / Math.max(width, height)));
-      const outW = Math.max(1, Math.floor(width * safeScale));
-      const outH = Math.max(1, Math.floor(height * safeScale));
-      const background = supplied.backgroundColor === null ? 'transparent' : (supplied.backgroundColor || '#ffffff');
-
-      const clone = element.cloneNode(true);
-      clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
-      clone.style.width = width + 'px';
-      clone.style.maxWidth = 'none';
-      clone.style.height = 'auto';
-      clone.style.margin = '0';
-      clone.style.transform = 'none';
-      clone.style.position = 'relative';
-      clone.style.left = '0';
-      clone.style.top = '0';
-
-      clone.querySelectorAll('img').forEach(function(img){
-        try {
-          const src = img.getAttribute('src') || '';
-          if (src && !/^(data:|blob:|https?:|file:|content:)/i.test(src)) {
-            img.setAttribute('src', new URL(src, document.baseURI).href);
-          }
-        } catch(e) {}
-      });
-
-      let css = '';
-      Array.from(document.styleSheets || []).forEach(function(sheet){
-        try {
-          Array.from(sheet.cssRules || []).forEach(function(rule){ css += rule.cssText + '\n'; });
-        } catch(e) {}
-      });
-      Array.from(document.querySelectorAll('style')).forEach(function(st){
-        if (st.textContent && css.indexOf(st.textContent) === -1) css += st.textContent + '\n';
-      });
-
-      const wrapper = document.createElement('div');
-      wrapper.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
-      wrapper.style.width = width + 'px';
-      wrapper.style.minHeight = height + 'px';
-      wrapper.style.overflow = 'hidden';
-      wrapper.style.background = background;
-      const style = document.createElement('style');
-      style.textContent = css + '\nhtml,body{margin:0!important;padding:0!important;}';
-      wrapper.appendChild(style);
-      wrapper.appendChild(clone);
-
-      const serialized = new XMLSerializer().serializeToString(wrapper);
-      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '">' +
-        '<foreignObject x="0" y="0" width="100%" height="100%">' + serialized + '</foreignObject></svg>';
-      const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
-      const url = URL.createObjectURL(blob);
-
-      try {
-        const img = await new Promise(function(resolve, reject){
-          const image = new Image();
-          image.onload = function(){ resolve(image); };
-          image.onerror = function(){ reject(new Error('Falha ao preparar a imagem para exportação.')); };
-          image.src = url;
-        });
-        const canvas = document.createElement('canvas');
-        canvas.width = outW;
-        canvas.height = outH;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('Canvas não disponível neste navegador.');
-        if (background !== 'transparent') {
-          ctx.fillStyle = background;
-          ctx.fillRect(0, 0, outW, outH);
-        }
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, outW, outH);
-        return canvas;
-      } finally {
-        URL.revokeObjectURL(url);
-      }
-    }
-
-    fallbackHtml2Canvas.__fsFallback = true;
-    fallbackHtml2Canvas.__fsOptimized = true;
-    window.html2canvas = fallbackHtml2Canvas;
-  }
-
   function installCanvasGuard() {
     const original = window.html2canvas;
-    if (typeof original !== 'function' || original.__fsFallback || original.__fsOptimized) return;
+    if (typeof original !== 'function' || original.__fsOptimized) return;
 
     const maxPixels = 30000000;
     const maxDimension = 8192;
@@ -166,8 +71,6 @@
     window.html2canvas = optimizedHtml2Canvas;
   }
 
-  installBuiltInCanvasFallback();
-
   window.fsInstallCanvasGuard = installCanvasGuard;
 
   function loadOptionalLibraries() {
@@ -175,7 +78,7 @@
       {
         id: 'fs-lib-html2canvas',
         src: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
-        ready: function () { return typeof window.html2canvas === 'function' && !window.html2canvas.__fsFallback; },
+        ready: function () { return typeof window.html2canvas === 'function'; },
         onload: installCanvasGuard
       },
       {
@@ -202,17 +105,16 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ installCanvasGuard(); loadOptionalLibraries(); }, { once: true });
+    document.addEventListener('DOMContentLoaded', installCanvasGuard, { once: true });
   } else {
     installCanvasGuard();
-    loadOptionalLibraries();
   }
 
   let libraryChecks = 0;
   const libraryCheckTimer = nativeSetInterval(function () {
     libraryChecks += 1;
     installCanvasGuard();
-    if ((window.html2canvas && window.html2canvas.__fsOptimized && !window.html2canvas.__fsFallback) || libraryChecks >= 120) {
+    if ((window.html2canvas && window.html2canvas.__fsOptimized) || libraryChecks >= 120) {
       window.clearInterval(libraryCheckTimer);
     }
   }, 500);
