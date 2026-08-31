@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-local-v29';
+const CACHE_NAME = 'fs-escala-local-v30';
 const CORE_FILES = [
   './',
   './index.html',
