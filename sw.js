@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-local-v36';
+const CACHE_NAME = 'fs-escala-local-v35';
 const CORE_FILES = [
   './',
   './index.html',
@@ -6,7 +6,7 @@ const CORE_FILES = [
   './fs-runtime-guard.js',
   './fs-stability.css',
   './fs-continuity-v2.js',
-  './fs-continuity-v2.css','./fs-mobile.css',
+  './fs-continuity-v2.css',
   './manifest.webmanifest',
   './LOGO%20ATUAL.png',
   './icone-192.png',
@@ -52,14 +52,14 @@ self.addEventListener('fetch', function (event) {
   }
 
   event.respondWith(
-    fetch(event.request).then(function (response) {
-      if (response && response.ok) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, copy); });
-      }
-      return response;
-    }).catch(function () {
-      return caches.match(event.request);
+    caches.match(event.request).then(function (cached) {
+      return cached || fetch(event.request).then(function (response) {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, copy); });
+        }
+        return response;
+      });
     })
   );
 });

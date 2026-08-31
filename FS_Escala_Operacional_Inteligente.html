@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"><title>FS Operacional Inteligente</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="./icone-192.png"><meta name="theme-color" content="#020617"><script src="./fs-runtime-guard.js?v=36"></script>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"><title>FS Operacional Inteligente</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="./icone-192.png"><meta name="theme-color" content="#020617"><script src="./fs-runtime-guard.js"></script>
 <script>
 /* ===== v508: terceiro modo operacional — dias normais 6x1 / 44h ===== */
 document.addEventListener('DOMContentLoaded',function(){
@@ -13991,7 +13991,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 (function(){
   const diasBase=['segunda','terca','quarta','quinta','sexta','sabado'];
   const workingOnLegado=window.workingOn||workingOn;
-  function metaMinutos(p){return Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.cargaMeta||44)))*60;}
+  function metaMinutos(p){return Math.max(1,Number(window.fsMetaSemanalPessoa?.(p)??(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.cargaMeta||44))))*60;}
   function diasMarcados(p){
     if(state?.config?.modo==='6x1')return [...diasBase];
     if(p?.usarDiasIndividuais&&Array.isArray(p.diasAtivosIndividuais))return p.diasAtivosIndividuais.filter(d=>diasBase.includes(d)||(d==='domingo'&&window.fsGetDadosEmpresa?.().abreDomingo));
@@ -14073,14 +14073,14 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function empresa(){return Object.assign({},window.fsGetDadosEmpresa?window.fsGetDadosEmpresa():{},state?.config?.funcionamentoUnidade||{});}
   function min2(h){const [a,b]=String(h||'00:00').split(':').map(Number);return (a||0)*60+(b||0)}
   function hora(m){m=Math.max(0,Math.min(1439,Math.round(m)));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
-  function camposPessoa(p){return{horariosIndividuais:clone(p.horariosIndividuais||{}),diasAtivosIndividuais:clone(p.diasAtivosIndividuais||[]),usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim,folgaDistribuida:p.folgaDistribuida||'terca',especialSlot:p.especialSlot==null?null:p.especialSlot,equipeBase:Number(p.equipeBase||0),equipeSabado:Number(p.equipeSabado||0),slots:clone(p.slots||{}),jovemAprendiz:!!p.jovemAprendiz,cargaSemanalAprendiz:Number(p.cargaSemanalAprendiz||12)};}
+  function camposPessoa(p){return{horariosIndividuais:clone(p.horariosIndividuais||{}),diasAtivosIndividuais:clone(p.diasAtivosIndividuais||[]),usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim,folgaDistribuida:p.folgaDistribuida||'terca',especialSlot:p.especialSlot==null?null:p.especialSlot,equipeBase:Number(p.equipeBase||0),equipeSabado:Number(p.equipeSabado||0),slots:clone(p.slots||{}),fsMetaIndividualAtiva:typeof p.fsMetaIndividualAtiva==='boolean'?p.fsMetaIndividualAtiva:!!p.jovemAprendiz,jovemAprendiz:!!p.jovemAprendiz,cargaSemanalAprendiz:Number(p.cargaSemanalAprendiz||12)};}
   function snapshot(modo){
     state.config.perfisEscala=state.config.perfisEscala||{};
     state.config.perfisEscala[modo]={versao:1,modo,cargaMeta:Number(state.cargaMeta),horarios:clone(state.horarios),equipesDia:clone(state.config.equipesDia||{}),diaEspecial:state.config.diaEspecial,percentualEspecial:Number(state.config.percentualEspecial||50),pessoas:Object.fromEntries((state.pessoas||[]).map(p=>[p.id,camposPessoa(p)]))};
   }
   function restaurar(pf){
     state.config.modo=pf.modo;state.cargaMeta=pf.modo==='6x1'?44:40;state.horarios=clone(pf.horarios);state.config.equipesDia=clone(pf.equipesDia||state.config.equipesDia);state.config.diaEspecial=pf.diaEspecial||state.config.diaEspecial;state.config.percentualEspecial=Number(pf.percentualEspecial||50);
-    (state.pessoas||[]).forEach(p=>{const x=pf.pessoas?.[p.id];if(x)Object.assign(p,clone(x));});
+    (state.pessoas||[]).forEach(p=>{const x=pf.pessoas?.[p.id],global={marcada:p.fsMetaIndividualAtiva,jovem:!!p.jovemAprendiz,carga:Number(p.cargaSemanalAprendiz||0)},hist=Object.values(state.config.perfisEscala||{}).map(q=>q?.pessoas?.[p.id]).find(q=>q?.jovemAprendiz);if(x)Object.assign(p,clone(x));const fonte=global.marcada===true||global.jovem?global:hist?{marcada:true,jovem:true,carga:Number(hist.cargaSemanalAprendiz||12)}:null;if(fonte){p.fsMetaIndividualAtiva=true;p.jovemAprendiz=true;p.cargaSemanalAprendiz=Math.max(1,Number(fonte.carga||12));}else if(global.marcada===false){p.fsMetaIndividualAtiva=false;p.jovemAprendiz=false;}});
   }
   function limites(d){const e=empresa(),sab=d==='sabado';return{abre:min2(sab?(e.horarioSabadoEntrada||'08:00'):(e.horarioSemanaEntrada||'08:00')),fecha:min2(sab?(e.horarioSabadoSaida||'14:00'):(e.horarioSemanaSaida||'18:00'))};}
   function basePessoa(p,d){const h=p?.horariosIndividuais?.[d];if(h?.ativo)return clone(h);try{return clone(horarioPessoa(p,d))}catch(e){return clone(state.horarios[d]?.[Number(p.equipeBase||0)]||state.horarios[d]?.[0]||{entrada:'08:00',almocoIni:'11:00',almocoFim:'12:00',saida:'18:00'});}}
@@ -15086,7 +15086,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function reg(d,id){const r=store().itens?.[d]?.[id]||{};return{...r,status:r.status||(r.trabalha?'trabalha':'pendente')}}
   function assinatura(){const s=store(),ds=datas(),ps=(state.pessoas||[]).map(p=>p.id).sort(),regs=ds.map(d=>[d,...ps.map(id=>{const r=s.itens?.[d]?.[id]||{},h=r.horario||{};return[id,r.status||'',!!r.trabalha,r.folgaData||'',Number.isFinite(Number(r.equipe))?Number(r.equipe):'',h.entrada||'',h.almocoIni||'',h.almocoFim||'',h.saida||'']})]),hs=(state.horarios?.domingo||[]).map(h=>[h.entrada||'',h.almocoIni||'',h.almocoFim||'',h.saida||'']),cfg=state.config?.fsDomingoPorDataConfig||{};return JSON.stringify([s.competencia,regs,hs,cfg])}
   window.fsV558AssinaturaDomingos=assinatura;window.fsV558CompetenciaConfirmada=function(){return state.config?.fsDomCompetenciaConfirmada===store().competencia&&state.config?.fsDomConfirmacaoAssinatura===assinatura()};
-  function meta(p){return(Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config?.modo==='6x1'?44:(state.cargaMeta||40))))||40)*60}
+  function meta(p){return(Math.max(1,Number(window.fsMetaSemanalPessoa?.(p)??(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config?.modo==='6x1'?44:(state.cargaMeta||40)))))||40)*60}
   function diasBase(p){try{return(window.fsDiasMarcadosPessoa?.(p)||[]).filter(d=>BASE.includes(d))}catch(e){return BASE.filter(d=>{try{return workingOn(p,d)}catch(_){return false}})}}
   function horarioBase(p,d){try{return window.fsHorarioExatoPessoa?.(p,d)||horarioPessoa(p,d)}catch(e){return horarioPessoa(p,d)}}
   function minutos(h){try{return Number(calc(h)||0)}catch(e){const cv=x=>{const[a,b]=String(x||'00:00').split(':').map(Number);return(a||0)*60+(b||0)},ini=cv(h?.entrada),fim=cv(h?.saida),a=cv(h?.almocoIni),b=cv(h?.almocoFim);return Math.max(0,fim-ini-Math.max(0,b-a))}}
@@ -15213,7 +15213,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function gruposDia(dia,ps){try{return agruparSlots(ps,dia)}catch(e){const q=Math.max(1,Number(state.config?.equipesDia?.[dia])||1),out=Array.from({length:q},()=>[]);ps.forEach((p,i)=>{let n=Number(p?.fsSlotsManuais?.[dia]??p?.slots?.[dia]??(dia==='sabado'?p?.equipeSabado:p?.equipeBase)??i);if(!Number.isFinite(n)||n<0)n=0;out[n%q].push(p)});return out}}
   function horaPessoa(p,dia){try{return window.fsHorarioExatoPessoa?.(p,dia)||horarioPessoa(p,dia)}catch(e){return state.horarios?.[dia]?.[0]||{entrada:'00:00',almocoIni:'00:00',almocoFim:'00:00',saida:'00:00'}}}
   function nomeFuncao(p){try{return String(formatarFuncao(p.funcao)).replace(/<[^>]+>/g,'')}catch(e){return p.funcao||'Sem função'}}
-  function auditoria(p){const a=window.fsV558AuditarPessoa?.(p);if(a)return{tipo:a.tipo,mensagem:a.mensagem,total:a.totalExibido,meta:a.meta};let total=0;try{total=Number(totalPessoa(p)||0)}catch(e){}const meta=Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config?.modo==='6x1'?44:(state.cargaMeta||40))))*60,dif=total-meta;return{tipo:Math.abs(dif)<=5?'ok':'bad',mensagem:Math.abs(dif)<=5?'Jornada OK':`${dif>0?'Excesso':'Abaixo'} ${carga(Math.abs(dif))}`,total,meta}}
+  function auditoria(p){const a=window.fsV558AuditarPessoa?.(p);if(a)return{tipo:a.tipo,mensagem:a.mensagem,total:a.totalExibido,meta:a.meta};let total=0;try{total=Number(totalPessoa(p)||0)}catch(e){}const meta=Math.max(1,Number(window.fsMetaSemanalPessoa?.(p)??(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config?.modo==='6x1'?44:(state.cargaMeta||40)))))*60,dif=total-meta;return{tipo:Math.abs(dif)<=5?'ok':'bad',mensagem:Math.abs(dif)<=5?'Jornada OK':`${dif>0?'Excesso':'Abaixo'} ${carga(Math.abs(dif))}`,total,meta}}
   function dados(dia){const ps=lista(dia),gs=gruposDia(dia,ps),q=gs.length,totalBase=state.pessoas?.length||0,map=new Map(),aud=ps.map(p=>({p,a:auditoria(p)})),bad=aud.filter(x=>x.a.tipo==='bad'),wait=aud.filter(x=>x.a.tipo==='wait'),ok=aud.filter(x=>x.a.tipo==='ok');ps.forEach(p=>{const k=String(p.funcao||'Sem função'),x=map.get(k)||{nome:nomeFuncao(p),total:0,equipes:Array(q).fill(0)};x.total++;const eq=gs.findIndex(g=>g.includes(p));if(eq>=0)x.equipes[eq]++;map.set(k,x)});const funcoes=[...map.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),tamanhos=gs.map(g=>g.length),equipesOk=!tamanhos.length||Math.max(...tamanhos)-Math.min(...tamanhos)<=1,funcoesOk=funcoes.every(x=>Math.max(...x.equipes)-Math.min(...x.equipes)<=1),tipo=bad.length?'bad':(!equipesOk||!funcoesOk||wait.length?'warn':'ok');return{dia,rotulo:ROT[dia]||dia,pessoas:ps,grupos:gs,funcoes,totalBase,folga:Math.max(0,totalBase-ps.length),aud,bad,wait,ok,equipesOk,funcoesOk,tipo}}
   window.fsV563DadosDia=dados;
   function equipeHtml(d,i,g){const mins=g.map(p=>minutos(horaPessoa(p,d.dia))),f=new Map();g.forEach(p=>f.set(nomeFuncao(p),(f.get(nomeFuncao(p))||0)+1));const h=state.horarios?.[d.dia]?.[i]||state.horarios?.[d.dia]?.[0]||{},faixa=mins.length?`${carga(Math.min(...mins))}${Math.min(...mins)!==Math.max(...mins)?` a ${carga(Math.max(...mins))}`:''}`:'—';return`<article class="fsV563Team"><div class="fsV563TeamHead"><strong>Equipe ${pad(i+1)}</strong><span>${g.length} pessoa(s)</span></div><small>Horário configurado: ${esc(h.entrada||'--:--')} às ${esc(h.saida||'--:--')}<br>Carga diária observada: ${faixa}</small><div class="fsV563Pills">${[...f.entries()].map(([k,n])=>`<i>${esc(k)}: ${n}</i>`).join('')||'<i>Equipe vazia</i>'}</div></article>`}
@@ -15244,6 +15244,88 @@ window.baixarImagem=function(elementId,nomeArquivo){
   document.addEventListener('change',e=>{if(e.target?.closest?.('#config,#pessoaModal'))setTimeout(sincronizarCabecalho,20)},true);
   window.fsSincronizarCabecalhoModalidade=sincronizarCabecalho;
   setTimeout(sincronizarCabecalho,100);setInterval(sincronizarCabecalho,1200);
+})();
+</script>
+<script id="fs-v609-meta-individual-global">
+(function(){
+  function perfis(){return Object.values(state?.config?.perfisEscala||{})}
+  function historico(p){return perfis().map(x=>x?.pessoas?.[p?.id]).find(x=>x?.fsMetaIndividualAtiva===true||x?.jovemAprendiz===true)||null}
+  function geral(){return state?.config?.modo==='6x1'?44:Math.max(1,Number(state?.cargaMeta||40))}
+  function cargaValida(v){const n=Number(v);return Number.isFinite(n)&&n>=1&&n<=44?n:0}
+  function classificacao(p){
+    if(!p)return false;
+    if(typeof p.fsMetaIndividualAtiva==='boolean')return p.fsMetaIndividualAtiva;
+    if(p.jovemAprendiz===true)return true;
+    if(historico(p))return true;
+    const carga=cargaValida(p.cargaSemanalAprendiz);
+    return !!(p.usarDiasIndividuais&&carga&&carga!==12&&carga<geral());
+  }
+  function metaIndividual(p){
+    const h=historico(p),atual=cargaValida(p?.cargaSemanalAprendiz),antiga=cargaValida(h?.cargaSemanalAprendiz);
+    if(p?.jovemAprendiz===true&&atual)return atual;
+    return antiga||atual||12;
+  }
+  window.fsMetaSemanalPessoa=function(p){return classificacao(p)?metaIndividual(p):geral()};
+  function propagar(p,ativa,carga){
+    perfis().forEach(pf=>{const x=pf?.pessoas?.[p.id];if(!x)return;x.fsMetaIndividualAtiva=ativa;x.jovemAprendiz=ativa;x.cargaSemanalAprendiz=carga});
+  }
+  function reparar(salvar=true){
+    let mudou=false;
+    (state?.pessoas||[]).forEach(p=>{
+      const ativa=classificacao(p),carga=ativa?metaIndividual(p):Math.max(1,cargaValida(p.cargaSemanalAprendiz)||12);
+      if(p.fsMetaIndividualAtiva!==ativa||p.jovemAprendiz!==ativa||Number(p.cargaSemanalAprendiz)!==carga){p.fsMetaIndividualAtiva=ativa;p.jovemAprendiz=ativa;p.cargaSemanalAprendiz=carga;mudou=true}
+      perfis().forEach(pf=>{const x=pf?.pessoas?.[p.id];if(x&&(x.fsMetaIndividualAtiva!==ativa||x.jovemAprendiz!==ativa||Number(x.cargaSemanalAprendiz)!==carga))mudou=true});
+      propagar(p,ativa,carga);
+    });
+    if(mudou&&salvar){try{save()}catch(e){}}
+    return mudou;
+  }
+  function atualizar(){try{window.fsV559SincronizarTudo?.()}catch(e){}try{window.fsV558AtualizarTabela?.()}catch(e){}}
+  function instalarSalvar(){
+    const ant=window.salvarPessoaModal||((typeof salvarPessoaModal==='function')?salvarPessoaModal:null);
+    if(typeof ant!=='function'||ant.__fsV609)return;
+    const fn=function(){
+      const idx=document.getElementById('editIndex')?.value,nome=document.getElementById('mNome')?.value?.trim(),antes=idx!==''?state.pessoas?.[Number(idx)]:null,id=antes?.id;
+      const ativa=!!document.querySelector('#pessoaModal #mJovemAprendiz')?.checked,carga=Math.max(1,cargaValida(document.querySelector('#pessoaModal #mCargaSemanalAprendiz')?.value)||12);
+      const r=ant.apply(this,arguments),p=(id&&state.pessoas?.find(x=>x.id===id))||(state.pessoas||[]).slice().reverse().find(x=>x.nome===nome);
+      if(p){p.fsMetaIndividualAtiva=ativa;p.jovemAprendiz=ativa;p.cargaSemanalAprendiz=carga;propagar(p,ativa,carga);try{save()}catch(e){}setTimeout(()=>{try{render()}catch(e){}atualizar()},40)}
+      return r;
+    };
+    fn.__fsV609=true;fn.__fsV562=true;window.salvarPessoaModal=fn;try{salvarPessoaModal=fn}catch(e){}
+  }
+  function iniciar(){instalarSalvar();const mudou=reparar(true);if(mudou){setTimeout(()=>{try{render()}catch(e){}atualizar()},60)}else atualizar()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,250));else setTimeout(iniciar,250);
+  setInterval(instalarSalvar,1200);
+})();
+</script>
+<style id="fs-v610-meta-aprendiz-css">
+.fsAprendizMeta{border:1px solid #94b9e8;border-radius:12px;background:#fff;padding:10px 12px}.fsAprendizMeta input{min-height:44px;border:2px solid #1747b7!important;border-radius:10px!important;font-size:18px!important;font-weight:950!important;color:#071d68!important}.fsV610Presets{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.fsV610Presets button{border:1px solid #9bb8df;border-radius:999px;background:#edf4ff;color:#0b348f;padding:5px 8px;font-size:10px;font-weight:900;cursor:pointer}.fsV610Presets button:hover{background:#1747b7;color:#fff}.fsV610Confirm{display:block;margin-top:7px;color:#08783e;font-size:11px;font-weight:900}.fsV610Confirm.off{color:#667085}.fsAprendizAjuda{border-left:5px solid #1747b7;border-radius:8px;background:#eaf2ff;padding:9px 11px}
+</style>
+<script id="fs-v610-meta-aprendiz-editavel">
+(function(){
+  const valores=[8,10,12,16,20,24,30,32,36,40,42,44];
+  function textoValor(v){const n=Number(v);return Number.isFinite(n)&&n>=1&&n<=44?String(n).replace('.',',')+'h':'—'}
+  function atualizar(){
+    const box=document.querySelector('#pessoaModal .fsAprendizCadastro'),ck=box?.querySelector('#mJovemAprendiz'),inp=box?.querySelector('#mCargaSemanalAprendiz');if(!box||!ck||!inp)return;
+    const meta=box.querySelector('.fsAprendizMeta'),aj=box.querySelector('.fsAprendizAjuda'),out=box.querySelector('.fsV610Confirm');
+    if(meta)meta.style.display=ck.checked?'block':'none';if(aj)aj.style.display=ck.checked?'block':'none';
+    if(out){out.classList.toggle('off',!ck.checked);const txt=ck.checked?`Meta oficial que será usada na auditoria: ${textoValor(inp.value)} por semana`:'Marque Jovem aprendiz para ativar a meta semanal individual.';if(out.textContent!==txt)out.textContent=txt}
+  }
+  function preparar(){
+    const box=document.querySelector('#pessoaModal .fsAprendizCadastro'),inp=box?.querySelector('#mCargaSemanalAprendiz');if(!box||!inp)return;
+    inp.type='number';inp.min='1';inp.max='44';inp.step='0.5';inp.inputMode='decimal';inp.placeholder='Ex.: 12, 24, 36 ou 42';
+    const lab=box.querySelector('label[for="mCargaSemanalAprendiz"]'),labTxt='Meta semanal individual (horas)';if(lab&&lab.textContent!==labTxt)lab.textContent=labTxt;
+    const small=inp.parentElement?.querySelector('small'),smallTxt='Aceita qualquer valor de 1h a 44h; esta meta prevalece sobre 5x2 e 6x1.';if(small&&small.textContent!==smallTxt)small.textContent=smallTxt;
+    const aj=box.querySelector('.fsAprendizAjuda'),ajTxt='A meta é exclusivamente o valor digitado aqui. O sistema não a calcula pelos horários e não a substitui pelas 40h ou 44h da modalidade geral.';if(aj&&aj.textContent!==ajTxt)aj.textContent=ajTxt;
+    if(!box.querySelector('.fsV610Presets'))inp.insertAdjacentHTML('afterend',`<div class="fsV610Presets">${valores.map(v=>`<button type="button" data-meta="${v}">${v}h</button>`).join('')}</div><output class="fsV610Confirm"></output>`);
+    atualizar();
+  }
+  document.addEventListener('click',e=>{const b=e.target.closest?.('.fsV610Presets button');if(!b)return;const inp=document.querySelector('#pessoaModal #mCargaSemanalAprendiz');if(inp){inp.value=b.dataset.meta;inp.dispatchEvent(new Event('input',{bubbles:true}));inp.focus()}},true);
+  document.addEventListener('input',e=>{if(e.target?.id==='mCargaSemanalAprendiz')atualizar()},true);
+  document.addEventListener('change',e=>{if(e.target?.id==='mJovemAprendiz'||e.target?.id==='mCargaSemanalAprendiz')atualizar()},true);
+  document.addEventListener('focusout',e=>{if(e.target?.id!=='mCargaSemanalAprendiz')return;let n=Number(e.target.value);if(!Number.isFinite(n)||n<1)n=1;if(n>44)n=44;e.target.value=Math.round(n*2)/2;atualizar()},true);
+  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(preparar,35)}).observe(document.body,{childList:true,subtree:true});
+  setTimeout(preparar,300);
 })();
 </script>
 <link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script></body></html>

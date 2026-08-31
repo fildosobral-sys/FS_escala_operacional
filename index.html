@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"><title>FS Operacional Inteligente</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="./icone-192.png"><meta name="theme-color" content="#020617"><script src="./fs-runtime-guard.js?v=36"></script>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"><title>FS Operacional Inteligente</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="./icone-192.png"><meta name="theme-color" content="#020617"><script src="./fs-runtime-guard.js"></script>
 <script>
 /* ===== v508: terceiro modo operacional — dias normais 6x1 / 44h ===== */
 document.addEventListener('DOMContentLoaded',function(){
@@ -5407,23 +5407,6 @@ td.func{
 </style>
 <style id="fs-v549-startup-css">
 html.fsBooting,html.fsBooting body{overflow:hidden!important}.fsStartup{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#eef5ff,#fff);opacity:1;transition:opacity .28s ease}.fsStartup.fsReady{opacity:0;pointer-events:none}.fsStartupCard{width:min(330px,82vw);padding:32px 26px;border:1px solid #d5dfed;border-radius:24px;background:#fff;box-shadow:0 24px 70px rgba(7,29,104,.18);text-align:center}.fsStartupCard img{width:190px;max-width:75%;height:auto}.fsStartupSpin{width:34px;height:34px;margin:22px auto 12px;border:4px solid #dce7f7;border-top-color:#123aa5;border-radius:50%;animation:fsStartupRotate .75s linear infinite}.fsStartupText{color:#071d68;font:800 13px Arial,sans-serif;letter-spacing:.2px}@keyframes fsStartupRotate{to{transform:rotate(360deg)}}
-</style>
-
-<style id="fs-mobile-v3-inline">
-@media screen and (max-width:820px){
-  #nav.nav{display:flex!important;flex-wrap:nowrap!important;justify-content:flex-start!important;gap:8px!important;overflow-x:auto!important;overflow-y:hidden!important;width:100%!important;max-width:100%!important;white-space:nowrap!important;padding:8px 8px 10px!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;touch-action:pan-x!important;}
-  #nav.nav::-webkit-scrollbar{display:none!important;}
-  #nav.nav button{flex:0 0 auto!important;width:auto!important;min-width:88px!important;max-width:none!important;min-height:44px!important;padding:10px 14px!important;font-size:12px!important;line-height:1.1!important;white-space:nowrap!important;}
-  .fsDomDataCard{overflow:hidden!important;}
-  .fsDomDataCard .fsMobileSundayTableScroll,.fsDomDataCard .fsDomTableMobileScroll{display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-x pan-y!important;overscroll-behavior-x:contain!important;}
-  .fsDomDataCard table.fsDomDataTabela{display:table!important;width:980px!important;min-width:980px!important;max-width:none!important;table-layout:auto!important;}
-  .fsDomDataCard table.fsDomDataTabela th,.fsDomDataCard table.fsDomDataTabela td{display:table-cell!important;white-space:nowrap!important;}
-  .fsDomDataCard table.fsDomDataTabela th:nth-child(1),.fsDomDataCard table.fsDomDataTabela td:nth-child(1){min-width:165px!important;width:165px!important;}
-  .fsDomDataCard table.fsDomDataTabela th:nth-child(2),.fsDomDataCard table.fsDomDataTabela td:nth-child(2){min-width:250px!important;width:250px!important;white-space:normal!important;}
-  .fsDomDataCard table.fsDomDataTabela th:nth-child(3),.fsDomDataCard table.fsDomDataTabela td:nth-child(3){min-width:210px!important;width:210px!important;}
-  .fsDomDataCard table.fsDomDataTabela th:nth-child(4),.fsDomDataCard table.fsDomDataTabela td:nth-child(4){min-width:300px!important;width:300px!important;}
-  .fsDomDataCard table.fsDomDataTabela select{min-width:145px!important;}
-}
 </style>
 </head><body><script>document.documentElement.classList.add('fsBooting')</script><div id="fsStartup" class="fsStartup" aria-label="Carregando plataforma"><div class="fsStartupCard"><img src="LOGO ATUAL.png" alt="Zenir"><div class="fsStartupSpin"></div><div class="fsStartupText">Preparando o quadro operacional…</div></div></div><div class="app"><div id="captureTop" class="captureArea"><header class="top"><div class="header"><h1>QUADRO OPERACIONAL</h1><p>ESCALA 5x2 | JORNADA <span id="tituloCarga">40H</span></p></div><div class="line"></div><div class="meta metaPro">
   <div class="metaItem metaEmpregador">
@@ -14008,7 +13991,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 (function(){
   const diasBase=['segunda','terca','quarta','quinta','sexta','sabado'];
   const workingOnLegado=window.workingOn||workingOn;
-  function metaMinutos(p){return Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.cargaMeta||44)))*60;}
+  function metaMinutos(p){return Math.max(1,Number(window.fsMetaSemanalPessoa?.(p)??(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.cargaMeta||44))))*60;}
   function diasMarcados(p){
     if(state?.config?.modo==='6x1')return [...diasBase];
     if(p?.usarDiasIndividuais&&Array.isArray(p.diasAtivosIndividuais))return p.diasAtivosIndividuais.filter(d=>diasBase.includes(d)||(d==='domingo'&&window.fsGetDadosEmpresa?.().abreDomingo));
@@ -14090,14 +14073,14 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function empresa(){return Object.assign({},window.fsGetDadosEmpresa?window.fsGetDadosEmpresa():{},state?.config?.funcionamentoUnidade||{});}
   function min2(h){const [a,b]=String(h||'00:00').split(':').map(Number);return (a||0)*60+(b||0)}
   function hora(m){m=Math.max(0,Math.min(1439,Math.round(m)));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
-  function camposPessoa(p){return{horariosIndividuais:clone(p.horariosIndividuais||{}),diasAtivosIndividuais:clone(p.diasAtivosIndividuais||[]),usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim,folgaDistribuida:p.folgaDistribuida||'terca',especialSlot:p.especialSlot==null?null:p.especialSlot,equipeBase:Number(p.equipeBase||0),equipeSabado:Number(p.equipeSabado||0),slots:clone(p.slots||{}),jovemAprendiz:!!p.jovemAprendiz,cargaSemanalAprendiz:Number(p.cargaSemanalAprendiz||12)};}
+  function camposPessoa(p){return{horariosIndividuais:clone(p.horariosIndividuais||{}),diasAtivosIndividuais:clone(p.diasAtivosIndividuais||[]),usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim,folgaDistribuida:p.folgaDistribuida||'terca',especialSlot:p.especialSlot==null?null:p.especialSlot,equipeBase:Number(p.equipeBase||0),equipeSabado:Number(p.equipeSabado||0),slots:clone(p.slots||{}),fsMetaIndividualAtiva:typeof p.fsMetaIndividualAtiva==='boolean'?p.fsMetaIndividualAtiva:!!p.jovemAprendiz,jovemAprendiz:!!p.jovemAprendiz,cargaSemanalAprendiz:Number(p.cargaSemanalAprendiz||12)};}
   function snapshot(modo){
     state.config.perfisEscala=state.config.perfisEscala||{};
     state.config.perfisEscala[modo]={versao:1,modo,cargaMeta:Number(state.cargaMeta),horarios:clone(state.horarios),equipesDia:clone(state.config.equipesDia||{}),diaEspecial:state.config.diaEspecial,percentualEspecial:Number(state.config.percentualEspecial||50),pessoas:Object.fromEntries((state.pessoas||[]).map(p=>[p.id,camposPessoa(p)]))};
   }
   function restaurar(pf){
     state.config.modo=pf.modo;state.cargaMeta=pf.modo==='6x1'?44:40;state.horarios=clone(pf.horarios);state.config.equipesDia=clone(pf.equipesDia||state.config.equipesDia);state.config.diaEspecial=pf.diaEspecial||state.config.diaEspecial;state.config.percentualEspecial=Number(pf.percentualEspecial||50);
-    (state.pessoas||[]).forEach(p=>{const x=pf.pessoas?.[p.id];if(x)Object.assign(p,clone(x));});
+    (state.pessoas||[]).forEach(p=>{const x=pf.pessoas?.[p.id],global={marcada:p.fsMetaIndividualAtiva,jovem:!!p.jovemAprendiz,carga:Number(p.cargaSemanalAprendiz||0)},hist=Object.values(state.config.perfisEscala||{}).map(q=>q?.pessoas?.[p.id]).find(q=>q?.jovemAprendiz);if(x)Object.assign(p,clone(x));const fonte=global.marcada===true||global.jovem?global:hist?{marcada:true,jovem:true,carga:Number(hist.cargaSemanalAprendiz||12)}:null;if(fonte){p.fsMetaIndividualAtiva=true;p.jovemAprendiz=true;p.cargaSemanalAprendiz=Math.max(1,Number(fonte.carga||12));}else if(global.marcada===false){p.fsMetaIndividualAtiva=false;p.jovemAprendiz=false;}});
   }
   function limites(d){const e=empresa(),sab=d==='sabado';return{abre:min2(sab?(e.horarioSabadoEntrada||'08:00'):(e.horarioSemanaEntrada||'08:00')),fecha:min2(sab?(e.horarioSabadoSaida||'14:00'):(e.horarioSemanaSaida||'18:00'))};}
   function basePessoa(p,d){const h=p?.horariosIndividuais?.[d];if(h?.ativo)return clone(h);try{return clone(horarioPessoa(p,d))}catch(e){return clone(state.horarios[d]?.[Number(p.equipeBase||0)]||state.horarios[d]?.[0]||{entrada:'08:00',almocoIni:'11:00',almocoFim:'12:00',saida:'18:00'});}}
@@ -14679,7 +14662,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.fsDomCompetencia=function(v){dados().competencia=v||hojeMes();save();renderPainel()};
   window.fsAbrirAgendaDomingos=function(){document.querySelector('#nav [data-page="domingo"]')?.click();setTimeout(()=>document.querySelector('.fsDomMesPainel')?.scrollIntoView({behavior:'smooth',block:'start'}),100)};
   function linha(data,p){const r=registro(data,p.id),ops=folgasDepois(data).map(x=>`<option value="${x}" ${r.folgaData===x?'selected':''}>${br(x)}</option>`).join('');return`<tr class="${r.trabalha?'fsDomSim':'fsDomNao'}"><td><input type="checkbox" ${r.trabalha?'checked':''} onchange="fsDomDataToggle('${data}','${p.id}',this.checked)"></td><td><b>${p.nome}</b></td><td>${funcao(p)}</td><td>${r.trabalha?`<select onchange="fsDomDataFolga('${data}','${p.id}',this.value)"><option value="">Definir folga seguinte</option>${ops}</select>`:'Não escalado'}</td></tr>`}
-  function card(data){const x=dados().itens[data]||{},q=Object.values(x).filter(v=>v.trabalha).length;return`<section class="fsDomDataCard"><div class="fsDomDataHead"><b>Domingo, ${br(data)}</b><span>${q} escalado(s)</span></div><div class="fsDomNativeMobileScroll"><table class="fsDomDataTabela"><thead><tr><th>Vai</th><th>Colaborador</th><th>Função</th><th>Folga na semana seguinte</th></tr></thead><tbody>${(state.pessoas||[]).map(p=>linha(data,p)).join('')}</tbody></table></div></section>`}
+  function card(data){const x=dados().itens[data]||{},q=Object.values(x).filter(v=>v.trabalha).length;return`<section class="fsDomDataCard"><div class="fsDomDataHead"><b>Domingo, ${br(data)}</b><span>${q} escalado(s)</span></div><table class="fsDomDataTabela"><thead><tr><th>Vai</th><th>Colaborador</th><th>Função</th><th>Folga na semana seguinte</th></tr></thead><tbody>${(state.pessoas||[]).map(p=>linha(data,p)).join('')}</tbody></table></section>`}
   function painel(){const x=dados(),[a,m]=x.competencia.split('-').map(Number),ds=domingos(x.competencia);return`<div class="fsDomMesPainel"><div class="fsDomMesTopo"><div><h3>📅 Escala dominical por data</h3><small>Selecione quem trabalha em cada domingo. A folga será sempre de segunda a sexta da semana subsequente.</small></div><input type="month" value="${x.competencia}" onchange="fsDomCompetencia(this.value)"></div><div class="fsDomMesGrade">${ds.length?ds.map(card).join(''):`<div class="fsDomDataVazio">Nenhum domingo encontrado em ${nomesMes[m-1]} de ${a}.</div>`}</div></div>`}
   function renderPainel(){const sec=document.getElementById('domingo');if(!sec)return;let box=sec.querySelector('.fsDomMesPainel'),aberto=false;try{aberto=!!window.fsGetDadosEmpresa?.().abreDomingo}catch(e){}if(!aberto){box?.remove();return}if(box)box.outerHTML=painel();else sec.insertAdjacentHTML('afterbegin',painel())}
   function limparDomingoSemanal(){(state.pessoas||[]).forEach(p=>{if(Array.isArray(p.diasAtivosIndividuais))p.diasAtivosIndividuais=p.diasAtivosIndividuais.filter(d=>d!=='domingo');if(p.horariosIndividuais)delete p.horariosIndividuais.domingo});}
@@ -14714,7 +14697,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.fsDom541Equipe=function(data,id,v){const r=reg(data,id);r.equipe=Math.max(0,Number(v)||0);save();renderPainel();setTimeout(atualizarTudo,20)};
   window.fsDom541Mes=function(v){store().competencia=v;save();renderPainel();setTimeout(atualizarTudo,20)};
   function linha(data,p){const r=reg(data,p.id),opts=folgas(data).map(x=>`<option value="${x}" ${r.folgaData===x?'selected':''}>${br(x)}</option>`).join(''),qtd=Math.max(1,Number(state.config?.equipesDia?.domingo)||1),eq=Number.isFinite(Number(r.equipe))?Number(r.equipe):Number(p?.slots?.domingo??p?.equipeBase??0)%qtd,eqs=Array.from({length:qtd},(_,i)=>`<option value="${i}" ${eq===i?'selected':''}>Equipe ${String(i+1).padStart(2,'0')} • ${(state.horarios?.domingo?.[i]?.entrada||'--:--')} às ${(state.horarios?.domingo?.[i]?.saida||'--:--')}</option>`).join(''),cl=r.status==='trabalha'?'fsDomSim':r.status==='nao'?'fsDomNao':'fsDomPendente';return`<tr class="${cl}"><td class="fsDom541Status"><select onchange="fsDom541Status('${data}','${p.id}',this.value)"><option value="pendente" ${r.status==='pendente'?'selected':''}>⚠ Pendente</option><option value="trabalha" ${r.status==='trabalha'?'selected':''}>✅ Trabalha</option><option value="nao" ${r.status==='nao'?'selected':''}>— Não trabalha</option></select></td><td><b>${p.nome}</b></td><td>${func(p)}</td><td>${r.status==='trabalha'?`<div class="fsDom541Def"><label>Equipe / horário</label><select onchange="fsDom541Equipe('${data}','${p.id}',this.value)">${eqs}</select><label>Folga compensatória</label><select onchange="fsDom541Folga('${data}','${p.id}',this.value)"><option value="">Definir folga</option>${opts}</select></div>`:r.status==='nao'?'<span class="fsDom541Nao">Não trabalha neste domingo</span>':'<span class="fsDom541Nao">Aguardando definição</span>'}</td></tr>`}
-  function painel(){const s=store(),ds=domingos();return`<div class="fsDomMesPainel" data-v541="1"><div class="fsDomMesTopo"><div><h3>📅 Escala dominical por data</h3><small>Classifique todos como Trabalha ou Não trabalha. Quem trabalhar terá folga obrigatória na semana subsequente.</small></div><input type="month" value="${s.competencia}" onchange="fsDom541Mes(this.value)"></div><div class="fsDomMesGrade">${ds.map(data=>{const qtd=(state.pessoas||[]).filter(p=>reg(data,p.id).status==='trabalha').length,pen=(state.pessoas||[]).filter(p=>reg(data,p.id).status==='pendente').length;return`<section class="fsDomDataCard"><div class="fsDomDataHead"><b>Domingo, ${br(data)}</b><span>${qtd} escalado(s) • ${pen} pendente(s)</span></div><div class="fsDomNativeMobileScroll"><table class="fsDomDataTabela"><thead><tr><th style="width:126px">Situação</th><th>Colaborador</th><th>Função</th><th>Folga na semana seguinte</th></tr></thead><tbody>${(state.pessoas||[]).map(p=>linha(data,p)).join('')}</tbody></table></div></section>`}).join('')}</div></div>`}
+  function painel(){const s=store(),ds=domingos();return`<div class="fsDomMesPainel" data-v541="1"><div class="fsDomMesTopo"><div><h3>📅 Escala dominical por data</h3><small>Classifique todos como Trabalha ou Não trabalha. Quem trabalhar terá folga obrigatória na semana subsequente.</small></div><input type="month" value="${s.competencia}" onchange="fsDom541Mes(this.value)"></div><div class="fsDomMesGrade">${ds.map(data=>{const qtd=(state.pessoas||[]).filter(p=>reg(data,p.id).status==='trabalha').length,pen=(state.pessoas||[]).filter(p=>reg(data,p.id).status==='pendente').length;return`<section class="fsDomDataCard"><div class="fsDomDataHead"><b>Domingo, ${br(data)}</b><span>${qtd} escalado(s) • ${pen} pendente(s)</span></div><table class="fsDomDataTabela"><thead><tr><th style="width:126px">Situação</th><th>Colaborador</th><th>Função</th><th>Folga na semana seguinte</th></tr></thead><tbody>${(state.pessoas||[]).map(p=>linha(data,p)).join('')}</tbody></table></section>`}).join('')}</div></div>`}
   function renderPainel(){const sec=document.getElementById('domingo');if(!sec)return;const old=sec.querySelector('.fsDomMesPainel');let aberto=false;try{aberto=!!window.fsGetDadosEmpresa?.().abreDomingo}catch(e){}if(!aberto){old?.remove();return}if(old)old.outerHTML=painel();else sec.insertAdjacentHTML('afterbegin',painel())}
   function idLinha(tr){const oc=tr.querySelector('[onclick*="editarPessoa"]')?.getAttribute('onclick')||'';return oc.match(/editarPessoa\(['"]([^'"]+)/)?.[1]}
   function statusLista(){if(window.__fsStatusFinal)return;const tab=document.querySelector('#baseContent .baseAgrupadaTable');if(!tab)return;const hs=[...tab.querySelectorAll('thead th')],idx=hs.findIndex(h=>/situa[cç][aã]o da jornada/i.test(h.textContent));if(idx<0)return;tab.querySelectorAll('tbody tr').forEach(tr=>{const id=idLinha(tr),p=state.pessoas.find(x=>x.id===id);if(!p)return;const st=situacao(p),td=tr.children[idx];if(!td)return;if(st.pend)td.innerHTML=`<button class="fsDom541Pendente" onclick="fsAbrirAgendaDomingos()">⚠ Domingo pendente</button>`;else if(st.trabs.length)td.innerHTML='<span class="fsDom541Ok">✅ Jornada OK</span>';});}
@@ -15103,7 +15086,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function reg(d,id){const r=store().itens?.[d]?.[id]||{};return{...r,status:r.status||(r.trabalha?'trabalha':'pendente')}}
   function assinatura(){const s=store(),ds=datas(),ps=(state.pessoas||[]).map(p=>p.id).sort(),regs=ds.map(d=>[d,...ps.map(id=>{const r=s.itens?.[d]?.[id]||{},h=r.horario||{};return[id,r.status||'',!!r.trabalha,r.folgaData||'',Number.isFinite(Number(r.equipe))?Number(r.equipe):'',h.entrada||'',h.almocoIni||'',h.almocoFim||'',h.saida||'']})]),hs=(state.horarios?.domingo||[]).map(h=>[h.entrada||'',h.almocoIni||'',h.almocoFim||'',h.saida||'']),cfg=state.config?.fsDomingoPorDataConfig||{};return JSON.stringify([s.competencia,regs,hs,cfg])}
   window.fsV558AssinaturaDomingos=assinatura;window.fsV558CompetenciaConfirmada=function(){return state.config?.fsDomCompetenciaConfirmada===store().competencia&&state.config?.fsDomConfirmacaoAssinatura===assinatura()};
-  function meta(p){return(Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config?.modo==='6x1'?44:(state.cargaMeta||40))))||40)*60}
+  function meta(p){return(Math.max(1,Number(window.fsMetaSemanalPessoa?.(p)??(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config?.modo==='6x1'?44:(state.cargaMeta||40)))))||40)*60}
   function diasBase(p){try{return(window.fsDiasMarcadosPessoa?.(p)||[]).filter(d=>BASE.includes(d))}catch(e){return BASE.filter(d=>{try{return workingOn(p,d)}catch(_){return false}})}}
   function horarioBase(p,d){try{return window.fsHorarioExatoPessoa?.(p,d)||horarioPessoa(p,d)}catch(e){return horarioPessoa(p,d)}}
   function minutos(h){try{return Number(calc(h)||0)}catch(e){const cv=x=>{const[a,b]=String(x||'00:00').split(':').map(Number);return(a||0)*60+(b||0)},ini=cv(h?.entrada),fim=cv(h?.saida),a=cv(h?.almocoIni),b=cv(h?.almocoFim);return Math.max(0,fim-ini-Math.max(0,b-a))}}
@@ -15230,7 +15213,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function gruposDia(dia,ps){try{return agruparSlots(ps,dia)}catch(e){const q=Math.max(1,Number(state.config?.equipesDia?.[dia])||1),out=Array.from({length:q},()=>[]);ps.forEach((p,i)=>{let n=Number(p?.fsSlotsManuais?.[dia]??p?.slots?.[dia]??(dia==='sabado'?p?.equipeSabado:p?.equipeBase)??i);if(!Number.isFinite(n)||n<0)n=0;out[n%q].push(p)});return out}}
   function horaPessoa(p,dia){try{return window.fsHorarioExatoPessoa?.(p,dia)||horarioPessoa(p,dia)}catch(e){return state.horarios?.[dia]?.[0]||{entrada:'00:00',almocoIni:'00:00',almocoFim:'00:00',saida:'00:00'}}}
   function nomeFuncao(p){try{return String(formatarFuncao(p.funcao)).replace(/<[^>]+>/g,'')}catch(e){return p.funcao||'Sem função'}}
-  function auditoria(p){const a=window.fsV558AuditarPessoa?.(p);if(a)return{tipo:a.tipo,mensagem:a.mensagem,total:a.totalExibido,meta:a.meta};let total=0;try{total=Number(totalPessoa(p)||0)}catch(e){}const meta=Math.max(1,Number(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config?.modo==='6x1'?44:(state.cargaMeta||40))))*60,dif=total-meta;return{tipo:Math.abs(dif)<=5?'ok':'bad',mensagem:Math.abs(dif)<=5?'Jornada OK':`${dif>0?'Excesso':'Abaixo'} ${carga(Math.abs(dif))}`,total,meta}}
+  function auditoria(p){const a=window.fsV558AuditarPessoa?.(p);if(a)return{tipo:a.tipo,mensagem:a.mensagem,total:a.totalExibido,meta:a.meta};let total=0;try{total=Number(totalPessoa(p)||0)}catch(e){}const meta=Math.max(1,Number(window.fsMetaSemanalPessoa?.(p)??(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.config?.modo==='6x1'?44:(state.cargaMeta||40)))))*60,dif=total-meta;return{tipo:Math.abs(dif)<=5?'ok':'bad',mensagem:Math.abs(dif)<=5?'Jornada OK':`${dif>0?'Excesso':'Abaixo'} ${carga(Math.abs(dif))}`,total,meta}}
   function dados(dia){const ps=lista(dia),gs=gruposDia(dia,ps),q=gs.length,totalBase=state.pessoas?.length||0,map=new Map(),aud=ps.map(p=>({p,a:auditoria(p)})),bad=aud.filter(x=>x.a.tipo==='bad'),wait=aud.filter(x=>x.a.tipo==='wait'),ok=aud.filter(x=>x.a.tipo==='ok');ps.forEach(p=>{const k=String(p.funcao||'Sem função'),x=map.get(k)||{nome:nomeFuncao(p),total:0,equipes:Array(q).fill(0)};x.total++;const eq=gs.findIndex(g=>g.includes(p));if(eq>=0)x.equipes[eq]++;map.set(k,x)});const funcoes=[...map.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')),tamanhos=gs.map(g=>g.length),equipesOk=!tamanhos.length||Math.max(...tamanhos)-Math.min(...tamanhos)<=1,funcoesOk=funcoes.every(x=>Math.max(...x.equipes)-Math.min(...x.equipes)<=1),tipo=bad.length?'bad':(!equipesOk||!funcoesOk||wait.length?'warn':'ok');return{dia,rotulo:ROT[dia]||dia,pessoas:ps,grupos:gs,funcoes,totalBase,folga:Math.max(0,totalBase-ps.length),aud,bad,wait,ok,equipesOk,funcoesOk,tipo}}
   window.fsV563DadosDia=dados;
   function equipeHtml(d,i,g){const mins=g.map(p=>minutos(horaPessoa(p,d.dia))),f=new Map();g.forEach(p=>f.set(nomeFuncao(p),(f.get(nomeFuncao(p))||0)+1));const h=state.horarios?.[d.dia]?.[i]||state.horarios?.[d.dia]?.[0]||{},faixa=mins.length?`${carga(Math.min(...mins))}${Math.min(...mins)!==Math.max(...mins)?` a ${carga(Math.max(...mins))}`:''}`:'—';return`<article class="fsV563Team"><div class="fsV563TeamHead"><strong>Equipe ${pad(i+1)}</strong><span>${g.length} pessoa(s)</span></div><small>Horário configurado: ${esc(h.entrada||'--:--')} às ${esc(h.saida||'--:--')}<br>Carga diária observada: ${faixa}</small><div class="fsV563Pills">${[...f.entries()].map(([k,n])=>`<i>${esc(k)}: ${n}</i>`).join('')||'<i>Equipe vazia</i>'}</div></article>`}
@@ -15263,99 +15246,86 @@ window.baixarImagem=function(elementId,nomeArquivo){
   setTimeout(sincronizarCabecalho,100);setInterval(sincronizarCabecalho,1200);
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-mobile.css?v=5"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-mobile.js?v=5"></script>
-<script id="fs-mobile-v3-inline-js">
+<script id="fs-v609-meta-individual-global">
 (function(){
- const mobile=()=>window.matchMedia('(max-width:820px)').matches;
- function nav(){if(!mobile())return;const n=document.getElementById('nav');if(!n)return;n.style.webkitOverflowScrolling='touch';n.addEventListener('click',function(e){const b=e.target.closest('button[data-page]');if(!b)return;setTimeout(()=>{try{b.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})}catch(_){ }},60)},{passive:true});}
- function sunday(){if(!mobile())return;document.querySelectorAll('.fsDomDataCard table.fsDomDataTabela').forEach(t=>{if(t.parentElement&&t.parentElement.classList.contains('fsDomTableMobileScroll'))return;const w=document.createElement('div');w.className='fsDomTableMobileScroll';t.parentNode.insertBefore(w,t);w.appendChild(t);});}
- function apply(){nav();sunday();}
- document.addEventListener('DOMContentLoaded',apply);window.addEventListener('load',apply);
- let tm;new MutationObserver(()=>{if(!mobile())return;clearTimeout(tm);tm=setTimeout(apply,40)}).observe(document.documentElement,{childList:true,subtree:true});
- setTimeout(apply,100);setTimeout(apply,500);
+  function perfis(){return Object.values(state?.config?.perfisEscala||{})}
+  function historico(p){return perfis().map(x=>x?.pessoas?.[p?.id]).find(x=>x?.fsMetaIndividualAtiva===true||x?.jovemAprendiz===true)||null}
+  function geral(){return state?.config?.modo==='6x1'?44:Math.max(1,Number(state?.cargaMeta||40))}
+  function cargaValida(v){const n=Number(v);return Number.isFinite(n)&&n>=1&&n<=44?n:0}
+  function classificacao(p){
+    if(!p)return false;
+    if(typeof p.fsMetaIndividualAtiva==='boolean')return p.fsMetaIndividualAtiva;
+    if(p.jovemAprendiz===true)return true;
+    if(historico(p))return true;
+    const carga=cargaValida(p.cargaSemanalAprendiz);
+    return !!(p.usarDiasIndividuais&&carga&&carga!==12&&carga<geral());
+  }
+  function metaIndividual(p){
+    const h=historico(p),atual=cargaValida(p?.cargaSemanalAprendiz),antiga=cargaValida(h?.cargaSemanalAprendiz);
+    if(p?.jovemAprendiz===true&&atual)return atual;
+    return antiga||atual||12;
+  }
+  window.fsMetaSemanalPessoa=function(p){return classificacao(p)?metaIndividual(p):geral()};
+  function propagar(p,ativa,carga){
+    perfis().forEach(pf=>{const x=pf?.pessoas?.[p.id];if(!x)return;x.fsMetaIndividualAtiva=ativa;x.jovemAprendiz=ativa;x.cargaSemanalAprendiz=carga});
+  }
+  function reparar(salvar=true){
+    let mudou=false;
+    (state?.pessoas||[]).forEach(p=>{
+      const ativa=classificacao(p),carga=ativa?metaIndividual(p):Math.max(1,cargaValida(p.cargaSemanalAprendiz)||12);
+      if(p.fsMetaIndividualAtiva!==ativa||p.jovemAprendiz!==ativa||Number(p.cargaSemanalAprendiz)!==carga){p.fsMetaIndividualAtiva=ativa;p.jovemAprendiz=ativa;p.cargaSemanalAprendiz=carga;mudou=true}
+      perfis().forEach(pf=>{const x=pf?.pessoas?.[p.id];if(x&&(x.fsMetaIndividualAtiva!==ativa||x.jovemAprendiz!==ativa||Number(x.cargaSemanalAprendiz)!==carga))mudou=true});
+      propagar(p,ativa,carga);
+    });
+    if(mudou&&salvar){try{save()}catch(e){}}
+    return mudou;
+  }
+  function atualizar(){try{window.fsV559SincronizarTudo?.()}catch(e){}try{window.fsV558AtualizarTabela?.()}catch(e){}}
+  function instalarSalvar(){
+    const ant=window.salvarPessoaModal||((typeof salvarPessoaModal==='function')?salvarPessoaModal:null);
+    if(typeof ant!=='function'||ant.__fsV609)return;
+    const fn=function(){
+      const idx=document.getElementById('editIndex')?.value,nome=document.getElementById('mNome')?.value?.trim(),antes=idx!==''?state.pessoas?.[Number(idx)]:null,id=antes?.id;
+      const ativa=!!document.querySelector('#pessoaModal #mJovemAprendiz')?.checked,carga=Math.max(1,cargaValida(document.querySelector('#pessoaModal #mCargaSemanalAprendiz')?.value)||12);
+      const r=ant.apply(this,arguments),p=(id&&state.pessoas?.find(x=>x.id===id))||(state.pessoas||[]).slice().reverse().find(x=>x.nome===nome);
+      if(p){p.fsMetaIndividualAtiva=ativa;p.jovemAprendiz=ativa;p.cargaSemanalAprendiz=carga;propagar(p,ativa,carga);try{save()}catch(e){}setTimeout(()=>{try{render()}catch(e){}atualizar()},40)}
+      return r;
+    };
+    fn.__fsV609=true;fn.__fsV562=true;window.salvarPessoaModal=fn;try{salvarPessoaModal=fn}catch(e){}
+  }
+  function iniciar(){instalarSalvar();const mudou=reparar(true);if(mudou){setTimeout(()=>{try{render()}catch(e){}atualizar()},60)}else atualizar()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,250));else setTimeout(iniciar,250);
+  setInterval(instalarSalvar,1200);
 })();
 </script>
-
-<style id="fs-mobile-v4-sunday-scroll-fix">
-@media screen and (max-width:820px){
-  #domingo .fsDomDataCard{overflow:visible!important;max-width:100%!important;}
-  #domingo .fsDomTableMobileScroll{
-    display:block!important;position:relative!important;width:100%!important;max-width:100%!important;
-    overflow-x:scroll!important;overflow-y:visible!important;-webkit-overflow-scrolling:touch!important;
-    touch-action:pan-x!important;overscroll-behavior-x:contain!important;scroll-behavior:smooth!important;
-    scrollbar-width:thin!important;border-top:1px solid #dbe5f2!important;
-  }
-  #domingo .fsDomTableMobileScroll::-webkit-scrollbar{height:7px!important;}
-  #domingo .fsDomTableMobileScroll::-webkit-scrollbar-thumb{background:#7c93bd!important;border-radius:999px!important;}
-  #domingo .fsDomDataTabela{width:1120px!important;min-width:1120px!important;max-width:none!important;table-layout:fixed!important;}
-  #domingo .fsDomDataTabela th,#domingo .fsDomDataTabela td{position:static!important;left:auto!important;right:auto!important;transform:none!important;}
-  #domingo .fsDomDataTabela th:nth-child(1),#domingo .fsDomDataTabela td:nth-child(1){display:table-cell!important;width:180px!important;min-width:180px!important;max-width:180px!important;}
-  #domingo .fsDomDataTabela th:nth-child(2),#domingo .fsDomDataTabela td:nth-child(2){display:table-cell!important;width:290px!important;min-width:290px!important;max-width:290px!important;white-space:normal!important;}
-  #domingo .fsDomDataTabela th:nth-child(3),#domingo .fsDomDataTabela td:nth-child(3){display:table-cell!important;width:220px!important;min-width:220px!important;max-width:220px!important;white-space:normal!important;}
-  #domingo .fsDomDataTabela th:nth-child(4),#domingo .fsDomDataTabela td:nth-child(4){display:table-cell!important;width:430px!important;min-width:430px!important;max-width:430px!important;white-space:normal!important;}
-  #domingo .fsDomDataTabela .fsDom541Def{min-width:390px!important;}
-  #domingo .fsDomDataTabela .fsDom541Def select{width:100%!important;min-width:360px!important;}
-  #domingo .fsMobileSundayRail{display:flex!important;align-items:center!important;gap:8px!important;margin:8px 10px!important;padding:7px 8px!important;border:1px solid #cbd8ea!important;border-radius:12px!important;background:#f5f8ff!important;color:#071d68!important;}
-  #domingo .fsMobileSundayRail span{flex:1!important;text-align:center!important;font-size:10px!important;font-weight:900!important;line-height:1.2!important;}
-  #domingo .fsMobileSundayRail button{flex:0 0 38px!important;width:38px!important;height:34px!important;margin:0!important;padding:0!important;border:0!important;border-radius:10px!important;background:#071d68!important;color:#fff!important;font-size:18px!important;font-weight:950!important;}
-}
-@media screen and (min-width:821px){#domingo .fsMobileSundayRail{display:none!important;}}
+<style id="fs-v610-meta-aprendiz-css">
+.fsAprendizMeta{border:1px solid #94b9e8;border-radius:12px;background:#fff;padding:10px 12px}.fsAprendizMeta input{min-height:44px;border:2px solid #1747b7!important;border-radius:10px!important;font-size:18px!important;font-weight:950!important;color:#071d68!important}.fsV610Presets{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.fsV610Presets button{border:1px solid #9bb8df;border-radius:999px;background:#edf4ff;color:#0b348f;padding:5px 8px;font-size:10px;font-weight:900;cursor:pointer}.fsV610Presets button:hover{background:#1747b7;color:#fff}.fsV610Confirm{display:block;margin-top:7px;color:#08783e;font-size:11px;font-weight:900}.fsV610Confirm.off{color:#667085}.fsAprendizAjuda{border-left:5px solid #1747b7;border-radius:8px;background:#eaf2ff;padding:9px 11px}
 </style>
-<script id="fs-mobile-v4-sunday-scroll-js">
+<script id="fs-v610-meta-aprendiz-editavel">
 (function(){
- const isMobile=()=>window.matchMedia('(max-width:820px)').matches;
- function prepare(){
-   if(!isMobile())return;
-   document.querySelectorAll('#domingo .fsDomDataCard').forEach(card=>{
-     const table=card.querySelector('table.fsDomDataTabela');if(!table)return;
-     let wrap=table.parentElement;
-     if(!wrap?.classList?.contains('fsDomTableMobileScroll')){
-       wrap=document.createElement('div');wrap.className='fsDomTableMobileScroll';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);
-     }
-     let rail=card.querySelector(':scope > .fsMobileSundayRail');
-     if(!rail){
-       rail=document.createElement('div');rail.className='fsMobileSundayRail noPrint';
-       rail.innerHTML='<button type="button" aria-label="Voltar colunas">‹</button><span>Deslize para ver Função, Equipe / horário e Folga compensatória</span><button type="button" aria-label="Avançar colunas">›</button>';
-       wrap.insertAdjacentElement('beforebegin',rail);
-       const [prev,next]=rail.querySelectorAll('button');
-       prev.addEventListener('click',()=>wrap.scrollBy({left:-360,behavior:'smooth'}));
-       next.addEventListener('click',()=>wrap.scrollBy({left:360,behavior:'smooth'}));
-     }
-   });
- }
- let timer;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(prepare,45)}).observe(document.body,{childList:true,subtree:true});
- document.addEventListener('DOMContentLoaded',prepare);window.addEventListener('load',prepare);
- setTimeout(prepare,120);setTimeout(prepare,700);
+  const valores=[8,10,12,16,20,24,30,32,36,40,42,44];
+  function textoValor(v){const n=Number(v);return Number.isFinite(n)&&n>=1&&n<=44?String(n).replace('.',',')+'h':'—'}
+  function atualizar(){
+    const box=document.querySelector('#pessoaModal .fsAprendizCadastro'),ck=box?.querySelector('#mJovemAprendiz'),inp=box?.querySelector('#mCargaSemanalAprendiz');if(!box||!ck||!inp)return;
+    const meta=box.querySelector('.fsAprendizMeta'),aj=box.querySelector('.fsAprendizAjuda'),out=box.querySelector('.fsV610Confirm');
+    if(meta)meta.style.display=ck.checked?'block':'none';if(aj)aj.style.display=ck.checked?'block':'none';
+    if(out){out.classList.toggle('off',!ck.checked);const txt=ck.checked?`Meta oficial que será usada na auditoria: ${textoValor(inp.value)} por semana`:'Marque Jovem aprendiz para ativar a meta semanal individual.';if(out.textContent!==txt)out.textContent=txt}
+  }
+  function preparar(){
+    const box=document.querySelector('#pessoaModal .fsAprendizCadastro'),inp=box?.querySelector('#mCargaSemanalAprendiz');if(!box||!inp)return;
+    inp.type='number';inp.min='1';inp.max='44';inp.step='0.5';inp.inputMode='decimal';inp.placeholder='Ex.: 12, 24, 36 ou 42';
+    const lab=box.querySelector('label[for="mCargaSemanalAprendiz"]'),labTxt='Meta semanal individual (horas)';if(lab&&lab.textContent!==labTxt)lab.textContent=labTxt;
+    const small=inp.parentElement?.querySelector('small'),smallTxt='Aceita qualquer valor de 1h a 44h; esta meta prevalece sobre 5x2 e 6x1.';if(small&&small.textContent!==smallTxt)small.textContent=smallTxt;
+    const aj=box.querySelector('.fsAprendizAjuda'),ajTxt='A meta é exclusivamente o valor digitado aqui. O sistema não a calcula pelos horários e não a substitui pelas 40h ou 44h da modalidade geral.';if(aj&&aj.textContent!==ajTxt)aj.textContent=ajTxt;
+    if(!box.querySelector('.fsV610Presets'))inp.insertAdjacentHTML('afterend',`<div class="fsV610Presets">${valores.map(v=>`<button type="button" data-meta="${v}">${v}h</button>`).join('')}</div><output class="fsV610Confirm"></output>`);
+    atualizar();
+  }
+  document.addEventListener('click',e=>{const b=e.target.closest?.('.fsV610Presets button');if(!b)return;const inp=document.querySelector('#pessoaModal #mCargaSemanalAprendiz');if(inp){inp.value=b.dataset.meta;inp.dispatchEvent(new Event('input',{bubbles:true}));inp.focus()}},true);
+  document.addEventListener('input',e=>{if(e.target?.id==='mCargaSemanalAprendiz')atualizar()},true);
+  document.addEventListener('change',e=>{if(e.target?.id==='mJovemAprendiz'||e.target?.id==='mCargaSemanalAprendiz')atualizar()},true);
+  document.addEventListener('focusout',e=>{if(e.target?.id!=='mCargaSemanalAprendiz')return;let n=Number(e.target.value);if(!Number.isFinite(n)||n<1)n=1;if(n>44)n=44;e.target.value=Math.round(n*2)/2;atualizar()},true);
+  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(preparar,35)}).observe(document.body,{childList:true,subtree:true});
+  setTimeout(preparar,300);
 })();
 </script>
-
-
-<style id="fs-mobile-v5-native-sunday-scroll">
-@media screen and (max-width:820px){
-  #domingo .fsDomDataCard{overflow:hidden!important;max-width:100%!important;}
-  #domingo .fsDomNativeMobileScroll{
-    display:block!important;width:100%!important;max-width:100%!important;
-    overflow-x:auto!important;overflow-y:hidden!important;
-    -webkit-overflow-scrolling:touch!important;touch-action:auto!important;
-    overscroll-behavior-x:contain!important;position:relative!important;
-    scrollbar-width:auto!important;
-  }
-  #domingo .fsDomNativeMobileScroll::-webkit-scrollbar{height:10px!important;}
-  #domingo .fsDomNativeMobileScroll::-webkit-scrollbar-thumb{background:#6f86b3!important;border-radius:999px!important;}
-  #domingo .fsDomNativeMobileScroll .fsDomDataTabela{
-    display:table!important;width:1120px!important;min-width:1120px!important;max-width:none!important;table-layout:fixed!important;
-  }
-  #domingo .fsDomNativeMobileScroll .fsDomDataTabela th,
-  #domingo .fsDomNativeMobileScroll .fsDomDataTabela td{display:table-cell!important;position:static!important;left:auto!important;right:auto!important;transform:none!important;}
-  #domingo .fsDomNativeMobileScroll .fsDomDataTabela th:nth-child(1),#domingo .fsDomNativeMobileScroll .fsDomDataTabela td:nth-child(1){width:180px!important;min-width:180px!important;max-width:180px!important;}
-  #domingo .fsDomNativeMobileScroll .fsDomDataTabela th:nth-child(2),#domingo .fsDomNativeMobileScroll .fsDomDataTabela td:nth-child(2){width:290px!important;min-width:290px!important;max-width:290px!important;white-space:normal!important;}
-  #domingo .fsDomNativeMobileScroll .fsDomDataTabela th:nth-child(3),#domingo .fsDomNativeMobileScroll .fsDomDataTabela td:nth-child(3){width:220px!important;min-width:220px!important;max-width:220px!important;white-space:normal!important;}
-  #domingo .fsDomNativeMobileScroll .fsDomDataTabela th:nth-child(4),#domingo .fsDomNativeMobileScroll .fsDomDataTabela td:nth-child(4){width:430px!important;min-width:430px!important;max-width:430px!important;white-space:normal!important;}
-  #domingo .fsDomNativeMobileScroll .fsDom541Def{min-width:390px!important;}
-  #domingo .fsDomNativeMobileScroll .fsDom541Def select{width:100%!important;min-width:360px!important;}
-}
-@media screen and (min-width:821px){#domingo .fsDomNativeMobileScroll{display:contents!important;}}
-</style>
-<script id="fs-mobile-v5-cache-marker">document.documentElement.setAttribute('data-fs-mobile-build','v5-native-scroll');</script>
-
-</body></html>
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script></body></html>
