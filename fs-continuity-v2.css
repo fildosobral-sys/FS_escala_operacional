@@ -372,13 +372,14 @@ html.coOpen #fsSupportFloating{display:none!important}
 
 /* v594 — apoios das lideranças e rodapé sem sobreposição */
 .coSimpleChain{justify-content:flex-start!important}
-.coLeadershipSupportChain{position:relative!important;overflow:hidden!important;padding-top:26px!important;padding-bottom:4px!important;isolation:isolate;justify-content:space-around!important;align-items:flex-start!important}
-.coLeadershipSupportChain[data-support-count="2"]{min-height:70px}.coLeadershipSupportChain[data-support-count="3"]{min-height:86px}
-.coLeadershipSupportChain>.coSupportStep{position:relative;z-index:2;align-items:flex-start!important}
-.coLeadershipSupportChain>.coSupportLevel2{margin-top:14px}.coLeadershipSupportChain>.coSupportLevel3{margin-top:28px}
-.coLeadershipSupportChain>.coSupportStep>.coSupportStepArrow{display:block!important;position:relative;width:25px;height:13px;margin:0 5px 0 1px;border-left:1.5px solid #58789f;border-bottom:1.5px solid #58789f;flex:0 0 25px;color:transparent!important}
-.coLeadershipSupportChain>.coSupportStep>.coSupportStepArrow::after{content:'';position:absolute;right:-1px;bottom:-4px;width:6px;height:6px;border-right:1.5px solid #58789f;border-bottom:1.5px solid #58789f;transform:rotate(-45deg);background:transparent}
-.coLeadershipSupportChain .coSub{background:#f7f9fc;border-radius:8px;padding:2px 3px}
+.coHierarchyChain{position:relative!important;overflow:hidden!important;padding-top:25px!important;padding-bottom:5px!important;isolation:isolate;justify-content:space-around!important;align-items:flex-start!important}
+.coHierarchyChain[data-support-count="2"]{min-height:67px}.coHierarchyChain[data-support-count="3"]{min-height:80px}
+.coHierarchyChain>.coSupportStep{position:relative;z-index:2;align-items:flex-start!important}
+.coHierarchyChain>.coSupportLevel2{margin-top:11px}.coHierarchyChain>.coSupportLevel3{margin-top:22px}
+.coHierarchyChain>.coSupportStep>.coSupportStepArrow{display:block!important;position:relative;width:23px;height:11px;margin:0 5px 0 1px;border-left:1.7px solid #4d6e98;border-bottom:1.7px solid #4d6e98;flex:0 0 23px;color:transparent!important}
+.coHierarchyChain>.coSupportStep>.coSupportStepArrow::after{content:'';position:absolute;right:-1px;bottom:-4px;width:6px;height:6px;border-right:1.7px solid #4d6e98;border-bottom:1.7px solid #4d6e98;transform:rotate(-45deg);background:transparent}
+.coHierarchyChain .coSub{background:#f7f9fc;border-radius:8px;padding:2px 3px}
 .coLeadershipSupportChain .coSub small{color:#47617e!important;font-weight:700}
-.coLeadershipDirectRoutes{position:absolute;z-index:1;left:8px;right:8px;top:0;width:calc(100% - 16px);height:auto;overflow:visible;pointer-events:none}
-.coLeadershipDirectRoutes path{fill:none;stroke:#8fa6c2;stroke-width:1.2;stroke-dasharray:2.8 2.8;vector-effect:non-scaling-stroke}
+.coChainEntry{position:absolute;z-index:1;left:8px;right:8px;top:0;width:calc(100% - 16px);height:24px;overflow:visible;pointer-events:none}
+.coChainEntry path{fill:none;stroke:#4d6e98;stroke-width:1.45;vector-effect:non-scaling-stroke}
+.coChainEntry .coChainEntryArrow{stroke-width:1.65}
