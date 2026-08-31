@@ -372,15 +372,16 @@ html.coOpen #fsSupportFloating{display:none!important}
 
 /* v594 — apoios das lideranças e rodapé sem sobreposição */
 .coSimpleChain{justify-content:flex-start!important}
-.coHierarchyChain{position:relative!important;overflow:hidden!important;padding-top:23px!important;padding-bottom:7px!important;isolation:isolate;justify-content:center!important;align-items:flex-start!important;gap:7px!important}
+.coHierarchyChain{position:relative!important;overflow:hidden!important;padding-top:32px!important;padding-bottom:8px!important;isolation:isolate;justify-content:center!important;align-items:flex-start!important;gap:7px!important}
 .coHierarchyChain[data-support-count="2"]{min-height:64px}.coHierarchyChain[data-support-count="3"]{min-height:76px}
 .coHierarchyChain>.coSupportStep{position:relative;z-index:2;align-items:flex-start!important}
 .coHierarchyChain>.coSupportLevel2{margin-top:10px}.coHierarchyChain>.coSupportLevel3{margin-top:20px}
-.coChainFromTeam{position:absolute;top:-2px;z-index:3;color:#315b8c;font-size:20px;font-weight:900;line-height:22px}
-.coHierarchyChain[data-support-count="1"]>.coChainFromTeam{left:calc(50% - 8px)}
-.coHierarchyChain[data-support-count="2"]>.coChainFromTeam{left:calc(25% - 8px)}
-.coHierarchyChain[data-support-count="3"]>.coChainFromTeam{left:calc(16% - 8px)}
+.coChainFromTeam{position:absolute;top:2px;z-index:3;color:#315b8c;font-size:20px;font-weight:900;line-height:22px}
+.coHierarchyChain[data-support-count="1"]>.coChainFromTeam{left:calc(50% - 48px)}
+.coHierarchyChain[data-support-count="2"]>.coChainFromTeam{left:calc(15% - 8px)}
+.coHierarchyChain[data-support-count="3"]>.coChainFromTeam{left:calc(9% - 8px)}
 .coChainNext{position:relative;z-index:3;display:block;margin-top:8px;color:#315b8c;font-size:21px;font-weight:900;line-height:24px;flex:0 0 22px;text-align:center}
 .coHierarchyChain[data-support-count="3"]>.coChainNext2{margin-top:18px}
+.coMapViewport{scroll-padding-top:34px}
 .coHierarchyChain .coSub{background:#f7f9fc;border-radius:8px;padding:2px 3px}
 .coLeadershipSupportChain .coSub small{color:#47617e!important;font-weight:700}
