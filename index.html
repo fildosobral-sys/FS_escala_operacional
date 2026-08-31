@@ -13993,6 +13993,8 @@ window.baixarImagem=function(elementId,nomeArquivo){
   const workingOnLegado=window.workingOn||workingOn;
   function metaMinutos(p){return Math.max(1,Number(window.fsMetaSemanalPessoa?.(p)??(p?.jovemAprendiz?p.cargaSemanalAprendiz:(state.cargaMeta||44))))*60;}
   function diasMarcados(p){
+    const jornadaIndividual=!!(p?.jovemAprendiz||p?.fsMetaIndividualAtiva===true)&&p?.usarDiasIndividuais&&Array.isArray(p?.diasAtivosIndividuais);
+    if(jornadaIndividual)return p.diasAtivosIndividuais.filter(d=>diasBase.includes(d)||(d==='domingo'&&window.fsGetDadosEmpresa?.().abreDomingo));
     if(state?.config?.modo==='6x1')return [...diasBase];
     if(p?.usarDiasIndividuais&&Array.isArray(p.diasAtivosIndividuais))return p.diasAtivosIndividuais.filter(d=>diasBase.includes(d)||(d==='domingo'&&window.fsGetDadosEmpresa?.().abreDomingo));
     return diasBase.filter(d=>{const h=p?.horariosIndividuais?.[d];return h?.ativo!==false&&workingOnLegado(p,d);});
