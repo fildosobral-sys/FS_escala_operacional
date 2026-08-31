@@ -387,3 +387,8 @@ html.coOpen #fsSupportFloating{display:none!important}
 .coHierarchyChain>.coSupportLevel1 .coSub{background:#f3fbf6!important;border:1px solid #bfe8cc!important;box-shadow:inset 2px 0 0 #38ad69,0 1px 2px #18324f0a}
 .coHierarchyChain>.coSupportLevel2 .coSub,.coHierarchyChain>.coSupportLevel3 .coSub{background:#fffaf0!important;border:1px solid #f1dda0!important;box-shadow:inset 2px 0 0 #dfb321,0 1px 2px #18324f0a}
 .coLeadershipSupportChain .coSub small{color:#47617e!important;font-weight:700}
+
+/* v604 — html2canvas: preserva as cores suaves dos apoios na imagem HD */
+html.coExportCapture .coHierarchyChain>.coSupportLevel1 .coSub{background:#f5fbf7!important;border-color:#d1ead9!important;box-shadow:none!important}
+html.coExportCapture .coHierarchyChain>.coSupportLevel2 .coSub,
+html.coExportCapture .coHierarchyChain>.coSupportLevel3 .coSub{background:#fffbf3!important;border-color:#f1e5bd!important;box-shadow:none!important}
