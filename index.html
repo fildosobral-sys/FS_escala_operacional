@@ -15332,7 +15332,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   setTimeout(preparar,300);
 })();
 </script>
-<script id="fs-v612-backup-portatil-fiel">
+<script id="fs-v614-backup-portatil-fiel">
 (function(){
   const STORAGE='fs_escala_limpa_v381';
   const CHAVES_LOCAIS=new Set(['fs_access_data_v1','fs_access_token','fs_access_verified_at','fs_access_verified_fingerprint','fs_cargo','fs_genero','fs_nome','fs_nome_vendedor','fs_nome_vendedor_sessao','fs_pode_compartilhar','fs_whatsapp','nomeVendedor','nomeVendedorLogado','vendedor_nome','colaboradorNome','nomeColaborador','usuarioAutorizado','vendedorLogado','autorizado','dispositivoAutorizado','fsAuthGlobal','fs_device_id']);
@@ -15341,7 +15341,8 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function storageAtual(){const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k!=null)o[k]=localStorage.getItem(k)}return o}
   function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}`}
   function baixarArquivo(nome,obj){const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},350)}
-  function backup(){const atual=estadoAtual(),storage=storageAtual();if(atual)storage[STORAGE]=JSON.stringify(atual);return{tipo:'FS_BACKUP_COMPLETO',titulo:'FS Operacional Inteligente',versaoBackup:613,geradoEm:new Date().toISOString(),state:atual||{},localStorage:storage,manifesto:{estadoCanonico:STORAGE,colaboradores:atual?.pessoas?.length||0,modalidade:atual?.config?.modo||'',cargaMeta:Number(atual?.cargaMeta||0),preservaEstrutura:true}}}
+  function estruturaAtual(atual){return(atual?.pessoas||[]).map(p=>({id:p.id,nome:p.nome,equipeBase:p.equipeBase,slots:clone(p.slots||{}),equipeSabado:p.equipeSabado,_manualEquipe:p._manualEquipe,_manualPorDia:clone(p._manualPorDia||{})}))}
+  function backup(){const atual=estadoAtual(),storage=storageAtual();if(atual)storage[STORAGE]=JSON.stringify(atual);return{tipo:'FS_BACKUP_COMPLETO',titulo:'FS Operacional Inteligente',versaoBackup:614,geradoEm:new Date().toISOString(),state:atual||{},localStorage:storage,manifesto:{estadoCanonico:STORAGE,colaboradores:atual?.pessoas?.length||0,modalidade:atual?.config?.modo||'',cargaMeta:Number(atual?.cargaMeta||0),preservaEstrutura:true,estruturaEquipes:estruturaAtual(atual)}}}
   function estadoDoArquivo(data){
     const candidatos=[];
     if(data?.localStorage?.[STORAGE]){try{candidatos.push(JSON.parse(data.localStorage[STORAGE]))}catch(e){}}
@@ -15350,12 +15351,27 @@ window.baixarImagem=function(elementId,nomeArquivo){
     for(const k of ['FS_ESCALA_OPERACIONAL_STATE','FS_ESCALA_STATE','FS_OPERACIONAL_STATE','fs_state','state'])if(data?.localStorage?.[k]){try{candidatos.push(JSON.parse(data.localStorage[k]))}catch(e){}}
     return candidatos.find(x=>x&&Array.isArray(x.pessoas)&&x.config&&x.horarios)||null;
   }
+  const nomeChave=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const numeroEquipe=v=>{const n=Number(String(v??'').match(/\d+/)?.[0]);return Number.isFinite(n)&&n>0?n-1:null};
+  function aplicarEstruturaRecebida(data,canon){
+    let estrutura=Array.isArray(data?.manifesto?.estruturaEquipes)?data.manifesto.estruturaEquipes:null,legado=false;
+    if(!estrutura){for(const k of ['pessoas','fs_colaboradores','colaboradores','fs_pessoas']){try{const x=JSON.parse(data?.localStorage?.[k]||'null');if(Array.isArray(x)&&x.some(p=>p?.equipe)){estrutura=x;legado=true;break}}catch(e){}}}
+    if(!estrutura)return 0;
+    const porId=new Map(estrutura.filter(p=>p?.id).map(p=>[String(p.id),p])),porNome=new Map(estrutura.filter(p=>p?.nome).map(p=>[nomeChave(p.nome),p]));let aplicados=0;
+    for(const p of canon.pessoas){const fonte=porId.get(String(p.id))||porNome.get(nomeChave(p.nome));if(!fonte)continue;
+      if(!legado&&fonte.slots&&typeof fonte.slots==='object'){p.slots=clone(fonte.slots);if(fonte.equipeBase!=null)p.equipeBase=fonte.equipeBase;if(fonte.equipeSabado!=null)p.equipeSabado=fonte.equipeSabado;p._manualEquipe=fonte._manualEquipe;p._manualPorDia=clone(fonte._manualPorDia||{});aplicados++;continue}
+      const base=numeroEquipe(fonte.equipe);p.slots=p.slots||{};p._manualPorDia=p._manualPorDia||{};
+      if(base!=null){p.equipeBase=base;for(const d of ['segunda','terca','quarta','quinta','sexta']){p.slots[d]=base;p._manualPorDia[d]=true}p._manualEquipe=true}
+      if(base!=null)aplicados++;
+    }
+    return aplicados;
+  }
   function identidadeLocal(){const o={};CHAVES_LOCAIS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)o[k]=v});return o}
   function restaurar(file){
     if(!file||window.__fsRestaurandoBackupV612)return;
     const reader=new FileReader();reader.onload=function(){
       try{
-        const data=JSON.parse(reader.result),canon=estadoDoArquivo(data);if(!canon)throw new Error('O arquivo não contém um estado operacional válido.');canon.config=canon.config||{};canon.config.fsRestauracaoFiel=true;canon.config.fsDistribuicaoFuncaoV560=true;
+        const data=JSON.parse(reader.result),canon=estadoDoArquivo(data);if(!canon)throw new Error('O arquivo não contém um estado operacional válido.');const equipesRestauradas=aplicarEstruturaRecebida(data,canon);canon.config=canon.config||{};canon.config.fsRestauracaoFiel=true;canon.config.fsDistribuicaoFuncaoV560=true;
         const ls=data.localStorage&&typeof data.localStorage==='object'?data.localStorage:{},identidade=identidadeLocal();
         window.__fsRestaurandoBackupV612=true;
         try{localStorage.clear();sessionStorage.clear()}catch(e){}
@@ -15364,7 +15380,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
         Object.entries(identidade).forEach(([k,v])=>localStorage.setItem(k,v));
         try{state=clone(canon)}catch(e){}try{window.state=clone(canon)}catch(e){}
         const modo=canon.config?.modo==='6x1'?'6x1':canon.config?.modo==='distribuido'?'5x2 distribuído':'5x2';
-        alert(`Backup restaurado fielmente.\n\n${canon.pessoas.length} colaborador(es) • modalidade ${modo} • meta ${Number(canon.cargaMeta||0)}h.\n\nA identidade de acesso deste computador foi preservada. A página será recarregada.`);
+        alert(`Backup restaurado fielmente.\n\n${canon.pessoas.length} colaborador(es) • modalidade ${modo} • meta ${Number(canon.cargaMeta||0)}h • ${equipesRestauradas} posição(ões) de equipe restaurada(s).\n\nA identidade de acesso deste computador foi preservada. A página será recarregada.`);
         location.reload();
       }catch(e){window.__fsRestaurandoBackupV612=false;alert('Não consegui restaurar este backup: '+(e?.message||'arquivo inválido.'))}
     };reader.onerror=()=>alert('Não foi possível ler o arquivo selecionado.');reader.readAsText(file,'utf-8');
