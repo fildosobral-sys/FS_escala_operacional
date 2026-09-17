@@ -1,13 +1,13 @@
-/* FS Escala 5x2 - v713
-   Importação assistida estável: trabalha diretamente com os File objects capturados,
-   sem recolocar arquivos no <input> e sem depender de DataTransfer (instável no Android).
-   Fluxo: selecionar -> mostrar fila -> ler -> aplicar localmente automaticamente.
+/* FS Escala 5x2 - v714
+   Importação em duas etapas: 1) ler e preparar conferência; 2) importar somente após confirmação no botão azul.
+   Mantém os File objects em memória, mostra progresso dentro do card e preserva horários estruturados.
 */
 (function(){
   'use strict';
 
   const fila={docs:[],backup:[]};
   const baseRestore=window.importarDadosJson;
+  const baseImport=window.importarListaColaboradores;
   const LIB={
     pdf:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     worker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
@@ -18,7 +18,20 @@
   const key=f=>[f.name,f.size,f.lastModified,f.type].join('|');
   const dedupe=arr=>[...new Map(arr.map(f=>[key(f),f])).values()];
   function fmt(n){n=Number(n)||0;if(n<1024)return n+' B';if(n<1048576)return (n/1024).toFixed(1)+' KB';return (n/1048576).toFixed(1)+' MB'}
-  function status(t){try{if(typeof setImportStatus==='function')setImportStatus(t)}catch(_){}; const e=document.getElementById('fsImportLiveStatus');if(e)e.textContent=t;}
+  function status(t,pct){
+    const e=document.getElementById('fsImportLiveStatus');if(e)e.textContent=t;
+    if(Number.isFinite(pct))progress(pct,t);
+  }
+  function bottomStatus(t){try{if(typeof setImportStatus==='function')setImportStatus(t)}catch(_){} }
+  function overallFromLabel(label,p){const m=String(label||'').match(/(\d+)\/(\d+)/);if(!m)return Math.round((p||0)*100);const i=Number(m[1]),n=Math.max(1,Number(m[2]));return Math.max(0,Math.min(100,Math.round((((i-1)+(p||0))/n)*100)));}
+  function progress(pct,label){
+    const box=document.querySelector('.fsImportProgress');if(!box)return;
+    const p=Math.max(0,Math.min(100,Number(pct)||0));box.style.display='block';
+    const fill=box.querySelector('.fsImportProgressFill'),num=box.querySelector('.fsImportProgressNum'),txt=box.querySelector('.fsImportProgressText');
+    if(fill)fill.style.width=p+'%';if(num)num.textContent=Math.round(p)+'%';if(txt&&label)txt.textContent=label;
+  }
+  function resetProgress(){const box=document.querySelector('.fsImportProgress');if(box){box.style.display='none';const f=box.querySelector('.fsImportProgressFill');if(f)f.style.width='0%';}}
+
 
   function css(){
     if(document.getElementById('fsImport713Style'))return;
@@ -28,6 +41,10 @@
       .fsFileReady{font-weight:850;color:#67e8f9;margin-bottom:5px}.fsFileItem{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid rgba(148,163,184,.12);color:#cbd5e1}.fsFileName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fsFileSize{white-space:nowrap;color:#94a3b8}.fsFileEmpty{color:#94a3b8}
       #fsImportLiveStatus{margin-top:8px;padding:9px 10px;border-radius:10px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.18);font-size:12px;font-weight:750;color:#0f3f83}
       .fsImportReading{opacity:.72;pointer-events:none}
+      .fsImportProgress{display:none;margin-top:9px;padding:10px;border-radius:11px;background:#eef5ff;border:1px solid #cfe0f7}
+      .fsImportProgressHead{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:850;color:#123b72;margin-bottom:6px}.fsImportProgressText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .fsImportProgressTrack{height:9px;border-radius:999px;background:#dbe7f6;overflow:hidden}.fsImportProgressFill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#0b2f82,#22c7e8);transition:width .18s ease}
+      .fsConferenceSummary{margin:9px 0 7px;padding:10px 12px;border-radius:11px;background:#eef9f2;border:1px solid #bfe7ca;color:#14532d;font-size:12px;font-weight:800;line-height:1.35}.fsConferenceSummary.warn{background:#fff8e8;border-color:#f5d48b;color:#7c4a03}
     `;document.head.appendChild(st);
   }
 
@@ -40,13 +57,16 @@
     css();const input=getInput(type);if(!input)return;input.dataset.fsManaged='713';const files=fila[type],box=queueBox(input,type);if(!box)return;
     box.innerHTML=`<div class="fsFileQueueHead"><b>${type==='docs'?'Arquivos para leitura':'Backup selecionado'}</b>${files.length?`<button type="button" class="fsFileQueueClear" data-clear="${type}">Limpar</button>`:''}</div>`+
       (files.length?`<div class="fsFileReady">✓ ${files.length} arquivo(s) selecionado(s)</div>${files.map(f=>`<div class="fsFileItem"><span class="fsFileName" title="${esc(f.name)}">${esc(f.name)}</span><span class="fsFileSize">${fmt(f.size)}</span></div>`).join('')}`:`<div class="fsFileEmpty">Nenhum arquivo selecionado.</div>`);
-    if(type==='docs'&&!document.getElementById('fsImportLiveStatus')){const live=document.createElement('div');live.id='fsImportLiveStatus';live.textContent='Selecione PDF, PNG, JPG, TXT ou CSV. O arquivo permanecerá na fila até a leitura terminar.';box.insertAdjacentElement('afterend',live)}
+    if(type==='docs'){
+      let live=document.getElementById('fsImportLiveStatus');if(!live){live=document.createElement('div');live.id='fsImportLiveStatus';live.textContent='Selecione PDF, PNG, JPG, TXT ou CSV. O arquivo permanecerá na fila até a leitura terminar.';box.insertAdjacentElement('afterend',live)}
+      let pg=box.parentElement?.querySelector('.fsImportProgress');if(!pg){pg=document.createElement('div');pg.className='fsImportProgress';pg.innerHTML='<div class="fsImportProgressHead"><span class="fsImportProgressText">Preparando leitura…</span><span class="fsImportProgressNum">0%</span></div><div class="fsImportProgressTrack"><div class="fsImportProgressFill"></div></div>';live.insertAdjacentElement('afterend',pg)}
+    }
   }
   function drawAll(){draw('docs');draw('backup')}
   function capture(input,type){
     const files=[...(input.files||[])];if(!files.length)return;
     fila[type]=type==='docs'?dedupe([...fila[type],...files]):files.slice(0,1);draw(type);
-    if(type==='docs')status(`${fila.docs.length} arquivo(s) selecionado(s). Clique em “Ler e aplicar arquivos”.`);
+    if(type==='docs')status(`${fila.docs.length} arquivo(s) selecionado(s). Clique em “Ler arquivos para conferência”.`);
   }
 
   function load(src,keyName){
@@ -60,7 +80,7 @@
   }
   async function ocrCanvas(canvas,label){
     if(!window.Tesseract)await load(LIB.ocr,'Tesseract');
-    const r=await Tesseract.recognize(canvas,'por+eng',{logger:m=>{if(m.status==='recognizing text')status(`${label}: reconhecendo ${Math.round((m.progress||0)*100)}%`)},tessedit_pageseg_mode:'4',preserve_interword_spaces:'1'});return r?.data?.text||'';
+    const r=await Tesseract.recognize(canvas,'por+eng',{logger:m=>{if(m.status==='recognizing text')status(`${label}: reconhecendo ${Math.round((m.progress||0)*100)}%`,overallFromLabel(label,m.progress||0))},tessedit_pageseg_mode:'4',preserve_interword_spaces:'1'});return r?.data?.text||'';
   }
   async function imageCanvas(file){
     let src,cleanup=()=>{};if('createImageBitmap' in window){try{src=await createImageBitmap(file);cleanup=()=>{try{src.close()}catch(_){}}}catch(_){}}
@@ -69,37 +89,71 @@
   }
   function parsedCount(text,name){try{return (window.fsAnalisarTextosEscala?.([{texto:text,nome:name}])||[]).length}catch(_){return 0}}
   async function readFile(file,i,total){
-    const label=`${i+1}/${total} • ${file.name}`;status(`${label}: abrindo…`);
+    const label=`${i+1}/${total} • ${file.name}`;status(`${label}: abrindo…`,overallFromLabel(label,.03));
     if(file.type.includes('text')||/\.(txt|csv)$/i.test(file.name))return [{texto:await file.text(),nome:file.name}];
     if(file.type==='application/pdf'||/\.pdf$/i.test(file.name)){
       if(!window.pdfjsLib)await load(LIB.pdf,'pdfjsLib');pdfjsLib.GlobalWorkerOptions.workerSrc=LIB.worker;const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,out=[];
-      for(let p=1;p<=pdf.numPages;p++){status(`${label}: lendo página ${p}/${pdf.numPages}`);const page=await pdf.getPage(p),ct=await page.getTextContent();let text=pdfLines(ct.items);if(parsedCount(text,`${file.name} — página ${p}`)<2){try{const vp=page.getViewport({scale:2.4}),c=document.createElement('canvas');c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;text+='\n'+await ocrCanvas(c,`${label} • página ${p}`)}catch(e){console.warn('OCR PDF complementar:',e)}}out.push({texto:text,nome:`${file.name} — página ${p}`})}return out;
+      for(let p=1;p<=pdf.numPages;p++){status(`${label}: lendo página ${p}/${pdf.numPages}`,overallFromLabel(label,Math.max(.08,(p-1)/Math.max(1,pdf.numPages))));const page=await pdf.getPage(p),ct=await page.getTextContent();let text=pdfLines(ct.items);if(parsedCount(text,`${file.name} — página ${p}`)<2){try{const vp=page.getViewport({scale:2.4}),c=document.createElement('canvas');c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;text+='\n'+await ocrCanvas(c,`${label} • página ${p}`)}catch(e){console.warn('OCR PDF complementar:',e)}}out.push({texto:text,nome:`${file.name} — página ${p}`})}return out;
     }
-    if(file.type.startsWith('image/')||/\.(png|jpe?g|webp|bmp)$/i.test(file.name)){const c=await imageCanvas(file);let t=await ocrCanvas(c,label);if(parsedCount(t,file.name)<3){try{const r=await Tesseract.recognize(c,'por+eng',{logger:m=>{if(m.status==='recognizing text')status(`${label}: segunda leitura ${Math.round((m.progress||0)*100)}%`)},tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});t+='\n'+(r?.data?.text||'')}catch(_){}}return [{texto:t,nome:file.name}]}
+    if(file.type.startsWith('image/')||/\.(png|jpe?g|webp|bmp)$/i.test(file.name)){const c=await imageCanvas(file);let t=await ocrCanvas(c,label);if(parsedCount(t,file.name)<3){try{const r=await Tesseract.recognize(c,'por+eng',{logger:m=>{if(m.status==='recognizing text')status(`${label}: segunda leitura ${Math.round((m.progress||0)*100)}%`,overallFromLabel(label,m.progress||0))},tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});t+='\n'+(r?.data?.text||'')}catch(_){}}return [{texto:t,nome:file.name}]}
     throw new Error('Formato não reconhecido: '+file.name);
+  }
+
+  function scheduleKey(h){return h?[h.entrada||'',h.almocoIni||'',h.almocoFim||'',h.saida||''].join('|'):'';}
+  function scheduleText(h){if(!h)return 'horário não identificado';const ent=h.entrada||'—',sai=h.saida||'—',i=h.almocoIni||'',f=h.almocoFim||'';return `${ent} • ${i&&f?i+'/'+f:'sem intervalo'} • ${sai}`;}
+  function hoursSummary(it){
+    const hs=it?.horariosIndividuais||{},groups=new Map(),labels={segunda:'Seg',terca:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex',sabado:'Sáb',domingo:'Dom'};
+    ['segunda','terca','quarta','quinta','sexta','sabado','domingo'].forEach(d=>{if(!hs[d])return;const k=scheduleKey(hs[d]);if(!groups.has(k))groups.set(k,{h:hs[d],dias:[]});groups.get(k).dias.push(d)});
+    if(!groups.size)return 'Horários: não identificados';
+    return [...groups.values()].map(g=>{let dias=g.dias.map(d=>labels[d]||d).join('/');if(g.dias.join(',')==='segunda,terca,quarta,quinta,sexta')dias='Seg–Sex';return `${dias}: ${scheduleText(g.h)}`}).join(' | ');
+  }
+  function conferenceText(items){return (items||[]).map((x,i)=>`${String(i+1).padStart(2,'0')}. ${x.nome} | ${x.funcao} | ${hoursSummary(x)}`).join('\n');}
+  function inferExpected(pages,found){
+    const nums=[];(pages||[]).forEach(p=>String(p.texto||'').split(/\n+/).forEach(l=>{const m=l.match(/^\s*(\d{1,3})\s+(?=[A-Za-zÀ-ÿ])/);if(m){const n=Number(m[1]);if(n>0&&n<200)nums.push(n)}}));
+    if(!nums.length)return null;const max=Math.max(...nums),uniq=new Set(nums).size;if(max>=found&&max<=found+25)return max;if(uniq>=found&&uniq<=found+25)return uniq;return null;
+  }
+  function showConferenceSummary(found,expected,withHours,errors){
+    const ta=document.getElementById('importText');if(!ta)return;let el=document.getElementById('fsConferenceSummary');if(!el){el=document.createElement('div');el.id='fsConferenceSummary';el.className='fsConferenceSummary';ta.insertAdjacentElement('beforebegin',el)}
+    const miss=expected&&expected>found?expected-found:0;el.className='fsConferenceSummary'+(miss?' warn':'');el.innerHTML=miss?`⚠️ Documento sugere <b>${expected}</b> registro(s), mas foram reconhecidos <b>${found}</b>. Revise a lista: há ${miss} possível(is) pendência(s). • ${withHours} com horários.`:`✓ <b>${found}</b> colaborador(es) reconhecido(s) para conferência • ${withHours} com horários${errors?` • ${errors} arquivo(s) com falha parcial`:''}.`;
+  }
+  function syncPendingFromConference(){
+    const pend=window.fsImportacaoEstruturadaPendente,ta=document.getElementById('importText');if(!pend?.itens?.length||!ta)return pend;
+    const lines=String(ta.value||'').split(/\n+/).map(x=>x.trim()).filter(Boolean),out=[];
+    lines.forEach((line,seq)=>{const m=line.match(/^(?:(\d+)\.\s*)?([^|]+?)\s*\|\s*([^|]+?)(?:\s*\||$)/);if(!m)return;const idx=m[1]?Number(m[1])-1:seq,src=pend.itens[idx];if(!src)return;out.push({...src,nome:m[2].trim(),funcao:m[3].trim()})});
+    if(out.length)pend.itens=out;return pend;
+  }
+  async function applyConference(){
+    const pend=syncPendingFromConference(),ta=document.getElementById('importText');if(!pend?.itens?.length){bottomStatus('Nenhum colaborador conferido para importar.');return alert('Não há uma lista conferida pronta para importar. Primeiro leia o arquivo.')}
+    if(typeof baseImport!=='function')return alert('O importador da plataforma não foi carregado.');
+    const pretty=ta?.value||'',basic=pend.itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n');if(ta)ta.value=basic;
+    try{const total=pend.itens.length;await Promise.resolve(baseImport());bottomStatus(`Importação concluída ✓ ${total} colaborador(es) aplicados localmente. A nuvem continua manual.`);if(ta)ta.value=pretty;}
+    catch(e){console.error(e);if(ta)ta.value=pretty;alert('Falha ao importar a lista conferida: '+(e.message||e))}
   }
 
   async function runRead(){
     if(!fila.docs.length){const inp=getInput('docs');if(inp?.files?.length)capture(inp,'docs')}
     const files=fila.docs.slice();if(!files.length){status('Nenhum arquivo selecionado.');return}
     if(files.length>12){status('Use no máximo 12 arquivos por vez.');return}
-    const btn=[...document.querySelectorAll('button')].find(b=>/ler e aplicar arquivos|ler arquivos selecionados|ler arquivo \/ imagem/i.test(b.textContent||''));
+    const btn=[...document.querySelectorAll('button')].find(b=>/ler arquivos para conferência|ler e aplicar arquivos|ler arquivos selecionados|ler arquivo \/ imagem/i.test(b.textContent||''));
     if(btn){btn.disabled=true;btn.classList.add('fsImportReading');btn.dataset.oldText=btn.textContent;btn.textContent='Lendo…'}
+    resetProgress();progress(1,'Preparando leitura…');bottomStatus('Leitura em andamento. Aguarde a conferência antes de importar.');
     try{
-      let pages=[],errors=[];for(let i=0;i<files.length;i++){try{pages.push(...await readFile(files[i],i,files.length))}catch(e){console.error(e);errors.push(`${files[i].name}: ${e.message||e}`)}}
+      let pages=[],errors=[];for(let i=0;i<files.length;i++){try{pages.push(...await readFile(files[i],i,files.length));progress(Math.round(((i+1)/files.length)*100),`${i+1}/${files.length} • ${files[i].name}: leitura concluída`)}catch(e){console.error(e);errors.push(`${files[i].name}: ${e.message||e}`)}}
       if(!pages.length)throw new Error(errors[0]||'Nenhum conteúdo pôde ser lido.');
       const analyzer=window.fsAnalisarTextosEscala;if(typeof analyzer!=='function')throw new Error('Analisador da escala não foi carregado.');
-      const items=analyzer(pages)||[];const raw=pages.map(p=>`### ${p.nome}\n${p.texto}`).join('\n\n');const ta=document.getElementById('importText');
-      if(!items.length){if(ta)ta.value=raw;status(`Arquivo(s) lido(s), mas nenhum colaborador foi reconhecido com segurança.${errors.length?' '+errors.length+' arquivo(s) falharam.':''} O texto extraído ficou disponível para conferência.`);return}
+      const items=analyzer(pages)||[],ta=document.getElementById('importText');
+      if(!items.length){const raw=pages.map(p=>`### ${p.nome}\n${p.texto}`).join('\n\n');if(ta)ta.value=raw;progress(100,'Leitura concluída sem registros seguros');bottomStatus('Arquivo lido, mas nenhum colaborador foi reconhecido com segurança. O texto bruto ficou disponível para revisão.');return}
       const week=pages.some(p=>/segunda|segunda[- ]?feira/i.test(p.texto)),sat=pages.some(p=>/s[aá]bado/i.test(p.texto)),sun=pages.some(p=>/domingo|descanso\s+semanal/i.test(p.texto));
-      window.fsImportacaoEstruturadaPendente={itens:items,modoDetectado:(week&&(sat||sun))?'6x1':null,arquivos:files.length,arquivosLidos:files.length-errors.length,falhas:errors};
-      if(ta)ta.value=items.map(x=>`${x.nome} - ${x.funcao}`).join('\n');const mode=document.getElementById('importMode');if(mode)mode.value='replace';
-      const withHours=items.filter(x=>Object.keys(x.horariosIndividuais||{}).length).length;status(`${items.length} colaborador(es) reconhecido(s), ${withHours} com horários. Aplicando localmente…`);
-      if(typeof window.importarListaColaboradores!=='function')throw new Error('Aplicador dos dados não foi carregado.');
-      await Promise.resolve(window.importarListaColaboradores());
-      status(`Importação concluída ✓ ${items.length} colaborador(es) aplicados localmente${withHours?`, ${withHours} com horários`:''}.${errors.length?' '+errors.length+' arquivo(s) tiveram falha parcial.':''} Use “Salvar na nuvem” somente quando quiser publicar.`);
-    }catch(e){console.error('FS v713 importação:',e);status('Falha na importação: '+(e.message||e));}
-    finally{if(btn){btn.disabled=false;btn.classList.remove('fsImportReading');btn.textContent=btn.dataset.oldText||'Ler e aplicar arquivos';delete btn.dataset.oldText}draw('docs')}
+      const expected=inferExpected(pages,items.length);
+      window.fsImportacaoEstruturadaPendente={itens:items,modoDetectado:(week&&(sat||sun))?'6x1':null,arquivos:files.length,arquivosLidos:files.length-errors.length,falhas:errors,esperados:expected};
+      if(ta){ta.value=conferenceText(items);ta.scrollIntoView({behavior:'smooth',block:'center'})}
+      const mode=document.getElementById('importMode');if(mode)mode.value='replace';const withHours=items.filter(x=>Object.keys(x.horariosIndividuais||{}).length).length;
+      showConferenceSummary(items.length,expected,withHours,errors.length);progress(100,'Leitura concluída • confira a lista antes de importar');
+      const miss=expected&&expected>items.length?` Atenção: o documento sugere ${expected} registros; ${expected-items.length} pode(m) precisar de ajuste manual.`:'';
+      status(`${items.length} colaborador(es) reconhecido(s), ${withHours} com horários. Confira abaixo e só depois clique no botão azul.`,100);
+      bottomStatus(`Conferência pronta: ${items.length} colaborador(es) reconhecido(s).${miss} Nada foi importado ainda.`);
+    }catch(e){console.error('FS v714 importação:',e);status('Falha na leitura: '+(e.message||e));bottomStatus('Falha na leitura: '+(e.message||e));}
+    finally{if(btn){btn.disabled=false;btn.classList.remove('fsImportReading');btn.textContent='Ler arquivos para conferência';delete btn.dataset.oldText}draw('docs')}
   }
 
   async function runRestore(){
@@ -115,10 +169,10 @@
 
   document.addEventListener('change',e=>{const t=e.target;if(!(t instanceof HTMLInputElement)||t.type!=='file')return;if(t.id==='listaInput')capture(t,'docs');if(t.id==='backupInput')capture(t,'backup')},true);
   document.addEventListener('click',e=>{const clear=e.target.closest?.('[data-clear]');if(clear){e.preventDefault();e.stopPropagation();const type=clear.dataset.clear;fila[type]=[];const inp=getInput(type);if(inp)try{inp.value=''}catch(_){};draw(type);if(type==='docs')status('Fila limpa. Selecione novos arquivos.');return}
-    const btn=e.target.closest?.('button');if(!btn)return;const text=(btn.textContent||'').toLowerCase();if(text.includes('ler e aplicar arquivos')||text.includes('ler arquivos selecionados')||text.includes('ler arquivo / imagem')){e.preventDefault();e.stopImmediatePropagation();runRead()}else if(text.includes('restaurar backup')){e.preventDefault();e.stopImmediatePropagation();runRestore()}},true);
+    const btn=e.target.closest?.('button');if(!btn)return;const text=(btn.textContent||'').toLowerCase();if(text.includes('ler arquivos para conferência')||text.includes('ler e aplicar arquivos')||text.includes('ler arquivos selecionados')||text.includes('ler arquivo / imagem')){e.preventDefault();e.stopImmediatePropagation();runRead()}else if(text.includes('importar lista conferida')){e.preventDefault();e.stopImmediatePropagation();applyConference()}else if(text.includes('restaurar backup')){e.preventDefault();e.stopImmediatePropagation();runRestore()}},true);
 
-  function wire(){drawAll();document.querySelectorAll('button').forEach(btn=>{const t=(btn.textContent||'').toLowerCase();if(t.includes('ler arquivos selecionados')||t.includes('ler arquivo / imagem'))btn.textContent='Ler e aplicar arquivos'})}
+  function wire(){drawAll();document.querySelectorAll('button').forEach(btn=>{const t=(btn.textContent||'').toLowerCase();if(t.includes('ler e aplicar arquivos')||t.includes('ler arquivos selecionados')||t.includes('ler arquivo / imagem'))btn.textContent='Ler arquivos para conferência'})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(wire,250));else setTimeout(wire,100);
   new MutationObserver(()=>{clearTimeout(window.__fsImp713Wire);window.__fsImp713Wire=setTimeout(wire,80)}).observe(document.documentElement,{childList:true,subtree:true});
-  window.fsImport713Queue=fila;window.lerArquivoAssistido=runRead;try{lerArquivoAssistido=runRead}catch(_){};
+  window.fsImport714Queue=fila;window.lerArquivoAssistido=runRead;window.fsAplicarImportacaoConferida=applyConference;try{lerArquivoAssistido=runRead}catch(_){};
 })();
