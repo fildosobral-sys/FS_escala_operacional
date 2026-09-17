@@ -15455,7 +15455,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   try{importarDadosJson=importar}catch(e){}try{exportarDadosJson=window.fsBaixarBackupCompleto}catch(e){}
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-config.js?v=706"></script><script src="./fs-cloud.js?v=706"></script><script id="fs-v706-importacao-reforcada">
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-config.js?v=707"></script><script src="./fs-cloud.js?v=707"></script><script id="fs-v706-importacao-reforcada">
 /* v706: importação reforçada para relatórios executivos em imagem/PDF */
 (function(){
   'use strict';
@@ -15584,4 +15584,117 @@ window.baixarImagem=function(elementId,nomeArquivo){
 })();
 </script>
 
+\n<script id="fs-v707-importacao-backup-nuvem">
+/* v707: restauração/importação aplicam o estado e publicam imediatamente na nuvem. */
+(function(){
+  'use strict';
+  const CANON='fs_escala_limpa_v381';
+  const IGNORAR=/^(fs_cloud_|fs_access_|fs_device_id$|fsAuthGlobal$|usuarioAutorizado$|dispositivoAutorizado$)/i;
+  const clone=v=>JSON.parse(JSON.stringify(v));
+  function setStatus(t){try{setImportStatus(t)}catch(e){}}
+  function parseJson(v){if(typeof v!=='string')return v;try{return JSON.parse(v)}catch(e){return null}}
+  function estadoValido(x){return !!(x&&typeof x==='object'&&(Array.isArray(x.pessoas)||Array.isArray(x.colaboradores)))}
+  function normalizarEstado(x){
+    x=clone(x||{});
+    if(!Array.isArray(x.pessoas)&&Array.isArray(x.colaboradores))x.pessoas=x.colaboradores;
+    x.pessoas=Array.isArray(x.pessoas)?x.pessoas:[];x.colaboradores=x.pessoas;
+    const atual=(typeof state!=='undefined'&&state)||{};
+    x.config={...(atual.config||{}),...(x.config||{})};
+    x.horarios={...(atual.horarios||{}),...(x.horarios||{})};
+    if(x.cargaMeta==null)x.cargaMeta=atual.cargaMeta||44;
+    return x;
+  }
+  function acharEstado(data){
+    const vistos=new Set(),fila=[data];let passos=0;
+    while(fila.length&&passos++<180){
+      let x=fila.shift();x=parseJson(x);if(!x||typeof x!=='object'||vistos.has(x))continue;vistos.add(x);
+      if(estadoValido(x))return normalizarEstado(x);
+      for(const k of ['state','estado','data','payload'])if(x[k]!=null)fila.push(x[k]);
+      for(const bag of ['localStorage','storage']){
+        const o=x[bag];if(o&&typeof o==='object'){if(o[CANON]!=null)fila.unshift(o[CANON]);Object.values(o).slice(0,80).forEach(v=>fila.push(v));}
+      }
+    }
+    return null;
+  }
+  async function publicarAgora(rotulo){
+    if(!window.FSCloud?.saveNow)return false;
+    setStatus((rotulo||'Dados aplicados')+' • salvando na nuvem…');
+    await window.FSCloud.saveNow();
+    setStatus((rotulo||'Dados aplicados')+' • salvo na nuvem ✓');
+    return true;
+  }
+  function aplicarEstadoLocal(novo,data){
+    const preservar={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&IGNORAR.test(k))preservar[k]=localStorage.getItem(k)}
+    // Restaura chaves auxiliares do backup, sem tocar em sessão/permissões da nuvem.
+    const bag=data?.localStorage||data?.storage;
+    if(bag&&typeof bag==='object')Object.entries(bag).forEach(([k,v])=>{if(!k||IGNORAR.test(k)||k===CANON)return;try{localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v))}catch(e){}});
+    localStorage.setItem(CANON,JSON.stringify(novo));Object.entries(preservar).forEach(([k,v])=>{if(v!=null)localStorage.setItem(k,v)});
+    try{state=clone(novo)}catch(e){}try{window.state=state}catch(e){}
+    try{save()}catch(e){localStorage.setItem(CANON,JSON.stringify(novo))}
+    try{render()}catch(e){}
+  }
+  async function restaurarBackupV707(file){
+    if(!file)return alert('Escolha um arquivo de backup JSON.');
+    try{
+      setStatus('Lendo backup…');const txt=await file.text();let data;try{data=JSON.parse(txt)}catch(e){throw new Error('O arquivo não é um JSON válido.')}
+      const novo=acharEstado(data);if(!novo||!novo.pessoas.length)throw new Error('Não encontrei colaboradores nesse backup. Ele pode ser de outro tipo de arquivo.');
+      aplicarEstadoLocal(novo,data);
+      const modo=novo.config?.modo==='6x1'?'6x1':novo.config?.modo==='distribuido'?'5x2 distribuído':'5x2';
+      try{await publicarAgora(`Backup restaurado: ${novo.pessoas.length} colaborador(es)`);alert(`Backup restaurado e publicado na nuvem com sucesso.\
+\
+${novo.pessoas.length} colaborador(es) • modalidade ${modo}.`)}
+      catch(e){alert(`O backup foi aplicado neste aparelho, mas não consegui confirmar o salvamento na nuvem: ${e.message||e}\
+\
+Não atualize a página ainda. Tente salvar novamente pelo menu da nuvem.`)}
+    }catch(e){setStatus('Falha ao restaurar backup: '+(e.message||e));alert('Não consegui restaurar este backup: '+(e.message||e))}
+  }
+  window.fsRestaurarBackupCompleto=restaurarBackupV707;
+  window.importarDadosJson=function(){const inp=document.getElementById('backupInput');if(!inp?.files?.[0])return alert('Escolha o arquivo JSON de backup.');return restaurarBackupV707(inp.files[0])};
+  try{importarDadosJson=window.importarDadosJson}catch(e){}
+
+  const importarBase=window.importarListaColaboradores;
+  window.importarListaColaboradores=async function(){
+    const pendAntes=window.fsImportacaoEstruturadaPendente,antes=JSON.stringify((window.state||state)?.pessoas||[]);
+    const r=importarBase&&importarBase.apply(this,arguments);
+    await Promise.resolve(r);
+    const depois=JSON.stringify((window.state||state)?.pessoas||[]);
+    if(depois!==antes||pendAntes?.itens?.length){
+      try{await publicarAgora('Importação aplicada');}
+      catch(e){setStatus('Importação aplicada localmente, mas falta confirmar na nuvem: '+(e.message||e));}
+    }
+    return r;
+  };
+  try{importarListaColaboradores=window.importarListaColaboradores}catch(e){}
+
+  const lerBase=window.lerArquivoAssistido;
+  window.lerArquivoAssistido=async function(){
+    await lerBase.apply(this,arguments);
+    const pend=window.fsImportacaoEstruturadaPendente;
+    const ta=document.getElementById('importText');
+    if(pend?.itens?.length){
+      const comH=pend.itens.filter(x=>Object.keys(x.horariosIndividuais||{}).length).length;
+      setStatus(`${pend.itens.length} colaborador(es) reconhecido(s), ${comH} com horários. Documento pronto para aplicar.`);
+      if(confirm(`Leitura concluída.\
+\
+Reconheci ${pend.itens.length} colaborador(es) e ${comH} com horários.\
+\
+Deseja aplicar esses dados à plataforma agora e salvar na nuvem?`)){
+        await window.importarListaColaboradores();
+      }else if(ta){ta.scrollIntoView({behavior:'smooth',block:'center'});ta.focus()}
+    }
+  };
+  try{lerArquivoAssistido=window.lerArquivoAssistido}catch(e){}
+
+  function religarV707(){
+    document.querySelectorAll('button').forEach(btn=>{const t=(btn.textContent||'').toLowerCase();
+      if(t.includes('ler arquivos selecionados')||t.includes('ler arquivo / imagem')){btn.textContent='Ler e aplicar arquivos';btn.onclick=e=>{e.preventDefault();e.stopPropagation();window.lerArquivoAssistido();return false}}
+      if(t.includes('importar lista conferida'))btn.onclick=e=>{e.preventDefault();e.stopPropagation();window.importarListaColaboradores();return false};
+      if(t.includes('restaurar backup'))btn.onclick=e=>{e.preventDefault();e.stopPropagation();window.importarDadosJson();return false};
+    });
+    const st=document.getElementById('importStatus');if(st&&!st.dataset.v707){st.dataset.v707='1';st.textContent='Selecione PDF/PNG/JPG/TXT, clique em “Ler e aplicar arquivos” e confirme. O sistema aplica os dados e salva na nuvem.'}
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(religarV707,700));
+  new MutationObserver(()=>setTimeout(religarV707,50)).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>\n
 </body></html>

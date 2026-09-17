@@ -1,4 +1,4 @@
-/* FS Nuvem v706 - multi-filial, importacao reforcada e carregamento reflexivo */
+/* FS Nuvem v707 - multi-filial, importacao reforcada e carregamento reflexivo */
 (function(){
   'use strict';
 
@@ -238,6 +238,6 @@
     }
   }
 
-  window.FSCloud={boot,reload:loadOfficialState,save:()=>queueSave(true),logout,switchUser:()=>{rememberCurrentAccess();clearActiveAccess();showAccessChooser()},showManagerHome,showCreateInvite,showDashboard,getProfile:()=>profile,getVersion:()=>cloudVersion};
+  window.FSCloud={boot,reload:loadOfficialState,save:()=>queueSave(true),saveNow:async()=>{if(!canWrite())throw new Error('Este acesso é somente visualização.');await sendSnapshot(false,true);return {ok:true,version:cloudVersion};},logout,switchUser:()=>{rememberCurrentAccess();clearActiveAccess();showAccessChooser()},showManagerHome,showCreateInvite,showDashboard,getProfile:()=>profile,getVersion:()=>cloudVersion};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
