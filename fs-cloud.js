@@ -1,4 +1,4 @@
-/* FS Nuvem v709 - modo local-first com sincronizacao manual */
+/* FS Nuvem v712 - escolha Local/Nuvem no primeiro acesso */
 (function(){
   'use strict';
 
@@ -14,6 +14,9 @@
   const DEVICE_KEY='fs_cloud_device_id';
   const APPLY_FLAG='fs_cloud_apply_reload';
   const CANONICAL_KEY='fs_escala_limpa_v381';
+  const LOCAL_MODE_KEY='fs_cloud_local_mode_v1';
+  const FIRST_CHOICE_KEY='fs_cloud_first_choice_v1';
+  const SUPPORT_WHATSAPP='5588988222564';
   const CLOUD_PREFIX='fs_cloud_';
   const LOCAL_BRANCH_CACHE_PREFIX='fs_cloud_local_branch_';
   const LOCAL_ONLY=new Set([
@@ -110,12 +113,38 @@
   }
   function clearActiveAccess(){localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(SESSION_KEY);localStorage.removeItem(PROFILE_KEY);localStorage.removeItem(BRANCH_KEY);localStorage.removeItem(VERSION_KEY);profile=null;cloudVersion=0;bootComplete=false;clearInterval(pollTimer);clearInterval(versionPollTimer);document.getElementById('fsCloudHeaderBox')?.remove()}
   function useSavedAccess(item){
+    localStorage.removeItem(LOCAL_MODE_KEY);localStorage.setItem(FIRST_CHOICE_KEY,'cloud');
     clearActiveAccess();if(item.kind==='session')localStorage.setItem(SESSION_KEY,item.value);else localStorage.setItem(TOKEN_KEY,item.value);if(item.branchId)localStorage.setItem(BRANCH_KEY,item.branchId);location.reload();
+  }
+  function supportWhatsAppUrl(){
+    const msg='Olá, Fildo. Quero solicitar acesso à plataforma Escala 5x2 na nuvem. Pode liberar minhas credenciais/acesso?';
+    return `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+  }
+  function requestCredentials(){window.open(supportWhatsAppUrl(),'_blank','noopener,noreferrer')}
+  function installLocalHeaderControls(){
+    document.getElementById('fsCloudHeaderBox')?.remove();
+    const host=document.querySelector('header.top')||document.querySelector('.top')||document.body;
+    const box=document.createElement('div');box.id='fsCloudHeaderBox';box.style.cssText='display:flex;align-items:center;gap:7px;margin-left:auto;padding:0 6px;z-index:50;font-family:Inter,system-ui,sans-serif';
+    box.innerHTML=`<span title="Uso independente neste aparelho" style="font-size:10px;font-weight:800;padding:5px 8px;border-radius:999px;background:#fef3c7;color:#92400e;white-space:nowrap">Modo local</span><button id="fsCloudDots" title="Menu" style="border:0;background:transparent;color:inherit;font-size:22px;line-height:1;cursor:pointer;padding:2px 7px">⋮</button>`;
+    host.appendChild(box);document.getElementById('fsCloudDots')?.addEventListener('click',showLocalMenu);
+  }
+  function enterLocalMode(persist=true){
+    clearActiveAccess();if(persist){localStorage.setItem(LOCAL_MODE_KEY,'1');localStorage.setItem(FIRST_CHOICE_KEY,'local')}
+    closeOverlay();bootComplete=true;document.documentElement.dataset.fsCloudRole='local';installLocalHeaderControls();startWatchers();
+    window.dispatchEvent(new CustomEvent('fscloudready',{detail:{profile:null,version:0,local:true}}));
+  }
+  function showLocalMenu(){
+    overlayHtml(`<button class="fsc-closeX" id="fscCloseX" aria-label="Fechar">×</button><h2>💻 Modo local</h2><p>Esta escala está funcionando somente neste aparelho. As alterações ficam salvas localmente e nada é enviado para a nuvem.</p><div class="fsc-menuGrid"><section class="fsc-menuCard"><h3>☁ Conectar à nuvem</h3><p>Use um acesso recebido ou entre como Administrador.</p><button id="fscConnectCloud">Entrar na nuvem</button><button class="secondary" id="fscRequestCred">Solicitar credenciais pelo WhatsApp</button></section><section class="fsc-menuCard"><h3>💾 Uso independente</h3><p>Continue trabalhando normalmente neste aparelho. Backups e importações continuam disponíveis nas Configurações.</p><button class="secondary" id="fscStayLocal">Continuar no modo local</button></section></div><p class="fsc-note">Para sincronizar entre aparelhos ou compartilhar uma filial, conecte um acesso à FS Nuvem.</p>`,true);
+    document.getElementById('fscCloseX').onclick=closeOverlay;document.getElementById('fscStayLocal').onclick=closeOverlay;document.getElementById('fscConnectCloud').onclick=()=>{localStorage.removeItem(LOCAL_MODE_KEY);localStorage.setItem(FIRST_CHOICE_KEY,'cloud');showAccessChooser('Escolha um acesso salvo, entre como administrador ou solicite seu acesso.')};document.getElementById('fscRequestCred').onclick=requestCredentials;
+  }
+  function showFirstChoice(){
+    overlayHtml(`<h2>Como você quer usar a Escala 5x2?</h2><p>Escolha o modo deste aparelho. Você poderá mudar depois pelo menu ⋮.</p><div class="fsc-menuGrid"><section class="fsc-menuCard"><h3>💻 Usar somente neste aparelho</h3><p>Abre normalmente, salva tudo localmente e não usa a nuvem.</p><button class="good" id="fscChooseLocal">Usar modo local</button></section><section class="fsc-menuCard"><h3>☁ Usar FS Nuvem</h3><p>Para compartilhar/sincronizar filiais, use um acesso autorizado.</p><button id="fscChooseCloud">Entrar na nuvem</button><button class="secondary" id="fscRequestCred">Solicitar credenciais</button></section></div><p class="fsc-note">Sem credenciais? Toque em “Solicitar credenciais” e o WhatsApp abrirá uma mensagem pronta para o administrador.</p>`,true);
+    document.getElementById('fscChooseLocal').onclick=()=>enterLocalMode(true);document.getElementById('fscChooseCloud').onclick=()=>{localStorage.removeItem(LOCAL_MODE_KEY);localStorage.setItem(FIRST_CHOICE_KEY,'cloud');showAccessChooser('Escolha um acesso já utilizado ou entre com um acesso autorizado.')};document.getElementById('fscRequestCred').onclick=requestCredentials;
   }
   function showAccessChooser(message){
     const list=savedAccesses();const rows=list.map((a,i)=>`<button class="secondary fsc-accessBtn" data-i="${i}"><span><b>${esc(a.name)}</b><br><small>${esc(roleLabel(a.role))} · ${esc(a.branchName||'Filial')}${a.sector?' · '+esc(a.sector):''}</small></span><span>Entrar ›</span></button>`).join('');
-    overlayHtml(`<button class="fsc-closeX" id="fscCloseX" aria-label="Fechar">×</button><h2>Trocar usuário</h2><p>${esc(message||'Escolha um acesso já utilizado neste aparelho.')}</p>${rows||'<p class="fsc-note">Nenhum acesso salvo neste aparelho.</p>'}<div class="fsc-sep"></div><div class="fsc-row"><button id="fscAdminLogin">Entrar como administrador</button></div><p class="fsc-note">Para um novo Editor, Administrador da filial ou Visualizador, abra o convite individual recebido.</p>`,true);
-    document.getElementById('fscCloseX').onclick=closeOverlay;document.getElementById('fscAdminLogin').onclick=()=>showAdminLogin('Acesso do Administrador geral.');document.querySelectorAll('.fsc-accessBtn').forEach(b=>b.onclick=()=>useSavedAccess(list[Number(b.dataset.i)]));
+    overlayHtml(`<button class="fsc-closeX" id="fscCloseX" aria-label="Fechar e usar localmente">×</button><h2>Entrar na FS Nuvem</h2><p>${esc(message||'Escolha um acesso já utilizado neste aparelho.')}</p>${rows||'<p class="fsc-note">Nenhum acesso salvo neste aparelho.</p>'}<div class="fsc-sep"></div><div class="fsc-row"><button id="fscAdminLogin">Entrar como administrador</button><button class="secondary" id="fscRequestCred">Solicitar credenciais</button></div><p class="fsc-note">Editor, Administrador da filial e Visualizador entram pelo convite individual recebido. Fechar no × mantém a plataforma em modo local.</p>`,true);
+    document.getElementById('fscCloseX').onclick=()=>enterLocalMode(true);document.getElementById('fscAdminLogin').onclick=()=>showAdminLogin('Acesso do Administrador geral.');document.getElementById('fscRequestCred').onclick=requestCredentials;document.querySelectorAll('.fsc-accessBtn').forEach(b=>b.onclick=()=>useSavedAccess(list[Number(b.dataset.i)]));
   }
 
   function isTimeoutError(e){return /tempo de resposta excedido|timeout|demorou/i.test(String(e&&e.message||e||''))}
@@ -127,9 +156,10 @@
       return await authenticate();
     }
   }
-  function showAdminLogin(message){overlayHtml(`<h2>FS Escala 5x2</h2><p>${esc(message||'Acesso administrativo.')}</p><label>Senha do Administrador</label><input id="fscToken" type="password" autocomplete="current-password"><div class="fsc-row"><button id="fscLogin">Entrar</button></div><p class="fsc-note">Os demais usuários entram por convites individuais gerados dentro da plataforma.</p>`);const go=async()=>{const input=document.getElementById('fscToken');const t=input.value.trim();if(!t)return;localStorage.setItem(TOKEN_KEY,t);localStorage.removeItem(SESSION_KEY);showBusy('Validando acesso...');try{await authenticateResilient();finalizeBoot({version:cloudVersion});if(!snapshotHasOperationalData(buildSnapshot()))toast('Use o menu ⋮ para carregar a versão oficial da nuvem.')}catch(e){if(isTimeoutError(e)){return showAdminLogin('A nuvem demorou para responder. Sua senha não foi descartada. Tente entrar novamente em alguns segundos.')}localStorage.removeItem(TOKEN_KEY);showAdminLogin(e.message||'Senha inválida.')}};document.getElementById('fscLogin').onclick=go;document.getElementById('fscToken').onkeydown=e=>{if(e.key==='Enter')go()}}
+  function showAdminLogin(message){localStorage.removeItem(LOCAL_MODE_KEY);localStorage.setItem(FIRST_CHOICE_KEY,'cloud');overlayHtml(`<h2>FS Escala 5x2</h2><p>${esc(message||'Acesso administrativo.')}</p><label>Senha do Administrador</label><input id="fscToken" type="password" autocomplete="current-password"><div class="fsc-row"><button id="fscLogin">Entrar</button></div><p class="fsc-note">Os demais usuários entram por convites individuais gerados dentro da plataforma.</p>`);const go=async()=>{const input=document.getElementById('fscToken');const t=input.value.trim();if(!t)return;localStorage.setItem(TOKEN_KEY,t);localStorage.removeItem(SESSION_KEY);showBusy('Validando acesso...');try{await authenticateResilient();finalizeBoot({version:cloudVersion});if(!snapshotHasOperationalData(buildSnapshot()))toast('Use o menu ⋮ para carregar a versão oficial da nuvem.')}catch(e){if(isTimeoutError(e)){return showAdminLogin('A nuvem demorou para responder. Sua senha não foi descartada. Tente entrar novamente em alguns segundos.')}localStorage.removeItem(TOKEN_KEY);showAdminLogin(e.message||'Senha inválida.')}};document.getElementById('fscLogin').onclick=go;document.getElementById('fscToken').onkeydown=e=>{if(e.key==='Enter')go()}}
 
   async function showInviteClaim(raw){
+    localStorage.removeItem(LOCAL_MODE_KEY);localStorage.setItem(FIRST_CHOICE_KEY,'cloud');
     showBusy('Validando convite...');
     try{
       const info=await jsonp({action:'inviteInfo',invite:raw,deviceId:deviceId()});if(!info?.ok)throw new Error(info?.message||'Convite inválido.');
@@ -273,6 +303,7 @@
       const inv=inviteToken();
       if(inv&&!session())return showInviteClaim(inv);
       if(session()||token()){
+        localStorage.removeItem(LOCAL_MODE_KEY);localStorage.setItem(FIRST_CHOICE_KEY,'cloud');
         // v709: se este aparelho ja conhece o perfil, abre imediatamente usando os dados locais.
         if(localBoot()){
           if(inv){const u=new URL(location.href);u.searchParams.delete('fsinvite');history.replaceState({},'',u.toString())}
@@ -286,6 +317,9 @@
         if(!snapshotHasOperationalData(buildSnapshot()))setTimeout(()=>toast('Este aparelho ainda não tem escala local. Use ⋮ → Carregar da nuvem.'),400);
         return;
       }
+      if(localStorage.getItem(LOCAL_MODE_KEY)==='1')return enterLocalMode(false);
+      if(!localStorage.getItem(FIRST_CHOICE_KEY))return showFirstChoice();
+      if(localStorage.getItem(FIRST_CHOICE_KEY)==='local')return enterLocalMode(false);
       showAccessChooser();
     }catch(e){
       if(session()){localStorage.removeItem(SESSION_KEY);return showError(e?.message||'Acesso expirado.',false)}
