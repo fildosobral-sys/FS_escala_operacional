@@ -1,4 +1,4 @@
-/* FS Nuvem v700 - Google Sheets + Apps Script
+/* FS Nuvem v702 - Google Sheets + Apps Script
  * Mantem a logica operacional existente intacta e sincroniza apenas o estado persistido.
  */
 (function(){
@@ -44,6 +44,14 @@
   }
   function setEndpoint(v){ localStorage.setItem(ENDPOINT_KEY, String(v||'').trim()); }
   function token(){ return localStorage.getItem(TOKEN_KEY) || ''; }
+  function publicKey(){
+    try{ return new URLSearchParams(location.search).get('fsview') || ''; }catch(_){ return ''; }
+  }
+  function isPublicLink(){ return !!publicKey(); }
+  function authParams(){
+    const pk=publicKey();
+    return pk ? {publicKey:pk,deviceId:deviceId()} : {token:token(),deviceId:deviceId()};
+  }
   function role(){ return profile && profile.role || ''; }
   function canWrite(){ return role()==='admin' || role()==='editor'; }
   function isViewer(){ return role()==='viewer'; }
@@ -141,17 +149,17 @@
   }
 
   function showLogin(message){
-    overlayHtml(`<h2>☁ FS Escala — acesso à nuvem</h2><p>${esc(message||'Informe o código de acesso fornecido pelo administrador.')}</p><label>Código de acesso</label><input id="fscToken" autocomplete="off" spellcheck="false"><div class="fsc-row"><button id="fscLogin">Entrar</button></div><p class="fsc-note">Administrador e Editor podem salvar alterações. Consultor possui somente visualização.</p>`);
+    overlayHtml(`<h2>☁ FS Escala — acesso à nuvem</h2><p>${esc(message||'Informe o código de acesso fornecido pelo administrador.')}</p><label>Código de acesso</label><input id="fscToken" autocomplete="off" spellcheck="false"><div class="fsc-row"><button id="fscLogin">Entrar</button></div><p class="fsc-note">Administrador e Editor usam código de acesso. Links de consulta entram diretamente em modo somente visualização.</p>`);
     const go=async()=>{ const t=document.getElementById('fscToken').value.trim(); if(!t)return; localStorage.setItem(TOKEN_KEY,t); showBusy('Validando acesso...'); try{ await authenticate(); await loadOfficialState(); }catch(e){ localStorage.removeItem(TOKEN_KEY); showLogin(e.message||'Código inválido.'); } };
     document.getElementById('fscLogin').onclick=go;
     document.getElementById('fscToken').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
   }
 
   async function authenticate(){
-    const t=token(); if(!t) throw new Error('Informe seu código de acesso.');
-    const res=await jsonp({action:'auth',token:t,deviceId:deviceId()});
+    if(!isPublicLink() && !token()) throw new Error('Informe seu código de acesso.');
+    const res=await jsonp({action:'auth',...authParams()});
     if(!res || !res.ok) throw new Error(res?.message||'Acesso não autorizado.');
-    profile={name:res.name||'',role:res.role||'viewer'};
+    profile={name:res.name||'',role:res.role||'viewer',publicAccess:!!res.publicAccess};
     localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));
     return res;
   }
@@ -181,7 +189,7 @@
 
   async function loadOfficialState(trustLocalOnce){
     showBusy('Carregando a versão oficial da escala...');
-    const res=await jsonp({action:'read',token:token(),deviceId:deviceId()});
+    const res=await jsonp({action:'read',...authParams()});
     if(!res?.ok) throw new Error(res?.message||'Não foi possível ler os dados da nuvem.');
     if(res.empty){
       cloudVersion=0;
@@ -214,32 +222,89 @@
   function finalizeBoot(res){
     closeOverlay();
     bootComplete=true;
-    if(isViewer()) enforceViewerMode();
-    installCloudBadge();
-    startWatchers();
     document.documentElement.dataset.fsCloudRole=role();
+    if(isViewer()) enforceViewerMode();
+    if(role()==='admin') installAdminMenu();
+    startWatchers();
     window.dispatchEvent(new CustomEvent('fscloudready',{detail:{profile,version:cloudVersion}}));
   }
 
-  function installCloudBadge(){
-    if(document.getElementById('fsCloudBadge')) return;
-    const b=document.createElement('button'); b.id='fsCloudBadge'; b.type='button';
-    b.style.cssText='position:fixed;right:12px;bottom:12px;z-index:2147483000;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.94);color:#e2e8f0;border-radius:999px;padding:8px 11px;font:700 11px/1.1 system-ui;box-shadow:0 8px 28px rgba(0,0,0,.28);cursor:pointer';
-    b.textContent=`☁ ${role()==='admin'?'Administrador':role()==='editor'?'Editor':'Consultor'} • v${cloudVersion}`;
-    b.onclick=showPanel; document.body.appendChild(b);
+  function installAdminMenu(){
+    if(document.getElementById('fsCloudAdminMenu')) return;
+    const host=document.querySelector('header.top') || document.querySelector('.top') || document.body;
+    if(host!==document.body && getComputedStyle(host).position==='static') host.style.position='relative';
+    const b=document.createElement('button');
+    b.id='fsCloudAdminMenu'; b.type='button'; b.title='Gerenciar FS Nuvem'; b.setAttribute('aria-label','Gerenciar FS Nuvem');
+    b.textContent='⋮';
+    b.style.cssText='position:absolute;right:12px;top:10px;z-index:2147483000;width:34px;height:34px;border:1px solid rgba(7,29,104,.16);background:rgba(255,255,255,.88);color:#071d68;border-radius:11px;font:900 22px/30px system-ui;box-shadow:0 5px 16px rgba(7,29,104,.10);cursor:pointer;padding:0;text-align:center';
+    b.onclick=showPanel;
+    host.appendChild(b);
   }
-  function updateBadge(){ const b=document.getElementById('fsCloudBadge'); if(b)b.textContent=`☁ ${role()==='admin'?'Administrador':role()==='editor'?'Editor':'Consultor'} • v${cloudVersion}`; }
+  function updateBadge(){ /* mantido por compatibilidade; v702 usa menu discreto no cabeçalho */ }
+
   function showPanel(){
     const last=localStorage.getItem(LAST_SYNC_KEY); const when=last?new Date(last).toLocaleString('pt-BR'):'—';
-    overlayHtml(`<h2>☁ FS Nuvem</h2><p><b>${esc(profile?.name||'Usuário')}</b> · ${role()==='admin'?'Administrador':role()==='editor'?'Editor':'Consultor'}</p><p>Versão oficial: <b>${cloudVersion}</b><br>Última sincronização: <b>${esc(when)}</b></p><div class="fsc-row"><button id="fscReload">Carregar versão oficial</button>${canWrite()?'<button class="secondary" id="fscPush">Salvar agora na nuvem</button>':''}<button class="secondary" id="fscClose">Fechar</button><button class="danger" id="fscLogout">Sair</button></div>`);
+    overlayHtml(`<h2>☁ FS Nuvem</h2><p><b>${esc(profile?.name||'Usuário')}</b> · Administrador</p><p>Versão oficial: <b>${cloudVersion}</b><br>Última sincronização: <b>${esc(when)}</b></p><div class="fsc-row"><button id="fscAccess">Gerenciar acessos</button><button class="secondary" id="fscReload">Carregar versão oficial</button><button class="secondary" id="fscPush">Salvar agora na nuvem</button><button class="secondary" id="fscClose">Fechar</button><button class="danger" id="fscLogout">Sair deste aparelho</button></div>`);
     document.getElementById('fscClose').onclick=closeOverlay;
     document.getElementById('fscLogout').onclick=logout;
     document.getElementById('fscReload').onclick=()=>loadOfficialState().catch(e=>showError(e.message));
-    if(canWrite()) document.getElementById('fscPush').onclick=()=>{closeOverlay(); queueSave(true)};
+    document.getElementById('fscPush').onclick=()=>{closeOverlay(); queueSave(true)};
+    document.getElementById('fscAccess').onclick=showAccessManager;
+  }
+
+  async function adminAction(action){
+    const res=await jsonp({action,token:token(),deviceId:deviceId()});
+    if(!res?.ok) throw new Error(res?.message||'Não foi possível concluir a operação.');
+    return res;
+  }
+  function publicShareUrl(key){
+    const u=new URL(location.href);
+    u.search=''; u.hash='';
+    u.searchParams.set('fsview',key);
+    return u.toString();
+  }
+  async function copyText(text){
+    try{ await navigator.clipboard.writeText(text); toast('✓ Link copiado'); return true; }catch(_){
+      const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select();
+      try{document.execCommand('copy'); toast('✓ Link copiado');}finally{ta.remove();}
+      return true;
+    }
+  }
+  async function showAccessManager(){
+    showBusy('Carregando controles de acesso...');
+    try{
+      const st=await adminAction('adminAccessStatus');
+      const link=st.publicActive&&st.publicKey?publicShareUrl(st.publicKey):'';
+      overlayHtml(`<h2>Gerenciar acessos</h2>
+        <p><b>Administrador:</b> acesso total à plataforma, sincronização e controles.</p>
+        <p><b>Editor / Operador:</b> pode alterar e salvar a escala.</p>
+        <p><b>Consulta:</b> link direto, sem usuário e sem senha, sempre em modo somente visualização.</p>
+        <label>Link de consulta</label>
+        ${link?`<input id="fscPublicLink" readonly value="${esc(link)}">`:'<p class="fsc-note">Nenhum link público de consulta está ativo.</p>'}
+        <div class="fsc-row">
+          ${link?'<button id="fscCopyPublic">Copiar link</button><button class="secondary" id="fscRotatePublic">Gerar novo link</button><button class="danger" id="fscDisablePublic">Desativar link</button>':'<button id="fscGeneratePublic">Gerar link de consulta</button>'}
+          <button class="secondary" id="fscRotateEditor">Gerar novo código de Editor</button>
+          <button class="secondary" id="fscRotateAdmin">Trocar meu código de Administrador</button>
+          <button class="secondary" id="fscBack">Voltar</button>
+        </div>
+        <p class="fsc-note">Ao gerar um novo link, o anterior deixa de funcionar. Ao trocar um código, o código anterior daquele perfil é desativado.</p>`);
+      document.getElementById('fscBack').onclick=showPanel;
+      document.getElementById('fscCopyPublic')?.addEventListener('click',()=>copyText(link));
+      document.getElementById('fscGeneratePublic')?.addEventListener('click',async()=>{showBusy('Gerando link de consulta...');try{await adminAction('adminGeneratePublic');showAccessManager();}catch(e){showError(e.message)}});
+      document.getElementById('fscRotatePublic')?.addEventListener('click',async()=>{if(!confirm('Gerar um novo link? O link de consulta atual deixará de funcionar.'))return;showBusy('Gerando novo link...');try{await adminAction('adminRotatePublic');showAccessManager();}catch(e){showError(e.message)}});
+      document.getElementById('fscDisablePublic')?.addEventListener('click',async()=>{if(!confirm('Desativar o link de consulta atual?'))return;showBusy('Desativando link...');try{await adminAction('adminDisablePublic');showAccessManager();}catch(e){showError(e.message)}});
+      document.getElementById('fscRotateEditor')?.addEventListener('click',async()=>{if(!confirm('Gerar um novo código de Editor? O código anterior será desativado.'))return;showBusy('Gerando código...');try{const r=await adminAction('adminRotateEditor');showOneTimeCode('Novo código de Editor',r.code,false);}catch(e){showError(e.message)}});
+      document.getElementById('fscRotateAdmin')?.addEventListener('click',async()=>{if(!confirm('Trocar seu código de Administrador? O código atual será desativado.'))return;showBusy('Gerando novo código...');try{const r=await adminAction('adminRotateAdmin');localStorage.setItem(TOKEN_KEY,r.code);showOneTimeCode('Novo código de Administrador',r.code,true);}catch(e){showError(e.message)}});
+    }catch(e){ showError(e.message); }
+  }
+  function showOneTimeCode(title,code,isAdmin){
+    overlayHtml(`<h2>${esc(title)}</h2><p>Copie e guarde este código agora.</p><input id="fscOneCode" readonly value="${esc(code||'')}"><div class="fsc-row"><button id="fscCopyCode">Copiar código</button><button class="secondary" id="fscAccessBack">Voltar aos acessos</button></div><p class="fsc-note">${isAdmin?'Este aparelho já passou a usar o novo código de Administrador.':'Envie este código somente à pessoa que poderá editar a escala.'}</p>`);
+    document.getElementById('fscCopyCode').onclick=()=>copyText(code||'');
+    document.getElementById('fscAccessBack').onclick=showAccessManager;
   }
 
   function mutatingElement(el){
-    if(!el || el.closest?.('#fsCloudOverlay,#fsCloudBadge')) return false;
+    if(!el || el.closest?.('#fsCloudOverlay,#fsCloudAdminMenu')) return false;
     if(el.matches?.('input,textarea,select,[contenteditable="true"]')) return true;
     const btn=el.closest?.('button,a,[role="button"]'); if(!btn) return false;
     const text=((btn.textContent||'')+' '+(btn.getAttribute('title')||'')+' '+(btn.getAttribute('onclick')||'')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -269,7 +334,7 @@
     setInterval(async()=>{
       if(!bootComplete||writeInFlight) return;
       try{
-        const s=await jsonp({action:'status',token:token(),deviceId:deviceId()});
+        const s=await jsonp({action:'status',...authParams()});
         if(s?.ok && Number(s.version||0)>cloudVersion){
           const msg='Existe uma nova versão oficial da escala na nuvem.';
           if(isViewer()) { toast(msg+' Atualizando...'); setTimeout(()=>loadOfficialState().catch(()=>{}),500); }
@@ -315,20 +380,25 @@
   }
 
   function logout(){
-    localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(PROFILE_KEY); localStorage.removeItem(VERSION_KEY); profile=null; cloudVersion=0; bootComplete=false; showLogin('Informe outro código de acesso.');
+    localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(PROFILE_KEY); localStorage.removeItem(VERSION_KEY); profile=null; cloudVersion=0; bootComplete=false;
+    if(isPublicLink()){ const u=new URL(location.href); u.searchParams.delete('fsview'); location.href=u.toString(); return; }
+    showLogin('Informe outro código de acesso.');
   }
 
   async function boot(){
     try{
       if(!endpoint()) return showEndpointSetup();
-      showBusy('Conectando à fonte oficial...');
-      if(!token()) return showLogin();
+      showBusy(isPublicLink()?'Abrindo consulta da escala...':'Conectando à fonte oficial...');
+      if(!isPublicLink() && !token()) return showLogin();
       await authenticate();
       const applied=sessionStorage.getItem(APPLY_FLAG)==='1'; if(applied) sessionStorage.removeItem(APPLY_FLAG);
       await loadOfficialState(applied);
-    }catch(e){ showError(e?.message||'Erro inesperado.'); }
+    }catch(e){
+      if(isPublicLink()) return showError(e?.message||'Este link de consulta não está disponível.',false);
+      showError(e?.message||'Erro inesperado.');
+    }
   }
 
-  window.FSCloud={boot,reload:loadOfficialState,save:()=>queueSave(true),logout,getProfile:()=>profile,getVersion:()=>cloudVersion};
+  window.FSCloud={boot,reload:loadOfficialState,save:()=>queueSave(true),logout,showAccessManager,getProfile:()=>profile,getVersion:()=>cloudVersion};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
 })();
