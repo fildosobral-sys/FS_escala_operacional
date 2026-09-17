@@ -1,4 +1,4 @@
-/* FS Nuvem v707 - multi-filial, importacao reforcada e carregamento reflexivo */
+/* FS Nuvem v709 - modo local-first com sincronizacao manual */
 (function(){
   'use strict';
 
@@ -15,6 +15,7 @@
   const APPLY_FLAG='fs_cloud_apply_reload';
   const CANONICAL_KEY='fs_escala_limpa_v381';
   const CLOUD_PREFIX='fs_cloud_';
+  const LOCAL_BRANCH_CACHE_PREFIX='fs_cloud_local_branch_';
   const LOCAL_ONLY=new Set([
     'fs_access_data_v1','fs_access_token','fs_access_verified_at','fs_access_verified_fingerprint',
     'fs_cargo','fs_genero','fs_nome','fs_nome_vendedor','fs_nome_vendedor_sessao','fs_pode_compartilhar',
@@ -117,14 +118,23 @@
     document.getElementById('fscCloseX').onclick=closeOverlay;document.getElementById('fscAdminLogin').onclick=()=>showAdminLogin('Acesso do Administrador geral.');document.querySelectorAll('.fsc-accessBtn').forEach(b=>b.onclick=()=>useSavedAccess(list[Number(b.dataset.i)]));
   }
 
-  function showAdminLogin(message){overlayHtml(`<h2>FS Escala 5x2</h2><p>${esc(message||'Acesso administrativo.')}</p><label>Senha do Administrador</label><input id="fscToken" type="password" autocomplete="current-password"><div class="fsc-row"><button id="fscLogin">Entrar</button></div><p class="fsc-note">Os demais usuários entram por convites individuais gerados dentro da plataforma.</p>`);const go=async()=>{const t=document.getElementById('fscToken').value.trim();if(!t)return;localStorage.setItem(TOKEN_KEY,t);localStorage.removeItem(SESSION_KEY);showBusy('Validando acesso...');try{await authenticate();await loadOfficialState()}catch(e){localStorage.removeItem(TOKEN_KEY);showAdminLogin(e.message||'Senha inválida.')}};document.getElementById('fscLogin').onclick=go;document.getElementById('fscToken').onkeydown=e=>{if(e.key==='Enter')go()}}
+  function isTimeoutError(e){return /tempo de resposta excedido|timeout|demorou/i.test(String(e&&e.message||e||''))}
+  async function authenticateResilient(){
+    try{return await authenticate()}catch(e){
+      if(!isTimeoutError(e))throw e;
+      showBusy('Conectando à nuvem...');
+      await new Promise(r=>setTimeout(r,1200));
+      return await authenticate();
+    }
+  }
+  function showAdminLogin(message){overlayHtml(`<h2>FS Escala 5x2</h2><p>${esc(message||'Acesso administrativo.')}</p><label>Senha do Administrador</label><input id="fscToken" type="password" autocomplete="current-password"><div class="fsc-row"><button id="fscLogin">Entrar</button></div><p class="fsc-note">Os demais usuários entram por convites individuais gerados dentro da plataforma.</p>`);const go=async()=>{const input=document.getElementById('fscToken');const t=input.value.trim();if(!t)return;localStorage.setItem(TOKEN_KEY,t);localStorage.removeItem(SESSION_KEY);showBusy('Validando acesso...');try{await authenticateResilient();finalizeBoot({version:cloudVersion});if(!snapshotHasOperationalData(buildSnapshot()))toast('Use o menu ⋮ para carregar a versão oficial da nuvem.')}catch(e){if(isTimeoutError(e)){return showAdminLogin('A nuvem demorou para responder. Sua senha não foi descartada. Tente entrar novamente em alguns segundos.')}localStorage.removeItem(TOKEN_KEY);showAdminLogin(e.message||'Senha inválida.')}};document.getElementById('fscLogin').onclick=go;document.getElementById('fscToken').onkeydown=e=>{if(e.key==='Enter')go()}}
 
   async function showInviteClaim(raw){
     showBusy('Validando convite...');
     try{
       const info=await jsonp({action:'inviteInfo',invite:raw,deviceId:deviceId()});if(!info?.ok)throw new Error(info?.message||'Convite inválido.');
       overlayHtml(`<h2>Você recebeu acesso à Escala 5x2</h2><p>Destino: <b>${esc(info.branchName||'')}</b>${info.sector?` · ${esc(info.sector)}`:''}</p><p>Perfil: <b>${esc(roleLabel(info.role))}</b>${info.canShare?' · poderá compartilhar novos acessos':''}</p><label>Informe seu nome</label><input id="fscClaimName" placeholder="Nome da pessoa convidada" autocomplete="name"><div class="fsc-row"><button id="fscClaim">Ativar meu acesso</button></div><p class="fsc-note">Este convite é individual. O nome precisa corresponder à pessoa para quem o acesso foi criado e o link só pode ser ativado uma vez.</p>`);
-      const claim=async()=>{const name=document.getElementById('fscClaimName').value.trim();if(!name)return;showBusy('Ativando seu acesso...');const res=await jsonp({action:'claimInvite',invite:raw,name,deviceId:deviceId()});if(!res?.ok)return showInviteClaimError(raw,res?.message||'Não foi possível ativar.');localStorage.setItem(SESSION_KEY,res.session);localStorage.removeItem(TOKEN_KEY);localStorage.setItem(BRANCH_KEY,res.branchId);const u=new URL(location.href);u.searchParams.delete('fsinvite');history.replaceState({},'',u.toString());await authenticate();await loadOfficialState()};
+      const claim=async()=>{const name=document.getElementById('fscClaimName').value.trim();if(!name)return;showBusy('Ativando seu acesso...');const res=await jsonp({action:'claimInvite',invite:raw,name,deviceId:deviceId()});if(!res?.ok)return showInviteClaimError(raw,res?.message||'Não foi possível ativar.');localStorage.setItem(SESSION_KEY,res.session);localStorage.removeItem(TOKEN_KEY);localStorage.setItem(BRANCH_KEY,res.branchId);const u=new URL(location.href);u.searchParams.delete('fsinvite');history.replaceState({},'',u.toString());await authenticate();finalizeBoot({version:cloudVersion});toast('Acesso ativado. Use o menu ⋮ para carregar a escala oficial desta filial.')};
       document.getElementById('fscClaim').onclick=claim;document.getElementById('fscClaimName').onkeydown=e=>{if(e.key==='Enter')claim()};
     }catch(e){showInviteClaimError(raw,e.message)}
   }
@@ -133,7 +143,35 @@
   async function authenticate(){
     const res=await jsonp({action:'auth',...authParams()});if(!res?.ok)throw new Error(res?.message||'Acesso não autorizado.');
     profile={name:res.name||'',role:res.role||'viewer',globalAdmin:!!res.globalAdmin,canShare:!!res.canShare,memberId:res.memberId||'',branchId:res.branchId||'',branchName:res.branchName||'',sector:res.sector||''};
-    localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));localStorage.setItem(BRANCH_KEY,profile.branchId);cloudVersion=Number(res.version||0);rememberCurrentAccess();return res;
+    localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));localStorage.setItem(BRANCH_KEY,profile.branchId);
+    // v709: a versao local representa a ultima versao realmente carregada/salva neste aparelho.
+    // Nao substitua esse numero apenas porque o servidor informou uma versao mais nova no login,
+    // pois isso preserva a protecao contra sobrescrita de alteracoes feitas em outro dispositivo.
+    cloudVersion=Number(localStorage.getItem(VERSION_KEY)||0);rememberCurrentAccess();return res;
+  }
+
+  function cachedProfile(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'null')}catch(_){return null}}
+  function branchCacheKey(id){return LOCAL_BRANCH_CACHE_PREFIX+String(id||'')}
+  function saveCurrentBranchCache(){
+    if(!profile?.branchId)return;try{localStorage.setItem(branchCacheKey(profile.branchId),JSON.stringify({payload:JSON.stringify(buildSnapshot()),version:cloudVersion,savedAt:new Date().toISOString()}))}catch(_){ }
+  }
+  function restoreBranchCache(id){
+    try{const raw=localStorage.getItem(branchCacheKey(id));if(!raw)return false;const c=JSON.parse(raw);if(!c?.payload)return false;applySnapshot(c.payload,Number(c.version||0));sessionStorage.removeItem(APPLY_FLAG);return true}catch(e){console.warn('FS Nuvem: cache local da filial inválido',e);return false}
+  }
+  function clearOperationalLocal(){
+    const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&!k.startsWith(CLOUD_PREFIX)&&!LOCAL_ONLY.has(k))keys.push(k)}keys.forEach(k=>localStorage.removeItem(k));
+  }
+  function localBoot(){
+    const cp=cachedProfile();if(!cp)return false;
+    profile=cp;cloudVersion=Number(localStorage.getItem(VERSION_KEY)||0);lastSnapshot=stableSnapshot();
+    finalizeBoot({version:cloudVersion});return true;
+  }
+  async function validateAccessInBackground(){
+    try{
+      const res=await jsonp({action:'auth',...authParams()});if(!res?.ok)throw new Error(res?.message||'Acesso não autorizado.');
+      const fresh={name:res.name||'',role:res.role||'viewer',globalAdmin:!!res.globalAdmin,canShare:!!res.canShare,memberId:res.memberId||'',branchId:res.branchId||'',branchName:res.branchName||'',sector:res.sector||''};
+      profile=fresh;localStorage.setItem(PROFILE_KEY,JSON.stringify(fresh));localStorage.setItem(BRANCH_KEY,fresh.branchId);rememberCurrentAccess();installHeaderControls();
+    }catch(e){console.warn('FS Nuvem: validacao em segundo plano falhou:',e)}
   }
 
   function applySnapshot(payload,version){
@@ -156,7 +194,7 @@
       throw new Error('Esta filial ainda não possui uma escala oficial.');
     }
     const cameFromReload=sessionStorage.getItem(APPLY_FLAG)==='1';if(cameFromReload)sessionStorage.removeItem(APPLY_FLAG);
-    const current=stableSnapshot();applySnapshot(res.payload,res.version);
+    const current=stableSnapshot();applySnapshot(res.payload,res.version);saveCurrentBranchCache();
     // Recarrega uma unica vez para que toda a aplicacao leia o snapshot da filial.
     if(!cameFromReload && current!==stableSnapshot()){location.reload();return}
     // Se applySnapshot marcou reload mas nao foi necessario, remova a marca.
@@ -182,8 +220,11 @@
     const filial=`${esc(profile?.branchName||'')}${profile?.sector?' · '+esc(profile.sector):''}`;
     const accessCard=canShare()?`<section class="fsc-menuCard"><h3>👥 Acessos e pessoas</h3><p>Convites, usuários e permissões desta estrutura.</p><button id="fscShare">Gerar novo acesso</button><button class="secondary" id="fscDash">Painel de acessos</button></section>`:'';
     const branchCard=(isGlobalAdmin()||role()==='branch_admin')?`<section class="fsc-menuCard"><h3>🏢 Filial e ambiente</h3><p>Identificação e navegação entre ambientes independentes.</p><button class="secondary" id="fscRename">Identificação da filial</button>${isGlobalAdmin()?'<button class="secondary" id="fscBranches">Trocar filial</button>':''}</section>`:'';
-    overlayHtml(`<button class="fsc-closeX" id="fscCloseX" aria-label="Fechar">×</button><h2>☁ FS Nuvem</h2><p><b>${who}</b><br>Filial: <b>${filial}</b> · versão <b>${cloudVersion}</b></p><div class="fsc-menuGrid">${accessCard}${branchCard}<section class="fsc-menuCard"><h3>☁ Sincronização</h3><p>Carrega novamente a versão oficial salva na nuvem.</p><button class="secondary" id="fscReload">Recarregar nuvem</button></section><section class="fsc-menuCard"><h3>👤 Sessão</h3><p>Troque de pessoa sem apagar o acesso já ativado neste aparelho.</p><button class="secondary" id="fscSwitchUser">Trocar usuário</button><button class="danger" id="fscLogout">Remover este acesso do aparelho</button></section></div><p class="fsc-note">“Trocar usuário” mantém os acessos deste aparelho. “Remover este acesso” apaga o acesso atual e, para um usuário convidado, poderá ser necessário gerar um novo convite.</p>`,true);
-    document.getElementById('fscCloseX').onclick=closeOverlay;document.getElementById('fscShare')?.addEventListener('click',showCreateInvite);document.getElementById('fscDash')?.addEventListener('click',showDashboard);document.getElementById('fscRename')?.addEventListener('click',showRenameBranch);document.getElementById('fscBranches')?.addEventListener('click',showBranchSwitcher);document.getElementById('fscReload').onclick=()=>{showBusy('Carregando versão oficial...');loadOfficialState().catch(e=>showError(e.message))};document.getElementById('fscSwitchUser').onclick=()=>{rememberCurrentAccess();clearActiveAccess();showAccessChooser()};document.getElementById('fscLogout').onclick=logout;
+    const syncButtons=canWrite()?`<button id="fscSaveCloud">Salvar na nuvem</button><button class="secondary" id="fscReload">Carregar da nuvem</button>`:`<button class="secondary" id="fscReload">Carregar da nuvem</button>`;
+    overlayHtml(`<button class="fsc-closeX" id="fscCloseX" aria-label="Fechar">×</button><h2>☁ FS Nuvem</h2><p><b>${who}</b><br>Filial: <b>${filial}</b> · versão local <b>${cloudVersion}</b></p><div class="fsc-menuGrid">${accessCard}${branchCard}<section class="fsc-menuCard"><h3>☁ Sincronização manual</h3><p>O trabalho fica salvo neste aparelho. A nuvem só muda quando você escolher salvar.</p>${syncButtons}</section><section class="fsc-menuCard"><h3>👤 Sessão</h3><p>Troque de pessoa sem apagar o acesso já ativado neste aparelho.</p><button class="secondary" id="fscSwitchUser">Trocar usuário</button><button class="danger" id="fscLogout">Remover este acesso do aparelho</button></section></div><p class="fsc-note">Alterações, importações e backups permanecem locais até você tocar em “Salvar na nuvem”. “Carregar da nuvem” substitui os dados locais pela versão oficial.</p>`,true);
+    document.getElementById('fscCloseX').onclick=closeOverlay;document.getElementById('fscShare')?.addEventListener('click',showCreateInvite);document.getElementById('fscDash')?.addEventListener('click',showDashboard);document.getElementById('fscRename')?.addEventListener('click',showRenameBranch);document.getElementById('fscBranches')?.addEventListener('click',showBranchSwitcher);
+    document.getElementById('fscSaveCloud')?.addEventListener('click',async()=>{showBusy('Salvando versão oficial...');try{await sendSnapshot(false,true);closeOverlay();toast('✓ Versão oficial atualizada na nuvem')}catch(e){showError(e.message)}});
+    document.getElementById('fscReload').onclick=()=>{if(!confirm('Carregar a versão oficial da nuvem? As alterações locais ainda não publicadas serão substituídas.'))return;showBusy('Carregando versão oficial...');loadOfficialState().catch(e=>showError(e.message))};document.getElementById('fscSwitchUser').onclick=()=>{rememberCurrentAccess();clearActiveAccess();showAccessChooser()};document.getElementById('fscLogout').onclick=logout;
   }
 
   async function showCreateInvite(){
@@ -202,7 +243,7 @@
 
   async function showDashboard(){showBusy('Carregando painel...');try{const d=await jsonp({action:'dashboard',...authParams()});if(!d?.ok)throw new Error(d?.message||'Sem acesso ao painel.');const branchMap=Object.fromEntries((d.branches||[]).map(b=>[b.id,b]));const activeMembers=(d.members||[]).filter(m=>m.active);const pendingInvites=(d.invites||[]).filter(i=>i.active&&!i.usedAt);const branches=(d.branches||[]).map(b=>`<div class="fsc-cardline"><b>${esc(b.name)}</b>${b.sector?` · ${esc(b.sector)}`:''}<span class="fsc-pill">v${b.version||0}</span><div class="fsc-mini">Última alteração: ${esc(formatDate(b.updatedAt))}${b.updatedBy?' · '+esc(b.updatedBy):''}</div></div>`).join('')||'<p class="fsc-note">Nenhuma filial.</p>';const members=activeMembers.map(m=>`<div class="fsc-cardline"><b>${esc(m.name)}</b> <span class="fsc-pill">${esc(roleLabel(m.role))}</span>${m.canShare?'<span class="fsc-pill">pode compartilhar</span>':''}<div class="fsc-mini">${esc(branchMap[m.branchId]?.name||m.branchId)} · criado por ${esc(m.createdBy||'-')} · último acesso ${esc(formatDate(m.lastAccess))}</div>${(isGlobalAdmin()||role()==='branch_admin')?`<div class="fsc-row"><button class="danger fscRevokeMember" data-id="${esc(m.id)}">Bloquear acesso</button></div>`:''}</div>`).join('')||'<p class="fsc-note">Nenhum usuário por convite ainda.</p>';const invites=pendingInvites.map(i=>`<div class="fsc-cardline"><b>${esc(i.name)}</b> <span class="fsc-pill">${esc(roleLabel(i.role))}</span><div class="fsc-mini">Pendente · criado por ${esc(i.createdBy||'-')} · expira ${esc(formatDate(i.expiresAt))}</div><div class="fsc-row"><button class="danger fscRevokeInvite" data-id="${esc(i.id)}">Cancelar convite</button></div></div>`).join('')||'<p class="fsc-note">Nenhum convite pendente.</p>';const recent=(d.recent||[]).slice(0,20).map(h=>`<div class="fsc-cardline"><b>${esc(h.user||'Sistema')}</b> · ${esc(h.event)} <span class="fsc-pill">${esc(h.result)}</span><div class="fsc-mini">${esc(formatDate(h.date))} · ${esc(h.message||'')}</div></div>`).join('')||'<p class="fsc-note">Sem histórico recente.</p>';overlayHtml(`<button class="fsc-closeX" id="fscCloseX" aria-label="Fechar">×</button><h2>Painel de acessos</h2><p>Visão administrativa organizada por ambiente, pessoas e atividade.</p><div class="fsc-kpis"><div class="fsc-kpi"><b>${(d.branches||[]).length}</b><span>Filiais</span></div><div class="fsc-kpi"><b>${activeMembers.length}</b><span>Usuários ativos</span></div><div class="fsc-kpi"><b>${pendingInvites.length}</b><span>Convites pendentes</span></div><div class="fsc-kpi"><b>${(d.recent||[]).length}</b><span>Atividades</span></div></div><section class="fsc-section"><h3>🏢 Filiais</h3>${branches}</section><section class="fsc-section"><h3>👥 Usuários ativos</h3>${members}</section><section class="fsc-section"><h3>✉️ Convites pendentes</h3>${invites}</section><section class="fsc-section"><h3>🕘 Atividade recente</h3>${recent}</section><div class="fsc-row"><button class="secondary" id="fscDashBack">Voltar ao menu</button></div>`,true);document.getElementById('fscCloseX').onclick=closeOverlay;document.getElementById('fscDashBack').onclick=showManagerHome;document.querySelectorAll('.fscRevokeInvite').forEach(b=>b.onclick=async()=>{if(!confirm('Cancelar este convite?'))return;showBusy('Cancelando...');await jsonp({action:'revokeInvite',...authParams(),inviteId:b.dataset.id});showDashboard()});document.querySelectorAll('.fscRevokeMember').forEach(b=>b.onclick=async()=>{if(!confirm('Bloquear este acesso? A pessoa não conseguirá mais abrir a plataforma neste acesso.'))return;showBusy('Bloqueando...');await jsonp({action:'revokeMember',...authParams(),memberId:b.dataset.id});showDashboard()})}catch(e){showError(e.message)}}
 
-  async function showBranchSwitcher(){showBusy('Carregando filiais...');try{const d=await jsonp({action:'dashboard',...authParams()});if(!d?.ok)throw new Error(d?.message||'Falha.');const rows=(d.branches||[]).map(b=>`<button class="secondary fscBranchPick" data-id="${esc(b.id)}" style="width:100%;text-align:left;margin:5px 0">${esc(b.name)}${b.sector?' · '+esc(b.sector):''} — v${b.version||0}</button>`).join('');overlayHtml(`<h2>Trocar filial</h2><p>Como Administrador geral, você pode acompanhar qualquer filial sem misturar os dados.</p>${rows}<div class="fsc-row"><button class="secondary" id="fscBack">Voltar</button></div>`);document.getElementById('fscBack').onclick=showManagerHome;document.querySelectorAll('.fscBranchPick').forEach(b=>b.onclick=async()=>{showBusy('Abrindo filial...');const r=await jsonp({action:'switchBranch',...authParams(),branchId:b.dataset.id});if(!r?.ok)return showError(r?.message||'Falha.');profile.branchId=r.branchId;profile.branchName=r.branchName;profile.sector=r.sector;localStorage.setItem(BRANCH_KEY,r.branchId);cloudVersion=Number(r.version||0);await loadOfficialState()})}catch(e){showError(e.message)}}
+  async function showBranchSwitcher(){showBusy('Carregando filiais...');try{const d=await jsonp({action:'dashboard',...authParams()});if(!d?.ok)throw new Error(d?.message||'Falha.');const rows=(d.branches||[]).map(b=>`<button class="secondary fscBranchPick" data-id="${esc(b.id)}" style="width:100%;text-align:left;margin:5px 0">${esc(b.name)}${b.sector?' · '+esc(b.sector):''} — v${b.version||0}</button>`).join('');overlayHtml(`<h2>Trocar filial</h2><p>Como Administrador geral, você pode acompanhar qualquer filial sem misturar os dados.</p>${rows}<div class="fsc-row"><button class="secondary" id="fscBack">Voltar</button></div>`);document.getElementById('fscBack').onclick=showManagerHome;document.querySelectorAll('.fscBranchPick').forEach(b=>b.onclick=async()=>{showBusy('Trocando filial...');saveCurrentBranchCache();const r=await jsonp({action:'switchBranch',...authParams(),branchId:b.dataset.id});if(!r?.ok)return showError(r?.message||'Falha.');profile.branchId=r.branchId;profile.branchName=r.branchName;profile.sector=r.sector;localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));localStorage.setItem(BRANCH_KEY,r.branchId);if(restoreBranchCache(r.branchId)){closeOverlay();installHeaderControls();toast('Filial aberta com os dados locais deste aparelho.');setTimeout(()=>location.reload(),250)}else{clearOperationalLocal();cloudVersion=0;localStorage.setItem(VERSION_KEY,'0');closeOverlay();installHeaderControls();toast('Esta filial ainda não tem dados locais neste aparelho. Use ⋮ → Carregar da nuvem.');setTimeout(()=>location.reload(),250)}})}catch(e){showError(e.message)}}
 
   function showRenameBranch(){overlayHtml(`<h2>Identificação da filial</h2><p>Essa informação aparece no cabeçalho para deixar claro qual ambiente está aberto.</p><label>Filial / unidade</label><input id="fscRenameName" value="${esc(profile.branchName||'')}"><label>Setor (opcional)</label><input id="fscRenameSector" value="${esc(profile.sector||'')}"><div class="fsc-row"><button id="fscRenameSave">Salvar</button><button class="secondary" id="fscBack">Voltar</button></div>`);document.getElementById('fscBack').onclick=showManagerHome;document.getElementById('fscRenameSave').onclick=async()=>{showBusy('Salvando identificação...');const r=await jsonp({action:'renameBranch',...authParams(),name:document.getElementById('fscRenameName').value.trim(),sector:document.getElementById('fscRenameSector').value.trim()});if(!r?.ok)return showError(r?.message||'Falha.');profile.branchName=r.name;profile.sector=r.sector;closeOverlay();installHeaderControls();toast('Identificação da filial atualizada.')}}
 
@@ -211,9 +252,15 @@
   function mutatingElement(el){if(!el||el.closest?.('#fsCloudOverlay,#fsCloudHeaderBox'))return false;if(el.matches?.('input,textarea,select,[contenteditable="true"]'))return true;const btn=el.closest?.('button,a,[role="button"]');if(!btn)return false;const text=((btn.textContent||'')+' '+(btn.getAttribute('title')||'')+' '+(btn.getAttribute('onclick')||'')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();return /(salvar|aplicar|editar|excluir|limpar|novo colaborador|novo |distribui|sugerir|programar|confirmar|concluir|corrigir|restaurar|importar|ajustar horario|abrir.*modal)/.test(text)||btn.classList.contains('editBtn')}
   function enforceViewerMode(){if(viewerGuardInstalled)return;viewerGuardInstalled=true;const style=document.createElement('style');style.id='fsCloudViewerCss';style.textContent=`html[data-fs-cloud-role="viewer"] .editBtn{display:none!important}`;document.head.appendChild(style);document.addEventListener('click',e=>{if(document.documentElement.dataset.fsCloudRole==='viewer'&&mutatingElement(e.target)){e.preventDefault();e.stopImmediatePropagation();toast('Modo Visualizador: somente consulta.')}},true);const lock=()=>{if(document.documentElement.dataset.fsCloudRole!=='viewer')return;document.querySelectorAll('input,textarea,select,[contenteditable="true"]').forEach(el=>{if(el.closest('#fsCloudOverlay,#fsCloudHeaderBox'))return;if(el.hasAttribute('contenteditable'))el.setAttribute('contenteditable','false');else el.disabled=true})};lock();let mt=0;new MutationObserver(()=>{clearTimeout(mt);mt=setTimeout(lock,60)}).observe(document.body,{subtree:true,childList:true})}
 
-  function startWatchers(){clearInterval(pollTimer);clearInterval(versionPollTimer);if(canWrite()){pollTimer=setInterval(()=>{if(applying||writeInFlight||!bootComplete)return;const now=stableSnapshot();if(now!==lastSnapshot)queueSave(false)},Number(CFG.SYNC_INTERVAL_MS||2500))}versionPollTimer=setInterval(async()=>{if(!bootComplete||writeInFlight)return;try{const s=await jsonp({action:'status',...authParams()});if(s?.ok&&Number(s.version||0)>cloudVersion){if(!canWrite()){toast('Atualizando nova versão da filial...');setTimeout(()=>loadOfficialState().catch(()=>{}),500)}else toast('Existe uma versão mais recente desta filial na nuvem.')}}catch(_){ }},30000)}
-  function queueSave(force){if(!canWrite()||applying)return;clearTimeout(saveTimer);saveTimer=setTimeout(()=>sendSnapshot(false,force).catch(e=>{writeInFlight=false;toast('Falha ao sincronizar: '+e.message)}),force?50:Number(CFG.WRITE_DEBOUNCE_MS||1400))}
-  async function sendSnapshot(initializing,force){if(writeInFlight)return;const current=stableSnapshot();if(!force&&!initializing&&current===lastSnapshot)return;writeInFlight=true;const requestId=uuid(),payload=buildSnapshot();postForm({action:'write',...authParams(),requestId,baseVersion:initializing?0:cloudVersion,payload});let result=null;for(let i=0;i<12;i++){await new Promise(r=>setTimeout(r,650));try{result=await jsonp({action:'writeStatus',...authParams(),requestId})}catch(_){continue}if(result?.done)break}writeInFlight=false;if(!result?.done)throw new Error('A gravação foi enviada, mas ainda não foi confirmada.');if(!result.ok){if(result.code==='CONFLICT'){overlayHtml(`<h2>Alteração não publicada</h2><p>Outra pessoa salvou esta filial antes. Sua versão não sobrescreveu a versão mais recente.</p><div class="fsc-row"><button id="fscReload">Carregar versão oficial</button><button class="secondary" id="fscClose">Fechar</button></div>`);document.getElementById('fscReload').onclick=()=>loadOfficialState().catch(e=>showError(e.message));document.getElementById('fscClose').onclick=closeOverlay;return}throw new Error(result.message||'Gravação recusada.')}cloudVersion=Number(result.version||cloudVersion+1);localStorage.setItem(VERSION_KEY,String(cloudVersion));localStorage.setItem(LAST_SYNC_KEY,new Date().toISOString());lastSnapshot=current;toast('✓ Filial salva na nuvem')}
+  function startWatchers(){
+    // v709: sincronizacao totalmente manual. Nenhuma alteracao local dispara escrita ou leitura da nuvem.
+    clearInterval(pollTimer);clearInterval(versionPollTimer);clearTimeout(saveTimer);
+  }
+  function queueSave(force){
+    if(!force){toast('Alterações salvas localmente. Use o menu ⋮ para publicar na nuvem.');return}
+    return sendSnapshot(false,true).catch(e=>{writeInFlight=false;toast('Falha ao salvar na nuvem: '+e.message);throw e})
+  }
+  async function sendSnapshot(initializing,force){if(writeInFlight)return;const current=stableSnapshot();if(!force&&!initializing&&current===lastSnapshot)return;writeInFlight=true;const requestId=uuid(),payload=buildSnapshot();postForm({action:'write',...authParams(),requestId,baseVersion:initializing?0:cloudVersion,payload});let result=null;for(let i=0;i<12;i++){await new Promise(r=>setTimeout(r,650));try{result=await jsonp({action:'writeStatus',...authParams(),requestId})}catch(_){continue}if(result?.done)break}writeInFlight=false;if(!result?.done)throw new Error('A gravação foi enviada, mas ainda não foi confirmada.');if(!result.ok){if(result.code==='CONFLICT'){overlayHtml(`<h2>Alteração não publicada</h2><p>Outra pessoa salvou esta filial antes. Sua versão não sobrescreveu a versão mais recente.</p><div class="fsc-row"><button id="fscReload">Carregar versão oficial</button><button class="secondary" id="fscClose">Fechar</button></div>`);document.getElementById('fscReload').onclick=()=>loadOfficialState().catch(e=>showError(e.message));document.getElementById('fscClose').onclick=closeOverlay;return}throw new Error(result.message||'Gravação recusada.')}cloudVersion=Number(result.version||cloudVersion+1);localStorage.setItem(VERSION_KEY,String(cloudVersion));localStorage.setItem(LAST_SYNC_KEY,new Date().toISOString());lastSnapshot=current;saveCurrentBranchCache();toast('✓ Filial salva na nuvem')}
 
   function logout(){
     const currentKey=profile?((profile.globalAdmin?'ADMIN':(profile.memberId||profile.name||'USER'))+'|'+(profile.branchId||'')):'';
@@ -226,10 +273,18 @@
       const inv=inviteToken();
       if(inv&&!session())return showInviteClaim(inv);
       if(session()||token()){
-        showBusy('Abrindo ambiente da filial...');
-        await authenticate();
+        // v709: se este aparelho ja conhece o perfil, abre imediatamente usando os dados locais.
+        if(localBoot()){
+          if(inv){const u=new URL(location.href);u.searchParams.delete('fsinvite');history.replaceState({},'',u.toString())}
+          setTimeout(validateAccessInBackground,250);return;
+        }
+        // Primeiro acesso neste aparelho ainda precisa validar a credencial uma vez.
+        showBusy('Validando acesso...');
+        await authenticateResilient();
         if(inv){const u=new URL(location.href);u.searchParams.delete('fsinvite');history.replaceState({},'',u.toString())}
-        await loadOfficialState();return;
+        finalizeBoot({version:cloudVersion});
+        if(!snapshotHasOperationalData(buildSnapshot()))setTimeout(()=>toast('Este aparelho ainda não tem escala local. Use ⋮ → Carregar da nuvem.'),400);
+        return;
       }
       showAccessChooser();
     }catch(e){

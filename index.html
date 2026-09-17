@@ -15455,7 +15455,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   try{importarDadosJson=importar}catch(e){}try{exportarDadosJson=window.fsBaixarBackupCompleto}catch(e){}
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-config.js?v=707"></script><script src="./fs-cloud.js?v=707"></script><script id="fs-v706-importacao-reforcada">
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-config.js?v=709"></script><script src="./fs-cloud.js?v=709"></script><script id="fs-v706-importacao-reforcada">
 /* v706: importação reforçada para relatórios executivos em imagem/PDF */
 (function(){
   'use strict';
@@ -15584,8 +15584,8 @@ window.baixarImagem=function(elementId,nomeArquivo){
 })();
 </script>
 
-\n<script id="fs-v707-importacao-backup-nuvem">
-/* v707: restauração/importação aplicam o estado e publicam imediatamente na nuvem. */
+\n<script id="fs-v709-importacao-backup-local">
+/* v709: restauração/importação alteram apenas o estado local; publicação na nuvem é manual pelo menu. */
 (function(){
   'use strict';
   const CANON='fs_escala_limpa_v381';
@@ -15617,11 +15617,9 @@ window.baixarImagem=function(elementId,nomeArquivo){
     return null;
   }
   async function publicarAgora(rotulo){
-    if(!window.FSCloud?.saveNow)return false;
-    setStatus((rotulo||'Dados aplicados')+' • salvando na nuvem…');
-    await window.FSCloud.saveNow();
-    setStatus((rotulo||'Dados aplicados')+' • salvo na nuvem ✓');
-    return true;
+    // Compatibilidade: na v709 a publicação é sempre manual pelo menu da nuvem.
+    setStatus((rotulo||'Dados aplicados')+' • salvo localmente ✓');
+    return false;
   }
   function aplicarEstadoLocal(novo,data){
     const preservar={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&IGNORAR.test(k))preservar[k]=localStorage.getItem(k)}
@@ -15640,12 +15638,11 @@ window.baixarImagem=function(elementId,nomeArquivo){
       const novo=acharEstado(data);if(!novo||!novo.pessoas.length)throw new Error('Não encontrei colaboradores nesse backup. Ele pode ser de outro tipo de arquivo.');
       aplicarEstadoLocal(novo,data);
       const modo=novo.config?.modo==='6x1'?'6x1':novo.config?.modo==='distribuido'?'5x2 distribuído':'5x2';
-      try{await publicarAgora(`Backup restaurado: ${novo.pessoas.length} colaborador(es)`);alert(`Backup restaurado e publicado na nuvem com sucesso.\
+      await publicarAgora(`Backup restaurado: ${novo.pessoas.length} colaborador(es)`);alert(`Backup restaurado neste aparelho com sucesso.\
 \
-${novo.pessoas.length} colaborador(es) • modalidade ${modo}.`)}
-      catch(e){alert(`O backup foi aplicado neste aparelho, mas não consegui confirmar o salvamento na nuvem: ${e.message||e}\
+${novo.pessoas.length} colaborador(es) • modalidade ${modo}.\
 \
-Não atualize a página ainda. Tente salvar novamente pelo menu da nuvem.`)}
+Revise os dados e, quando estiver tudo certo, use o menu ⋮ → Salvar na nuvem.`)
     }catch(e){setStatus('Falha ao restaurar backup: '+(e.message||e));alert('Não consegui restaurar este backup: '+(e.message||e))}
   }
   window.fsRestaurarBackupCompleto=restaurarBackupV707;
@@ -15659,8 +15656,8 @@ Não atualize a página ainda. Tente salvar novamente pelo menu da nuvem.`)}
     await Promise.resolve(r);
     const depois=JSON.stringify((window.state||state)?.pessoas||[]);
     if(depois!==antes||pendAntes?.itens?.length){
-      try{await publicarAgora('Importação aplicada');}
-      catch(e){setStatus('Importação aplicada localmente, mas falta confirmar na nuvem: '+(e.message||e));}
+      await publicarAgora('Importação aplicada');
+      setStatus('Importação aplicada localmente ✓ • revise e use o menu ⋮ → Salvar na nuvem quando quiser publicar.');
     }
     return r;
   };
@@ -15678,7 +15675,7 @@ Não atualize a página ainda. Tente salvar novamente pelo menu da nuvem.`)}
 \
 Reconheci ${pend.itens.length} colaborador(es) e ${comH} com horários.\
 \
-Deseja aplicar esses dados à plataforma agora e salvar na nuvem?`)){
+Deseja aplicar esses dados à plataforma agora? Eles ficarão salvos somente neste aparelho até você publicar manualmente na nuvem.`)){
         await window.importarListaColaboradores();
       }else if(ta){ta.scrollIntoView({behavior:'smooth',block:'center'});ta.focus()}
     }
@@ -15691,7 +15688,7 @@ Deseja aplicar esses dados à plataforma agora e salvar na nuvem?`)){
       if(t.includes('importar lista conferida'))btn.onclick=e=>{e.preventDefault();e.stopPropagation();window.importarListaColaboradores();return false};
       if(t.includes('restaurar backup'))btn.onclick=e=>{e.preventDefault();e.stopPropagation();window.importarDadosJson();return false};
     });
-    const st=document.getElementById('importStatus');if(st&&!st.dataset.v707){st.dataset.v707='1';st.textContent='Selecione PDF/PNG/JPG/TXT, clique em “Ler e aplicar arquivos” e confirme. O sistema aplica os dados e salva na nuvem.'}
+    const st=document.getElementById('importStatus');if(st&&!st.dataset.v707){st.dataset.v707='1';st.textContent='Selecione PDF/PNG/JPG/TXT, clique em “Ler e aplicar arquivos” e confirme. O sistema aplica os dados localmente; a nuvem só é atualizada quando você escolher “Salvar na nuvem”.'}
   }
   document.addEventListener('DOMContentLoaded',()=>setTimeout(religarV707,700));
   new MutationObserver(()=>setTimeout(religarV707,50)).observe(document.documentElement,{childList:true,subtree:true});
