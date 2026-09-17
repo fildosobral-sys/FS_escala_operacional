@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-nuvem-v709';
+const CACHE_NAME = 'fs-escala-nuvem-v711';
 const CORE_FILES = [
   './',
   './index.html',
@@ -7,7 +7,7 @@ const CORE_FILES = [
   './fs-continuity-v2.js',
   './fs-continuity-v2.css',
   './fs-cloud-config.js',
-  './fs-cloud.js',
+  './fs-cloud.js','./fs-import-manager.js',
   './manifest.webmanifest',
   './LOGO%20ATUAL.png',
   './icone-192.png',

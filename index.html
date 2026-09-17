@@ -15455,7 +15455,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   try{importarDadosJson=importar}catch(e){}try{exportarDadosJson=window.fsBaixarBackupCompleto}catch(e){}
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-config.js?v=709"></script><script src="./fs-cloud.js?v=709"></script><script id="fs-v706-importacao-reforcada">
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-config.js?v=711"></script><script src="./fs-cloud.js?v=711"></script><script id="fs-v706-importacao-reforcada">
 /* v706: importação reforçada para relatórios executivos em imagem/PDF */
 (function(){
   'use strict';
@@ -15694,4 +15694,83 @@ Deseja aplicar esses dados à plataforma agora? Eles ficarão salvos somente nes
   new MutationObserver(()=>setTimeout(religarV707,50)).observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>\n
+
+<script id="fs-v711-padronizacao-equipes-importacao">
+/* v711: após backup/importação, preserva horários e demais dados, mas recalcula as equipes por função. */
+(function(){
+  'use strict';
+  const DIAS=['segunda','terca','quarta','quinta','sexta','sabado'];
+  const clone=v=>JSON.parse(JSON.stringify(v));
+  const norm=s=>String(s||'Sem função').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+  const nome=p=>String(p?.nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const isGerVendas=p=>/gerente\s+de\s+vendas|gerente\s+da\s+filial|gerente\s+geral/.test(norm(p?.funcao));
+  const isGerCredito=p=>/gerente\s+de\s+credito/.test(norm(p?.funcao));
+  function trabalha(p,d){try{return typeof workingOn==='function'?!!workingOn(p,d):true}catch(e){return true}}
+  function qtd(d){return Math.max(1,Number(state?.config?.equipesDia?.[d])||1)}
+  function setSlot(p,d,s){
+    p.slots=p.slots||{};p.slots[d]=s;
+    if(d==='segunda')p.equipeBase=s;
+    if(d==='sabado')p.equipeSabado=s;
+    if(state?.config?.modo==='atual'&&d===state?.config?.diaEspecial&&p.especialSlot!=null)p.especialSlot=s;
+  }
+  function limparTravasEquipe(p,d){
+    if(p.fsSlotsManuais&&Object.prototype.hasOwnProperty.call(p.fsSlotsManuais,d))delete p.fsSlotsManuais[d];
+    if(p._manualPorDia&&Object.prototype.hasOwnProperty.call(p._manualPorDia,d))p._manualPorDia[d]=false;
+    if(d==='segunda')p._manualEquipe=false;
+  }
+  function distribuirDia(d){
+    const q=qtd(d),ativos=(state?.pessoas||[]).filter(p=>trabalha(p,d));
+    if(q<=1){ativos.forEach(p=>{limparTravasEquipe(p,d);setSlot(p,d,0)});return}
+    const out=Array.from({length:q},()=>[]),restantes=ativos.slice().sort((a,b)=>nome(a).localeCompare(nome(b),'pt-BR'));
+    // Em duas ou mais equipes, separa gerente de vendas e gerente de crédito quando ambos estiverem ativos.
+    const gv=restantes.find(isGerVendas),gc=restantes.find(isGerCredito);
+    if(gv&&gc){out[0].push(gv);restantes.splice(restantes.indexOf(gv),1);out[1].push(gc);restantes.splice(restantes.indexOf(gc),1)}
+    const porFunc=new Map();
+    restantes.forEach(p=>{const k=norm(p.funcao);if(!porFunc.has(k))porFunc.set(k,[]);porFunc.get(k).push(p)});
+    [...porFunc.keys()].sort().forEach(k=>{
+      porFunc.get(k).sort((a,b)=>nome(a).localeCompare(nome(b),'pt-BR')).forEach(p=>{
+        const slot=out.map((eq,i)=>({i,mesma:eq.filter(x=>norm(x.funcao)===k).length,total:eq.length}))
+          .sort((a,b)=>a.mesma-b.mesma||a.total-b.total||a.i-b.i)[0].i;
+        out[slot].push(p);
+      });
+    });
+    out.forEach((eq,s)=>eq.forEach(p=>{limparTravasEquipe(p,d);setSlot(p,d,s)}));
+  }
+  function padronizarEquipes(origem,avisar=false){
+    try{
+      if(!window.state||!Array.isArray(state.pessoas))return false;
+      DIAS.forEach(distribuirDia);
+      state.config=state.config||{};
+      state.config.fsRestauracaoFiel=false;
+      state.config.fsDistribuicaoFuncaoV560=true;
+      state.config.fsEquipesPadronizadasV711=true;
+      try{save()}catch(e){localStorage.setItem('fs_escala_limpa_v381',JSON.stringify(state))}
+      try{render()}catch(e){}
+      try{window.fsV559SincronizarTudo?.()}catch(e){}
+      try{setImportStatus(`Dados aplicados localmente ✓ • equipes padronizadas por função${origem?' após '+origem:''}.`)}catch(e){}
+      if(avisar)alert('Dados aplicados. As equipes foram redistribuídas automaticamente por função, preservando os horários individuais e os demais dados do arquivo.');
+      return true;
+    }catch(e){console.error('FS v711 - falha ao padronizar equipes',e);return false}
+  }
+  window.fsPadronizarEquipesPorFuncao=padronizarEquipes;
+
+  const oldImport=window.importarListaColaboradores;
+  if(typeof oldImport==='function'&&!oldImport.__fsV711){
+    const fn=async function(){const r=await oldImport.apply(this,arguments);padronizarEquipes('importação',false);return r};
+    fn.__fsV711=true;window.importarListaColaboradores=fn;try{importarListaColaboradores=fn}catch(e){}
+  }
+  const oldJson=window.importarDadosJson;
+  if(typeof oldJson==='function'&&!oldJson.__fsV711){
+    const fn=async function(){const r=await oldJson.apply(this,arguments);setTimeout(()=>padronizarEquipes('backup',true),40);return r};
+    fn.__fsV711=true;window.importarDadosJson=fn;try{importarDadosJson=fn}catch(e){}
+  }
+  const oldRestore=window.fsRestaurarBackupCompleto;
+  if(typeof oldRestore==='function'&&!oldRestore.__fsV711){
+    const fn=async function(){const r=await oldRestore.apply(this,arguments);setTimeout(()=>padronizarEquipes('backup',false),40);return r};
+    fn.__fsV711=true;window.fsRestaurarBackupCompleto=fn;
+  }
+})();
+</script>
+
+<script src="./fs-import-manager.js?v=711"></script>
 </body></html>
