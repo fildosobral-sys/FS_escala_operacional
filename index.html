@@ -9370,7 +9370,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
         };
       }
 
-      if(t.includes("limpar plataforma com backup") || t.includes("limpar com backup")){
+      if(t === "limpar plataforma com backup" || t === "limpar com backup"){
         btn.onclick = function(ev){
           ev.preventDefault();
           window.fsLimparPlataformaComBackup();
@@ -9644,7 +9644,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
         };
       }
 
-      if(t.includes("limpar plataforma com backup") || t.includes("limpar com backup")){
+      if(t === "limpar plataforma com backup" || t === "limpar com backup"){
         btn.onclick = function(ev){
           ev.preventDefault();
           window.fsLimparPlataformaComBackup();
@@ -9949,7 +9949,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
       if(t.includes("baixar backup completo") || t.trim() === "baixar backup"){
         btn.onclick = function(ev){ ev.preventDefault(); window.fsBaixarBackupCompleto(); return false; };
       }
-      if(t.includes("limpar plataforma com backup") || t.includes("limpar com backup")){
+      if(t === "limpar plataforma com backup" || t === "limpar com backup"){
         btn.onclick = function(ev){ ev.preventDefault(); window.fsLimparPlataformaComBackup(); return false; };
       }
       if(t.includes("restaurar backup")){
@@ -10243,7 +10243,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
         btn.onclick = function(ev){ ev.preventDefault(); window.fsBaixarBackupCompleto(); return false; };
       }
 
-      if(t.includes("limpar plataforma com backup") || t.includes("limpar com backup")){
+      if(t === "limpar plataforma com backup" || t === "limpar com backup"){
         btn.onclick = function(ev){ ev.preventDefault(); window.fsLimparPlataformaComBackup(); return false; };
       }
 
@@ -10579,7 +10579,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     Array.from(document.querySelectorAll("button, a, div")).forEach(el => {
       const t = (el.innerText || "").trim().toLowerCase();
 
-      if(t.includes("limpar plataforma com backup") || t.includes("limpar com backup")){
+      if(t === "limpar plataforma com backup" || t === "limpar com backup"){
         el.onclick = function(ev){
           ev.preventDefault();
           ev.stopPropagation();
@@ -10647,10 +10647,10 @@ window.baixarImagem=function(elementId,nomeArquivo){
 
   // Captura clique ANTES do onclick antigo.
   document.addEventListener("click", function(ev){
-    const alvo = ev.target && ev.target.closest ? ev.target.closest("button,a,div") : ev.target;
+    const alvo = ev.target && ev.target.closest ? ev.target.closest("button,a") : null;
     const t = (alvo && alvo.innerText ? alvo.innerText : "").trim().toLowerCase();
 
-    if(t.includes("limpar plataforma com backup") || t.includes("limpar com backup")){
+    if(t === "limpar plataforma com backup" || t === "limpar com backup"){
       ev.preventDefault();
       ev.stopPropagation();
       ev.stopImmediatePropagation();
@@ -10831,7 +10831,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
         };
       }
 
-      if(t === "limpar plataforma com backup" || t === "limpar com backup" || t.includes("limpar plataforma com backup")){
+      if(t === "limpar plataforma com backup" || t === "limpar com backup"){
         el.onclick = function(ev){
           ev.preventDefault();
           ev.stopPropagation();
@@ -10848,7 +10848,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 
     const t = (el.innerText || el.textContent || "").trim().toLowerCase();
 
-    if(t === "limpar plataforma com backup" || t === "limpar com backup" || t.includes("limpar plataforma com backup")){
+    if(t === "limpar plataforma com backup" || t === "limpar com backup"){
       ev.preventDefault();
       ev.stopPropagation();
       if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
@@ -15772,7 +15772,7 @@ Deseja aplicar esses dados à plataforma agora? Eles ficarão salvos somente nes
 })();
 </script>
 
-<script src="./fs-import-manager.js?v=715"></script>
+<script src="./fs-import-manager.js?v=716"></script>
 
 <script id="fs-v712-cleanup-local-mode">
 (function(){

@@ -1,4 +1,4 @@
-/* FS Escala 5x2 - v715
+/* FS Escala 5x2 - v716
    Importação em duas etapas: 1) ler e preparar conferência; 2) importar somente após confirmação no botão azul.
    Mantém os File objects em memória, mostra progresso dentro do card e preserva horários estruturados.
 */
@@ -34,8 +34,8 @@
 
 
   function css(){
-    if(document.getElementById('fsImport713Style'))return;
-    const st=document.createElement('style');st.id='fsImport715Style';st.textContent=`
+    if(document.getElementById('fsImport716Style'))return;
+    const st=document.createElement('style');st.id='fsImport716Style';st.textContent=`
       .fsFileQueue{margin-top:10px;padding:11px 12px;border:1px solid rgba(56,189,248,.34);border-radius:13px;background:rgba(15,23,42,.48);font-size:12px;line-height:1.4}
       .fsFileQueueHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}.fsFileQueueHead b{color:#e2e8f0}.fsFileQueueClear{border:0!important;width:auto!important;min-height:0!important;padding:5px 9px!important;border-radius:8px!important;background:rgba(239,68,68,.14)!important;color:#fecaca!important;font-size:11px!important}
       .fsFileReady{font-weight:850;color:#67e8f9;margin-bottom:5px}.fsFileItem{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid rgba(148,163,184,.12);color:#cbd5e1}.fsFileName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fsFileSize{white-space:nowrap;color:#94a3b8}.fsFileEmpty{color:#94a3b8}
@@ -47,6 +47,7 @@
       .fsImportSelectedNow{margin-top:8px;padding:8px 10px;border-radius:10px;background:#f0f8ff;border:1px solid #c9def4;color:#123b72;font-size:11px;font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .fsImportProgress.fsActive{display:block!important}.fsFileQueue.fsReading{border-color:#6bb7ff;background:#eef6ff;color:#123b72}.fsFileQueue.fsReading .fsFileQueueHead b,.fsFileQueue.fsReading .fsFileItem{color:#123b72}
       .fsConferenceSummary{margin:9px 0 7px;padding:10px 12px;border-radius:11px;background:#eef9f2;border:1px solid #bfe7ca;color:#14532d;font-size:12px;font-weight:800;line-height:1.35}.fsConferenceSummary.warn{background:#fff8e8;border-color:#f5d48b;color:#7c4a03}
+      .fsCompanyImportPreview{margin:10px 0;padding:11px 12px;border-radius:12px;background:#f7fbff;border:1px solid #cfe0f7;color:#123b72;font-size:12px}.fsCompanyImportPreview>b{display:block;font-size:13px;margin-bottom:2px}.fsCompanyImportPreview>small{display:block;color:#5d6f87;margin-bottom:8px}.fsCompanyGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.fsCompanyGrid span{background:white;border:1px solid #e1e9f3;border-radius:9px;padding:7px 8px;min-width:0;overflow:hidden;text-overflow:ellipsis}.fsCompanyGrid em{display:block;font-style:normal;font-size:9px;font-weight:900;text-transform:uppercase;color:#718096;margin-bottom:2px}@media(max-width:720px){.fsCompanyGrid{grid-template-columns:1fr}}
     `;document.head.appendChild(st);
   }
 
@@ -71,7 +72,7 @@
     if(!box){box=document.createElement('div');box.className='fsFileQueue';box.dataset.type=type;input.insertAdjacentElement('afterend',box)}return box;
   }
   function draw(type){
-    css();const input=getInput(type);if(!input)return;input.dataset.fsManaged='715';const files=fila[type],box=queueBox(input,type);if(!box)return;
+    css();const input=getInput(type);if(!input)return;input.dataset.fsManaged='716';const files=fila[type],box=queueBox(input,type);if(!box)return;
     box.innerHTML=`<div class="fsFileQueueHead"><b>${type==='docs'?'Arquivos para leitura':'Backup selecionado'}</b>${files.length?`<button type="button" class="fsFileQueueClear" data-clear="${type}">Limpar</button>`:''}</div>`+
       (files.length?`<div class="fsFileReady">✓ ${files.length} arquivo(s) selecionado(s)</div>${files.map(f=>`<div class="fsFileItem"><span class="fsFileName" title="${esc(f.name)}">${esc(f.name)}</span><span class="fsFileSize">${fmt(f.size)}</span></div>`).join('')}`:`<div class="fsFileEmpty">Nenhum arquivo selecionado.</div>`);
     if(type==='docs')setTimeout(ensureDocsUi,0);
@@ -84,9 +85,9 @@
   }
 
   function load(src,keyName){
-    if(window[keyName])return Promise.resolve(window[keyName]);window.__fsImport715=window.__fsImport715||{};if(window.__fsImport715[src])return window.__fsImport715[src];
-    window.__fsImport715[src]=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.async=true;s.crossOrigin='anonymous';const to=setTimeout(()=>reject(new Error('Tempo excedido ao preparar o leitor de arquivos.')),30000);s.onload=()=>{clearTimeout(to);window[keyName]?resolve(window[keyName]):reject(new Error('Leitor carregado, mas não inicializado.'))};s.onerror=()=>{clearTimeout(to);reject(new Error('Não foi possível carregar o leitor. Verifique a internet.'))};document.head.appendChild(s)}).catch(e=>{delete window.__fsImport715[src];throw e});
-    return window.__fsImport715[src];
+    if(window[keyName])return Promise.resolve(window[keyName]);window.__fsImport716=window.__fsImport716||{};if(window.__fsImport716[src])return window.__fsImport716[src];
+    window.__fsImport716[src]=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.async=true;s.crossOrigin='anonymous';const to=setTimeout(()=>reject(new Error('Tempo excedido ao preparar o leitor de arquivos.')),30000);s.onload=()=>{clearTimeout(to);window[keyName]?resolve(window[keyName]):reject(new Error('Leitor carregado, mas não inicializado.'))};s.onerror=()=>{clearTimeout(to);reject(new Error('Não foi possível carregar o leitor. Verifique a internet.'))};document.head.appendChild(s)}).catch(e=>{delete window.__fsImport716[src];throw e});
+    return window.__fsImport716[src];
   }
   function pdfLines(items){
     const groups=[];for(const it of items){const y=Math.round((it.transform&&it.transform[5])||0);let g=groups.find(x=>Math.abs(x.y-y)<=3);if(!g){g={y,items:[]};groups.push(g)}g.items.push(it)}
@@ -128,6 +129,74 @@
   function recoverRows(pages){const byNum=new Map();for(const p of pages||[]){for(const b of rowBlocks(p.texto)){const prev=byNum.get(b.n);if(!prev||String(prev.txt).length<String(b.txt).length)byNum.set(b.n,{...b,origem:p.nome})}}const rows=[];for(const b of [...byNum.values()].sort((a,b)=>a.n-b.n)){let txt=b.txt,funcao='',fi=-1,fl=0;for(const [re,f] of FUNCOES_FALLBACK){const m=txt.match(re);if(m){funcao=f;fi=m.index;fl=m[0].length;break}}let nome='';if(fi>=0)nome=txt.slice(0,fi);else nome=txt.split(/(?=\b(?:[0-2]?\d)\s*(?::|\.|h)?\s*[0-5]\d\b)/)[0];nome=nome.replace(/\b\d{4,8}\b/g,' ').replace(/[^A-Za-zÀ-ÿ' -]/g,' ').replace(/\s+/g,' ').trim();let base=matchBase(nome);if(base){nome=base.nome;if(!funcao)funcao=base.funcao||''}if(!nome||nome.length<3)nome=`Registro ${String(b.n).padStart(2,'0')} — nome a conferir`;if(!funcao)funcao='Função a conferir';const ts=looseTimes(fi>=0?txt.slice(fi+fl):txt);const hs={};if(ts.length>=4){const w=h4(ts.slice(0,4));['segunda','terca','quarta','quinta','sexta'].forEach(d=>hs[d]=w)}if(ts.length>=8){const sab=h4(ts.slice(4,8));if(sab)hs.sabado=sab}rows.push({_row:b.n,nome,funcao,horariosIndividuais:hs,diasTrabalho:Object.keys(hs),origens:[b.origem],_fallback:true,_raw:txt})}return rows}
   function mergeRecovered(items,pages){const rec=recoverRows(pages);if(!rec.length)return items||[];const out=[...(items||[])];for(const r of rec){const rn=normName(r.nome);let hit=out.find(x=>{const xn=normName(x.nome);if(!xn||!rn)return false;if(xn===rn||xn.includes(rn)||rn.includes(xn))return true;return lev(xn,rn)/Math.max(xn.length,rn.length,1)<=.28});if(hit){if(!hit.funcao||/a conferir/i.test(hit.funcao))hit.funcao=r.funcao;hit.horariosIndividuais={...(r.horariosIndividuais||{}),...(hit.horariosIndividuais||{})};hit.diasTrabalho=Array.from(new Set([...(r.diasTrabalho||[]),...(hit.diasTrabalho||[])]));hit._row=r._row}else out.push(r)}return out.sort((a,b)=>(a._row??999)-(b._row??999)||String(a.nome).localeCompare(String(b.nome),'pt-BR'))}
 
+
+  /* v716: separa metadados do cabeçalho e evita que EMPREGADOR/FILIAL/ENDEREÇO virem "colaboradores". */
+  const HEADER_GARBAGE=/rela[cç][aã]o\s+geral|hor[aá]rios?\s+de\s+trabalho|documento\s+executivo|empregador|filial\s*\/?\s*denomina[cç][aã]o|atividade|com[eé]rcio\s+varejista|endere[cç]o|cnpj|inscri[cç][aã]o\s+estadual|anivers[aá]rio\s+da\s+filial|assinatura|representante\s+legal/i;
+  function baseRoster(){
+    const seen=new Set(),out=[];const src=[...(window.state?.pessoas||[]),...((typeof DEFAULT_PESSOAS!=='undefined'&&Array.isArray(DEFAULT_PESSOAS))?DEFAULT_PESSOAS:[])];
+    for(const p of src){const k=normName(p?.nome);if(!k||seen.has(k))continue;seen.add(k);out.push(p)}return out;
+  }
+  function tokenScore(a,b){
+    const A=new Set(normName(a).split(' ').filter(x=>x.length>2)),B=new Set(normName(b).split(' ').filter(x=>x.length>2));if(!A.size||!B.size)return 0;
+    let hit=0;A.forEach(x=>{if(B.has(x))hit++});return (2*hit)/(A.size+B.size);
+  }
+  function bestRosterMatch(nome){
+    let best=null,score=0;for(const p of baseRoster()){const levScore=1-(lev(nome,p.nome)/Math.max(normName(nome).length,normName(p.nome).length,1)),tok=tokenScore(nome,p.nome),sc=Math.max(levScore,tok*.96);if(sc>score){score=sc;best=p}}
+    return {p:best,score};
+  }
+  function itemQuality(x){
+    let q=0;if(x?.nome&&!/a conferir/i.test(x.nome))q+=2;if(x?.funcao&&!/a conferir/i.test(x.funcao))q+=2;q+=Math.min(8,Object.keys(x?.horariosIndividuais||{}).length);if(!x?._fallback)q+=1;return q;
+  }
+  function reconcileItems(items,pages){
+    let arr=(items||[]).filter(x=>x&&x.nome&&!HEADER_GARBAGE.test(String(x.nome||'')));
+    const roster=baseRoster(),rosterMap=new Map(roster.map((p,i)=>[normName(p.nome),{p,i}])),strong=[];
+    arr=arr.map(x=>{const m=bestRosterMatch(x.nome);if(m.p&&m.score>=.52){strong.push(m.p);return {...x,nome:m.p.nome,funcao:(!x.funcao||/a conferir/i.test(x.funcao))?(m.p.funcao||x.funcao):x.funcao,_rosterScore:m.score,_rosterKey:normName(m.p.nome)}}return x});
+    // Deduplica a mesma pessoa reconhecida por leituras diferentes, mantendo a versão com mais horários/qualidade.
+    const map=new Map();for(const x of arr){const k=x._rosterKey||normName(x.nome);const old=map.get(k);if(!old){map.set(k,x);continue}const keep=itemQuality(x)>itemQuality(old)?x:old,other=keep===x?old:x;keep.horariosIndividuais={...(other.horariosIndividuais||{}),...(keep.horariosIndividuais||{})};keep.diasTrabalho=Array.from(new Set([...(other.diasTrabalho||[]),...(keep.diasTrabalho||[])]));if(!keep._row&&other._row)keep._row=other._row;map.set(k,keep)}
+    arr=[...map.values()];
+    // Quando o documento é claramente um relatório da própria plataforma, usa o cadastro local como dicionário corretivo.
+    const strongUnique=new Set(strong.map(p=>normName(p.nome))).size;const guided=roster.length>=3&&strongUnique>=Math.min(roster.length,Math.max(3,Math.ceil(roster.length*.55)));
+    if(guided){
+      const byKey=new Map();
+      for(const x of arr){
+        let r=null;const k=x._rosterKey||normName(x.nome);r=rosterMap.get(k)||null;
+        // Se o nome veio ruim, mas o número da linha é confiável, usa a posição da própria tabela para recuperar o colaborador e preservar seus horários.
+        if(!r&&Number.isFinite(Number(x._row))&&Number(x._row)>=1&&Number(x._row)<=roster.length)r={p:roster[Number(x._row)-1],i:Number(x._row)-1};
+        if(!r)continue;
+        const fixed={...x,_row:r.i+1,nome:r.p.nome,funcao:(r.p.funcao||x.funcao),_rosterKey:normName(r.p.nome)};
+        const old=byKey.get(fixed._rosterKey);if(!old||itemQuality(fixed)>itemQuality(old))byKey.set(fixed._rosterKey,fixed);
+      }
+      // Se uma linha realmente não foi legível, mantém a pessoa na conferência em vez de excluí-la.
+      if(roster.length<=60){for(let i=0;i<roster.length;i++){const p=roster[i],k=normName(p.nome);if(!byKey.has(k))byKey.set(k,{_row:i+1,nome:p.nome,funcao:p.funcao||'Função a conferir',horariosIndividuais:{},diasTrabalho:[],_fallback:true,_raw:'Recuperado do cadastro local; horários precisam de conferência.'})}}
+      arr=[...byKey.values()];
+    }
+    return arr.filter(x=>!HEADER_GARBAGE.test(String(x.nome||''))).sort((a,b)=>(a._row??999)-(b._row??999)||String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+  }
+  function onlyDigits(s){return String(s||'').replace(/\D/g,'')}
+  function fmtCnpj(s){const d=onlyDigits(s).slice(0,14);return d.length===14?`${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`:String(s||'').trim()}
+  function cleanMeta(s){return String(s||'').replace(/\s+/g,' ').replace(/^[\s:;|\-]+|[\s:;|\-]+$/g,'').trim()}
+  function extractCompanyData(pages){
+    const raw=(pages||[]).map(p=>String(p.texto||'')).join('\n');const flat=raw.replace(/\s+/g,' ');const d={};let m;
+    m=flat.match(/\b\d{2}[.\s]?\d{3}[.\s]?\d{3}[\/\s]?\d{4}[-\s]?\d{2}\b/);if(m)d.cnpj=fmtCnpj(m[0]);
+    m=flat.match(/INSCRI(?:C|Ç)[AÃ]O\s+ESTADUAL\s*[:\-]?\s*([0-9.\-]{5,20})/i);if(m)d.inscricaoEstadual=cleanMeta(m[1]);
+    m=flat.match(/ANIVERS[AÁ]RIO\s+DA\s+FILIAL\s*[:\-]?\s*(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/i);if(m)d.aniversarioFilial=m[1].replace(/[.\-]/g,'/');
+    m=flat.match(/J\.?\s*ALVES\s+E\s+OLIVEIRA\s+LTDA/i);if(m)d.empregador='J. ALVES E OLIVEIRA LTDA';
+    m=flat.match(/ZENIR\s+M[ÓO]VEIS\s+E\s+ELETROS\s*[-–]?\s*([A-ZÀ-Ý0-9 ]{3,35}?)(?=\s+(?:COM[ÉE]RCIO|ATIVIDADE|ENDERE[CÇ]O|RUA|CNPJ|INSCRI|ANIVERS|\d{2}[.\s]?\d{3}))/i);if(m)d.filial=cleanMeta('ZENIR MÓVEIS E ELETROS - '+m[1]);
+    if(/COM[ÉE]RCIO\s+VAREJISTA/i.test(flat))d.atividade='COMÉRCIO VAREJISTA';
+    const ruas=[...flat.matchAll(/\bRua\s+[A-Za-zÀ-ÿ0-9ºª.,\- ]{8,100}?(?=(?:\s+Rua\s+|\s+CNPJ\b|\s+INSCRI|\s+ANIVERS|\s+\d{2}[.\s]?\d{3}[.\s]?\d{3}|$))/gi)].map(x=>cleanMeta(x[0]));
+    if(ruas[0])d.endereco1=ruas[0];if(ruas[1])d.endereco2=ruas[1];
+    const cidade=(d.endereco1||d.endereco2||'').match(/\b([A-Za-zÀ-ÿ ]{3,30})\s*[-\/]\s*([A-Z]{2})\b/i);if(cidade)d.cidade=`${cleanMeta(cidade[1]).toUpperCase()}/${cidade[2].toUpperCase()}`;
+    return Object.fromEntries(Object.entries(d).filter(([,v])=>String(v||'').trim()));
+  }
+  function showCompanyPreview(d){
+    const ta=document.getElementById('importText');if(!ta)return;let el=document.getElementById('fsCompanyImportPreview');
+    if(!d||!Object.keys(d).length){el?.remove();return}
+    if(!el){el=document.createElement('div');el.id='fsCompanyImportPreview';el.className='fsCompanyImportPreview';ta.insertAdjacentElement('beforebegin',el)}
+    const labels={empregador:'Empregador',filial:'Filial',atividade:'Atividade',cidade:'Cidade/UF',cnpj:'CNPJ',inscricaoEstadual:'Inscrição Estadual',aniversarioFilial:'Aniversário da filial',endereco1:'Endereço 1',endereco2:'Endereço 2'};
+    el.innerHTML='<b>🏢 Dados da unidade reconhecidos</b><small>Serão aplicados junto com a lista somente quando você clicar no botão azul.</small><div class="fsCompanyGrid">'+Object.entries(d).map(([k,v])=>`<span><em>${esc(labels[k]||k)}</em>${esc(v)}</span>`).join('')+'</div>';
+  }
+  function applyCompanyData(d){if(!d||!Object.keys(d).length)return;let atual={};try{atual=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{}}catch(_){}const novo={...atual,...d};localStorage.setItem('fsDadosEmpresa',JSON.stringify(novo));try{window.fsAplicarDadosEmpresa?.(document)}catch(_){}try{window.fsCriarPainelEmpresa?.()}catch(_){} }
+
   function scheduleKey(h){return h?[h.entrada||'',h.almocoIni||'',h.almocoFim||'',h.saida||''].join('|'):'';}
   function scheduleText(h){if(!h)return 'horário não identificado';const ent=h.entrada||'—',sai=h.saida||'—',i=h.almocoIni||'',f=h.almocoFim||'';return `${ent} • ${i&&f?i+'/'+f:'sem intervalo'} • ${sai}`;}
   function hoursSummary(it){
@@ -138,8 +207,9 @@
   }
   function conferenceText(items){return (items||[]).map((x,i)=>{const n=Number.isFinite(Number(x._row))?Number(x._row):i+1;const pend=x._fallback&&(/a conferir/i.test(x.nome)||/a conferir/i.test(x.funcao))?' ⚠ CONFERIR':'';return `${String(n).padStart(2,'0')}. ${x.nome} | ${x.funcao}${pend} | ${hoursSummary(x)}`}).join('\n');}
   function inferExpected(pages,found){
+    const roster=baseRoster();if(roster.length>=3){const current=window.fsImportacaoEstruturadaPendente?.itens||[];const matched=(current||[]).filter(x=>bestRosterMatch(x.nome).score>=.52).length;if(matched>=Math.min(roster.length,Math.max(3,Math.ceil(roster.length*.55))))return roster.length;}
     const nums=[];(pages||[]).forEach(p=>String(p.texto||'').split(/\n+/).forEach(l=>{const m=l.match(/^\s*(\d{1,3})\s+(?=[A-Za-zÀ-ÿ])/);if(m){const n=Number(m[1]);if(n>0&&n<200)nums.push(n)}}));
-    if(!nums.length)return null;const max=Math.max(...nums),uniq=new Set(nums).size;if(max>=found&&max<=found+25)return max;if(uniq>=found&&uniq<=found+25)return uniq;return null;
+    if(!nums.length)return null;const max=Math.max(...nums),uniq=new Set(nums).size;if(max>=found&&max<=found+12)return max;if(uniq>=found&&uniq<=found+12)return uniq;return null;
   }
   function showConferenceSummary(found,expected,withHours,errors){
     const ta=document.getElementById('importText');if(!ta)return;let el=document.getElementById('fsConferenceSummary');if(!el){el=document.createElement('div');el.id='fsConferenceSummary';el.className='fsConferenceSummary';ta.insertAdjacentElement('beforebegin',el)}
@@ -155,7 +225,7 @@
     const pend=syncPendingFromConference(),ta=document.getElementById('importText');if(!pend?.itens?.length){bottomStatus('Nenhum colaborador conferido para importar.');return alert('Não há uma lista conferida pronta para importar. Primeiro leia o arquivo.')}
     if(typeof baseImport!=='function')return alert('O importador da plataforma não foi carregado.');
     const pretty=ta?.value||'',basic=pend.itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n');if(ta)ta.value=basic;
-    try{const total=pend.itens.length;await Promise.resolve(baseImport());bottomStatus(`Importação concluída ✓ ${total} colaborador(es) aplicados localmente. A nuvem continua manual.`);if(ta)ta.value=pretty;}
+    try{const total=pend.itens.length;await Promise.resolve(baseImport());applyCompanyData(pend.dadosEmpresa||{});bottomStatus(`Importação concluída ✓ ${total} colaborador(es) aplicados localmente${pend.dadosEmpresa&&Object.keys(pend.dadosEmpresa).length?' • dados da unidade atualizados':''}. A nuvem continua manual.`);if(ta)ta.value=pretty;}
     catch(e){console.error(e);if(ta)ta.value=pretty;alert('Falha ao importar a lista conferida: '+(e.message||e))}
   }
 
@@ -170,11 +240,11 @@
       let pages=[],errors=[];for(let i=0;i<files.length;i++){try{pages.push(...await readFile(files[i],i,files.length));progress(Math.round(((i+1)/files.length)*100),`${i+1}/${files.length} • ${files[i].name}: leitura concluída`)}catch(e){console.error(e);errors.push(`${files[i].name}: ${e.message||e}`)}}
       if(!pages.length)throw new Error(errors[0]||'Nenhum conteúdo pôde ser lido.');
       const analyzer=window.fsAnalisarTextosEscala;if(typeof analyzer!=='function')throw new Error('Analisador da escala não foi carregado.');
-      let items=analyzer(pages)||[];items=mergeRecovered(items,pages);const ta=document.getElementById('importText');
+      let items=analyzer(pages)||[];items=reconcileItems(mergeRecovered(items,pages),pages);const company=extractCompanyData(pages),ta=document.getElementById('importText');showCompanyPreview(company);
       if(!items.length){const raw=pages.map(p=>`### ${p.nome}\n${p.texto}`).join('\n\n');if(ta)ta.value=raw;progress(100,'Leitura concluída sem registros seguros');bottomStatus('Arquivo lido, mas nenhum colaborador foi reconhecido com segurança. O texto bruto ficou disponível para revisão.');return}
       const week=pages.some(p=>/segunda|segunda[- ]?feira/i.test(p.texto)),sat=pages.some(p=>/s[aá]bado/i.test(p.texto)),sun=pages.some(p=>/domingo|descanso\s+semanal/i.test(p.texto));
-      const expected=inferExpected(pages,items.length);
-      window.fsImportacaoEstruturadaPendente={itens:items,modoDetectado:(week&&(sat||sun))?'6x1':null,arquivos:files.length,arquivosLidos:files.length-errors.length,falhas:errors,esperados:expected};
+      let expected=inferExpected(pages,items.length);const rosterNow=baseRoster(),matchedNow=items.filter(x=>bestRosterMatch(x.nome).score>=.52).length;if(rosterNow.length>=3&&matchedNow>=Math.min(rosterNow.length,Math.max(3,Math.ceil(rosterNow.length*.55))))expected=rosterNow.length;
+      window.fsImportacaoEstruturadaPendente={itens:items,modoDetectado:(week&&(sat||sun))?'6x1':null,arquivos:files.length,arquivosLidos:files.length-errors.length,falhas:errors,esperados:expected,dadosEmpresa:company};
       if(ta){ta.value=conferenceText(items);ta.scrollIntoView({behavior:'smooth',block:'center'})}
       const mode=document.getElementById('importMode');if(mode)mode.value='replace';const withHours=items.filter(x=>Object.keys(x.horariosIndividuais||{}).length).length;
       showConferenceSummary(items.length,expected,withHours,errors.length);progress(100,'Leitura concluída • confira a lista antes de importar');
@@ -196,12 +266,14 @@
     }
   }
 
+  document.addEventListener('click',e=>{const t=e.target;if(t instanceof HTMLInputElement&&t.type==='file'&&(t.id==='listaInput'||t.id==='backupInput')){try{t.value=''}catch(_){}}},true);
   document.addEventListener('change',e=>{const t=e.target;if(!(t instanceof HTMLInputElement)||t.type!=='file')return;if(t.id==='listaInput')capture(t,'docs');if(t.id==='backupInput')capture(t,'backup')},true);
+  document.addEventListener('input',e=>{const t=e.target;if(!(t instanceof HTMLInputElement)||t.type!=='file')return;if(t.id==='listaInput'&&t.files?.length)capture(t,'docs');if(t.id==='backupInput'&&t.files?.length)capture(t,'backup')},true);
   document.addEventListener('click',e=>{const clear=e.target.closest?.('[data-clear]');if(clear){e.preventDefault();e.stopPropagation();const type=clear.dataset.clear;fila[type]=[];const inp=getInput(type);if(inp)try{inp.value=''}catch(_){};draw(type);if(type==='docs')status('Fila limpa. Selecione novos arquivos.');return}
     const btn=e.target.closest?.('button');if(!btn)return;const text=(btn.textContent||'').toLowerCase();if(text.includes('ler arquivos para conferência')||text.includes('ler e aplicar arquivos')||text.includes('ler arquivos selecionados')||text.includes('ler arquivo / imagem')){e.preventDefault();e.stopImmediatePropagation();runRead()}else if(text.includes('importar lista conferida')){e.preventDefault();e.stopImmediatePropagation();applyConference()}else if(text.includes('restaurar backup')){e.preventDefault();e.stopImmediatePropagation();runRestore()}},true);
 
   function wire(){drawAll();ensureDocsUi();document.querySelectorAll('button').forEach(btn=>{const t=(btn.textContent||'').toLowerCase();if(t.includes('ler e aplicar arquivos')||t.includes('ler arquivos selecionados')||t.includes('ler arquivo / imagem'))btn.textContent='Ler arquivos para conferência'})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(wire,250));else setTimeout(wire,100);
   new MutationObserver(()=>{clearTimeout(window.__fsImp715Wire);window.__fsImp715Wire=setTimeout(wire,80)}).observe(document.documentElement,{childList:true,subtree:true});
-  window.fsImport715Queue=fila;window.lerArquivoAssistido=runRead;window.fsAplicarImportacaoConferida=applyConference;try{lerArquivoAssistido=runRead}catch(_){};
+  window.fsImport716Queue=fila;window.lerArquivoAssistido=runRead;window.fsAplicarImportacaoConferida=applyConference;try{lerArquivoAssistido=runRead}catch(_){};
 })();
