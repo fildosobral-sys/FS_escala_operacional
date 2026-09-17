@@ -1,12 +1,13 @@
-const CACHE_NAME = 'fs-escala-local-v39';
+const CACHE_NAME = 'fs-escala-nuvem-v701';
 const CORE_FILES = [
   './',
   './index.html',
-  './FS_Escala_Operacional_Inteligente.html',
   './fs-runtime-guard.js',
   './fs-stability.css',
   './fs-continuity-v2.js',
   './fs-continuity-v2.css',
+  './fs-cloud-config.js',
+  './fs-cloud.js',
   './manifest.webmanifest',
   './LOGO%20ATUAL.png',
   './icone-192.png',
@@ -26,7 +27,7 @@ self.addEventListener('activate', function (event) {
     caches.keys()
       .then(function (keys) {
         return Promise.all(keys.filter(function (key) {
-          return key !== CACHE_NAME && key.indexOf('fs-escala-local-') === 0;
+          return key !== CACHE_NAME && (key.indexOf('fs-escala-local-') === 0 || key.indexOf('fs-escala-nuvem-') === 0);
         }).map(function (key) { return caches.delete(key); }));
       })
       .then(function () { return self.clients.claim(); })
