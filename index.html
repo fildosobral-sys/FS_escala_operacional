@@ -10444,11 +10444,18 @@ window.baixarImagem=function(elementId,nomeArquivo){
     const vazio = aplicarVazioMemoria();
     const payload = JSON.stringify(vazio);
 
-    let antigas = [];
+    // v718: limpar a escala NUNCA pode apagar ou sobrescrever a identidade da FS Nuvem.
+    // Guarda sessão, perfil, token, filial, acessos salvos, escolha local/nuvem e identificação do aparelho.
+    const preservados = {};
+    const preservarChave = k => !!k && (
+      k.startsWith('fs_cloud_') ||
+      k.startsWith('fs_access_') ||
+      ['fs_device_id','fsAuthGlobal','usuarioAutorizado','dispositivoAutorizado','autorizado'].includes(k)
+    );
     try{
       for(let i=0;i<localStorage.length;i++){
         const k = localStorage.key(i);
-        if(k) antigas.push(k);
+        if(preservarChave(k)) preservados[k] = localStorage.getItem(k);
       }
     }catch(e){}
 
@@ -10456,14 +10463,15 @@ window.baixarImagem=function(elementId,nomeArquivo){
     try{ sessionStorage.clear(); }catch(e){}
 
     try{
+      Object.entries(preservados).forEach(([k,v]) => {
+        try{ if(v!==null) localStorage.setItem(k,v); }catch(e){}
+      });
+
       localStorage.setItem(FLAG, "1");
       localStorage.setItem(EMPTY_KEY, payload);
 
-      // Grava vazio em todas as chaves antigas e nas chaves conhecidas.
-      antigas.forEach(k => {
-        try{ localStorage.setItem(k, payload); }catch(e){}
-      });
-
+      // Grava o estado vazio somente nas chaves operacionais conhecidas.
+      // Nunca preenche chaves de acesso/nuvem com JSON da escala.
       [
         "state","fs_state","FS_ESCALA_STATE","FS_OPERACIONAL_STATE",
         "FS_ESCALA_OPERACIONAL_STATE","dashboard_gerentes_state","escala_state",
@@ -15430,7 +15438,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     }
     return aplicados;
   }
-  function identidadeLocal(){const o={};CHAVES_LOCAIS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)o[k]=v});return o}
+  function identidadeLocal(){const o={};CHAVES_LOCAIS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)o[k]=v});try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('fs_cloud_')){const v=localStorage.getItem(k);if(v!==null)o[k]=v}}}catch(e){}return o}
   function restaurar(file){
     if(!file||window.__fsRestaurandoBackupV612)return;
     const reader=new FileReader();reader.onload=function(){
@@ -15455,7 +15463,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   try{importarDadosJson=importar}catch(e){}try{exportarDadosJson=window.fsBaixarBackupCompleto}catch(e){}
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-config.js?v=712"></script><script src="./fs-cloud.js?v=712"></script><script id="fs-v706-importacao-reforcada">
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-config.js?v=718"></script><script src="./fs-cloud.js?v=718"></script><script id="fs-v706-importacao-reforcada">
 /* v706: importação reforçada para relatórios executivos em imagem/PDF */
 (function(){
   'use strict';
@@ -15787,4 +15795,129 @@ Deseja aplicar esses dados à plataforma agora? Eles ficarão salvos somente nes
   new MutationObserver(()=>setTimeout(limparTextoEscapado,0)).observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>
+
+<script id="fs-v717-motor-jornada-programada">
+/* v717 — restaura o motor programado de jornada: PDF não define horário; regras 5x2/6x1 + domingo compensado são fonte oficial. */
+(function(){
+  'use strict';
+  if(window.__FS_V717_MOTOR__) return; window.__FS_V717_MOTOR__=true;
+  const DIAS=['segunda','terca','quarta','quinta','sexta','sabado'];
+  const UTEIS=['segunda','terca','quarta','quinta','sexta'];
+  const clone=v=>JSON.parse(JSON.stringify(v));
+  const toMin=h=>{const m=String(h||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):0};
+  const toHora=m=>{m=Math.max(0,Math.round(Number(m)||0));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+  const dur=h=>h&&h.entrada&&h.saida?Math.max(0,toMin(h.saida)-toMin(h.entrada)-(toMin(h.almocoFim)-toMin(h.almocoIni))):0;
+  const folga=()=>({titulo:'Folga',entrada:'00:00',almocoIni:'00:00',almocoFim:'00:00',saida:'00:00'});
+  function modo(){return state?.config?.modo||'atual'}
+  function especial(){return state?.config?.diaEspecial||'segunda'}
+  function qtd(d){return Math.max(1,Math.min(3,Number(state?.config?.equipesDia?.[d]||1)))}
+  function slot(p,d){let s=Number((p?.slots&&p.slots[d]) ?? (d==='sabado'?p?.equipeSabado:p?.equipeBase) ?? 0);if(!Number.isFinite(s)||s<0)s=0;return Math.min(qtd(d)-1,s)}
+  function intervalo(slot,minutos,base){const starts=base||['11:00','12:30','14:00'];const ini=starts[slot]||starts[0];return[ini,toHora(toMin(ini)+minutos)]}
+  function mk(e,s,minI,sl,t,starts){const [i,f]=intervalo(sl,minI,starts);return{titulo:t||`Equipe ${String(sl+1).padStart(2,'0')}`,entrada:e,almocoIni:i,almocoFim:f,saida:s}}
+  function autoTrabalha(p,d){
+    if(modo()==='6x1') return DIAS.includes(d);
+    if(modo()==='distribuido') return d!==(p?.folgaDistribuida||'terca');
+    if(p?.sabadoSim){ if(d===especial()) return false; return DIAS.includes(d); }
+    if(d==='sabado') return false;
+    return UTEIS.includes(d);
+  }
+  function autoHorario(p,d){
+    if(!autoTrabalha(p,d)) return folga();
+    const sl=slot(p,d),m=modo();
+    if(m==='6x1'){
+      if(d==='sabado') return {titulo:`Equipe ${String(sl+1).padStart(2,'0')}`,entrada:'08:00',almocoIni:'12:00',almocoFim:'12:00',saida:'12:00'};
+      return mk('08:00','18:00',120,sl,`Equipe ${String(sl+1).padStart(2,'0')}`);
+    }
+    if(m==='distribuido'){
+      if(d==='sabado') return sl===1?{titulo:'Equipe 02',entrada:'10:00',almocoIni:'12:00',almocoFim:'12:00',saida:'14:00'}:{titulo:'Equipe 01',entrada:'08:00',almocoIni:'12:00',almocoFim:'12:00',saida:'12:00'};
+      return mk('08:00','18:00',60,sl,`Equipe ${String(sl+1).padStart(2,'0')}`);
+    }
+    // 5x2 — Dia especial + sábado. Grupo A fecha 40h exatas.
+    if(!p?.sabadoSim){
+      if(d===especial()) return mk('08:00','18:00',60,sl,`Equipe ${String(sl+1).padStart(2,'0')}`);
+      return mk('08:00','17:45',120,sl,`Equipe ${String(sl+1).padStart(2,'0')}`);
+    }
+    // Grupo B: sábado 5h45 + quatro dias comuns = 40h exatas.
+    if(d==='sabado') return mk('08:00','14:00',15,sl,`Equipe ${String(sl+1).padStart(2,'0')}`,['11:45','12:00','12:15']);
+    const comuns=UTEIS.filter(x=>x!==especial());
+    const minIntervalo=(d===comuns[0])?87:86; // 1 dia 8h33 + 3 dias 8h34 + sábado 5h45 = 40h00.
+    return mk('08:00','18:00',minIntervalo,sl,`Equipe ${String(sl+1).padStart(2,'0')}`);
+  }
+  function horarioManual(p,d){
+    if(!p?._fsManualHorario) return null;
+    const h=p?.horariosIndividuais?.[d]||p?.horarioIndividual?.[d];
+    if(!h||!(h.manual===true||h._manualV515===true||h._fsManual===true)) return null;
+    return {titulo:h.titulo||'',entrada:h.entrada,almocoIni:h.almocoIni||h.saidaIntervalo,almocoFim:h.almocoFim||h.retornoIntervalo,saida:h.saida};
+  }
+  function trabalhaManual(p,d){
+    if(p?._fsManualHorario&&Array.isArray(p._fsManualDiasAtivos)) return p._fsManualDiasAtivos.includes(d);
+    return null;
+  }
+  window.fsV717HorarioAutomatico=autoHorario;
+  window.fsV717TrabalhaAutomatico=autoTrabalha;
+  window.horarioPessoa=function(p,d){const h=horarioManual(p,d);return h||autoHorario(p,d)};try{horarioPessoa=window.horarioPessoa}catch(e){}
+  window.workingOn=function(p,d){const x=trabalhaManual(p,d);return x===null?autoTrabalha(p,d):x};try{workingOn=window.workingOn}catch(e){}
+  window.totalPessoa=function(p){let t=0;DIAS.forEach(d=>{if(window.workingOn(p,d))t+=dur(window.horarioPessoa(p,d))});return t};try{totalPessoa=window.totalPessoa}catch(e){}
+
+  function limparAutomaticosImportados(){
+    (state?.pessoas||[]).forEach(p=>{
+      // Horários vindos de PDF/OCR não governam a escala. Só exceções manuais feitas no lápis permanecem.
+      const src=p.horariosIndividuais||{};const keep={};Object.entries(src).forEach(([d,h])=>{if(h&&(h.manual===true||h._manualV515===true||h._fsManual===true))keep[d]=h});
+      p.horariosIndividuais=keep;delete p.horarioIndividual;
+      if(!Object.keys(keep).length&&!p._fsManualHorario){p.usarDiasIndividuais=false;delete p.diasAtivosIndividuais;delete p._fsManualDiasAtivos;}
+    });
+  }
+  function resetManuais(){
+    (state?.pessoas||[]).forEach(p=>{p.horariosIndividuais={};delete p.horarioIndividual;p.usarDiasIndividuais=false;delete p.diasAtivosIndividuais;delete p._fsManualDiasAtivos;p._fsManualHorario=false;});
+  }
+  function aplicarMotor(opts={}){
+    if(opts.resetManuais) resetManuais(); else limparAutomaticosImportados();
+    state.cargaMeta=modo()==='6x1'?44:40;
+    try{if(typeof fsAplicarHorariosOficiaisAgora==='function')fsAplicarHorariosOficiaisAgora()}catch(e){}
+    try{if(typeof fsForcarRedistribuicaoIgualitaria==='function')fsForcarRedistribuicaoIgualitaria()}catch(e){try{window.fsRedistribuirEquipesPorFuncao?.()}catch(_){}}
+    try{if(typeof save==='function')save()}catch(e){}
+    try{if(typeof render==='function')render()}catch(e){}
+  }
+  window.fsV717SincronizarRegras=aplicarMotor;
+
+  // Importação: nomes/funções entram; horários do arquivo são apenas referência de conferência e são descartados ao aplicar.
+  const oldImport=window.importarListaColaboradores;
+  if(typeof oldImport==='function'){
+    window.importarListaColaboradores=async function(){const r=await oldImport.apply(this,arguments);aplicarMotor({resetManuais:false});try{setImportStatus('Importação concluída localmente ✓ • horários reorganizados pelas regras da escala.')}catch(e){}return r};
+    try{importarListaColaboradores=window.importarListaColaboradores}catch(e){}
+  }
+
+  // Edição pelo lápis: somente diferenças reais em relação ao modelo automático ficam travadas como manuais.
+  const oldSalvarInd=window.salvarHorariosIndividuaisPessoa;
+  if(typeof oldSalvarInd==='function'){
+    window.salvarHorariosIndividuaisPessoa=function(p){
+      const auto={};DIAS.forEach(d=>auto[d]=autoHorario(p,d));
+      const r=oldSalvarInd.apply(this,arguments);let manual=false;const ativos=[];
+      DIAS.forEach(d=>{
+        const h=p.horariosIndividuais?.[d],a=auto[d];const ativo=Array.isArray(p.diasAtivosIndividuais)?p.diasAtivosIndividuais.includes(d):!!h;const deveria=autoTrabalha(p,d);
+        if(ativo)ativos.push(d);
+        const difHorario=!!h&&['entrada','almocoIni','almocoFim','saida'].some(k=>String(h[k]||'')!==String(a[k]||''));
+        if(ativo!==deveria||difHorario){manual=true;if(h){h.manual=true;h._manualV515=true;h._fsManual=true;}}
+        else if(h){delete p.horariosIndividuais[d];}
+      });
+      p._fsManualHorario=manual;
+      if(manual)p._fsManualDiasAtivos=ativos;else{p.usarDiasIndividuais=false;delete p.diasAtivosIndividuais;delete p._fsManualDiasAtivos;}
+      return r;
+    };try{salvarHorariosIndividuaisPessoa=window.salvarHorariosIndividuaisPessoa}catch(e){}
+  }
+
+  // Gerar distribuição inteligente = nova sincronização completa. Apaga exceções manuais e volta ao modelo programado.
+  document.addEventListener('click',function(ev){const b=ev.target?.closest?.('button');if(!b)return;const t=(b.textContent||'').toLowerCase();if(t.includes('gerar distribuição inteligente')){resetManuais();setTimeout(()=>aplicarMotor({resetManuais:false}),120)}},true);
+
+  // Domingo: mantém a lógica anterior por data — quem trabalha domingo recebe crédito de 8h e precisa de uma folga entre segunda e sexta.
+  // A auditoria passa a exigir diferença ZERO, sem tolerância de 5 minutos.
+  function reforcarAuditoria(){
+    const old=window.fsV558AuditarPessoa;if(typeof old!=='function'||old.__v717)return;
+    const fn=function(p){const a=old(p);if(!a)return a;const vals=a.trabalhos?.length?a.trabalhos.map(x=>Number(x.dif||0)):[Number(a.baseDif||0)];const exato=vals.every(x=>x===0);a.equilibrada=exato;a.ok=!!a.definida&&exato;if(!a.definida){a.tipo='wait';a.mensagem='Programação pendente'}else if(!exato){a.tipo='bad';const pior=vals.reduce((x,y)=>Math.abs(y)>Math.abs(x)?y:x,0);a.pior=pior;a.mensagem=`Divergência ${typeof fmt==='function'?fmt(Math.abs(pior)):Math.abs(pior)+' min'}`}else{a.tipo='ok';a.mensagem='Jornada OK'}return a};fn.__v717=true;window.fsV558AuditarPessoa=fn;
+  }
+  setInterval(()=>{try{reforcarAuditoria()}catch(e){}},700);
+  setTimeout(()=>{try{reforcarAuditoria();aplicarMotor({resetManuais:false})}catch(e){}},900);
+})();
+</script>
+
 </body></html>
