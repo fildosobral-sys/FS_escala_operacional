@@ -1,0 +1,31 @@
+/* Ajustes finais de estabilidade e uso em telas pequenas. */
+@media (max-width: 700px) {
+  .nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav button {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    min-height: 44px !important;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
