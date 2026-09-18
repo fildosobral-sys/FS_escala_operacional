@@ -1,4 +1,4 @@
-/* FS Nuvem v718 - identidade preservada na limpeza + recuperação administrativa */
+/* FS Nuvem v719 - identidade preservada na limpeza + recuperação administrativa */
 (function(){
   'use strict';
 
@@ -102,8 +102,31 @@
 
   function showEndpointSetup(){overlayHtml(`<h2>☁ Ativar FS Nuvem</h2><p>Cole a URL <b>/exec</b> do Web App do Google Apps Script.</p><label>URL do Web App</label><input id="fscEndpoint"><div class="fsc-row"><button id="fscSaveEndpoint">Salvar e conectar</button></div>`);document.getElementById('fscSaveEndpoint').onclick=()=>{const v=document.getElementById('fscEndpoint').value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v))return alert('Cole a URL /exec do Apps Script.');setEndpoint(v);boot()}}
 
-  function savedAccesses(){try{return JSON.parse(localStorage.getItem(SAVED_ACCESS_KEY)||'[]')}catch(_){return []}}
-  function writeSavedAccesses(list){localStorage.setItem(SAVED_ACCESS_KEY,JSON.stringify((list||[]).slice(0,12)))}
+  function savedAccesses(){
+    try{
+      const raw=localStorage.getItem(SAVED_ACCESS_KEY);
+      if(!raw)return [];
+      const parsed=JSON.parse(raw);
+      let list=[];
+      if(Array.isArray(parsed)) list=parsed;
+      else if(parsed&&typeof parsed==='object'){
+        if(Array.isArray(parsed.items)) list=parsed.items;
+        else if(Array.isArray(parsed.accesses)) list=parsed.accesses;
+        else if(parsed.key||parsed.name||parsed.value) list=[parsed];
+      }
+      list=list.filter(x=>x&&typeof x==='object'&&(x.value||x.kind||x.key||x.name)).slice(0,12);
+      // Normaliza automaticamente dados gravados por versoes anteriores.
+      try{localStorage.setItem(SAVED_ACCESS_KEY,JSON.stringify(list))}catch(_){ }
+      return list;
+    }catch(_){
+      try{localStorage.removeItem(SAVED_ACCESS_KEY)}catch(__){ }
+      return [];
+    }
+  }
+  function writeSavedAccesses(list){
+    const safe=Array.isArray(list)?list:[];
+    localStorage.setItem(SAVED_ACCESS_KEY,JSON.stringify(safe.filter(x=>x&&typeof x==='object').slice(0,12)));
+  }
   function rememberCurrentAccess(){
     if(!profile)return;
     const cred=session()?{kind:'session',value:session()}:(token()?{kind:'token',value:token()}:null);if(!cred)return;
