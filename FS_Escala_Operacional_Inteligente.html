@@ -13611,6 +13611,8 @@ window.baixarImagem=function(elementId,nomeArquivo){
 </script>
 <style id="fs-v515-jornada-funcao-unica-css">
 .fsJornadaDirTable tbody tr.fsJornadaGrupoLinha{height:31px!important}.fsJornadaGrupoLinha td{background:#e8f5ee!important;color:#075f32!important;text-align:left!important;padding:5px 12px!important;font-size:13px!important;font-weight:950!important;letter-spacing:.25px!important;border-top:2px solid #087b3e!important;border-bottom:1px solid #9ccdb2!important}.fsJornadaGrupoLinha .fsGrupoQtd{float:right;color:#52709c;font-size:11px;font-weight:900}
+
+.fsJornadaOrganizadaFuncao .fsJornadaDirTable .nome{white-space:nowrap!important;font-size:15px!important;letter-spacing:-.05px!important}
 </style>
 <script id="fs-v515-jornada-funcao-unica">
 /* Jornada por função em um único relatório contínuo, com subtítulos discretos. */
@@ -13636,14 +13638,24 @@ window.baixarImagem=function(elementId,nomeArquivo){
     }finally{state.pessoas=pessoasOrig;window.ordenar=ordenarOrig;}
     if(!pagina)return '';
     const titulo=pagina.querySelector('.fsJornadaDirTitulo h1');if(titulo)titulo.textContent='RELAÇÃO DE HORÁRIOS ORGANIZADA POR FUNÇÃO';
+    pagina.classList.add('fsJornadaOrganizadaFuncao');
     const parte=pagina.querySelector('.fsJornadaDirParte b');if(parte)parte.textContent=`PARTE ${indice+1}/${total}`;
     const pag=pagina.querySelector('.fsJornadaDirPag');if(pag)pag.textContent=`Relatório por função • Página ${indice+1} de ${total} • Emitido em ${new Date().toLocaleDateString('pt-BR')}`;
+    const tabela=pagina.querySelector('.fsJornadaDirTable');
+    if(tabela){
+      const cols=tabela.querySelectorAll('colgroup col');
+      if(cols[1])cols[1].style.width='375px';
+      if(cols[2])cols[2].remove();
+      const cab1=tabela.querySelector('thead tr:first-child');
+      if(cab1&&cab1.children[2]&&cab1.children[2].textContent.trim().toUpperCase()==='FUNÇÃO')cab1.children[2].remove();
+      tabela.querySelectorAll('tbody tr').forEach(tr=>{if(!tr.classList.contains('fsJornadaGrupoLinha')&&tr.children[2])tr.children[2].remove();});
+    }
     const tbody=pagina.querySelector('tbody'),rows=tbody?[...tbody.querySelectorAll('tr')]:[];let anterior='';
     rows.forEach((tr,i)=>{
       const p=bloco[i];if(!p)return;const funcao=String(p.funcao||'Sem função').trim()||'Sem função';
       if(normal(funcao)!==normal(anterior)){
         const totalFunc=(state.pessoas||[]).filter(x=>normal(x.funcao||'Sem função')===normal(funcao)).length;
-        const faixa=document.createElement('tr');faixa.className='fsJornadaGrupoLinha';faixa.innerHTML=`<td colspan="13">${typeof iconeFuncao==='function'?iconeFuncao(funcao):'•'} ${funcao.toUpperCase()}<span class="fsGrupoQtd">${totalFunc} COLABORADOR(ES)</span></td>`;tbody.insertBefore(faixa,tr);anterior=funcao;
+        const faixa=document.createElement('tr');faixa.className='fsJornadaGrupoLinha';faixa.innerHTML=`<td colspan="12">${typeof iconeFuncao==='function'?iconeFuncao(funcao):'•'} ${funcao.toUpperCase()}<span class="fsGrupoQtd">${totalFunc} COLABORADOR(ES)</span></td>`;tbody.insertBefore(faixa,tr);anterior=funcao;
       }
     });
     return pagina.outerHTML;
