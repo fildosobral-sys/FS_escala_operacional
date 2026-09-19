@@ -6162,10 +6162,10 @@ window.baixarRelatorioExecutivo = function(tipo){
 };
 
 
-/* v416: download em  297 x 210mm (proporção 3508 x 2480px) */
+/* v416: download em  297 x 210mm (proporção 7016 x 4961px • 600 DPI) */
 function baixarCanvasA4Paisagem(el,nome,limpar){
   if(!window.html2canvas){alert('O gerador de imagem ainda não carregou. Verifique a internet e atualize a página.'); if(limpar)limpar(); return;}
-  const A4W=3508, A4H=2480, PAD=70;
+  const A4W=7016, A4H=4961, PAD=140;
   setTimeout(()=>{
     html2canvas(el,{scale:4,backgroundColor:'#f8fbff',useCORS:true,allowTaint:true,logging:false,windowWidth:Math.max(el.scrollWidth,1600),windowHeight:Math.max(el.scrollHeight,1100),scrollX:0,scrollY:0}).then(src=>{
       const out=document.createElement('canvas'); out.width=A4W; out.height=A4H;
@@ -6201,8 +6201,8 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <script>
 /* ===== v418: correções finais sem mexer na lógica da escala ===== */
 (function(){
-  const A4W = 3508; // 297mm em 300dpi
-  const A4H = 2480; // 210mm em 300dpi
+  const A4W = 7016; // 297mm em 600dpi
+  const A4H = 4961; // 210mm em 600dpi
   function baixarCanvasA4(el,nome,bg){
     if(!window.html2canvas){alert('O gerador de imagem ainda não carregou. Verifique a internet e atualize a página.');return;}
     const oldZoom = el.style.zoom;
@@ -6266,7 +6266,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
    Mantém o cronograma compacto na visualização e cria uma área própria
    para exportação, independente do tamanho da tela/scroll do navegador. */
 (function(){
-  const A4W = 3508, A4H = 2480;
+  const A4W = 7016, A4H = 4961;
   const NOMES = {
     segunda:'Relatorio_Executivo_Segunda_A4_Paisagem',
     terca:'Relatorio_Executivo_Terca_A4_Paisagem',
@@ -6378,7 +6378,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
         out.width=A4W; out.height=A4H;
         const ctx=out.getContext('2d');
         ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,A4W,A4H);
-        const margin=tipo==='cronograma'?28:45;
+        const margin=tipo==='cronograma'?56:90;
         const maxW=A4W-margin*2, maxH=A4H-margin*2;
         const ratio=Math.min(maxW/src.width,maxH/src.height);
         const w=Math.floor(src.width*ratio), h=Math.floor(src.height*ratio);
@@ -6406,7 +6406,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
 <script>
 /* ===== v423: relação de colaboradores redesenhada + logo no rodapé lateral ===== */
 (function(){
-  const A4W=3508, A4H=2480;
+  const A4W=7016, A4H=4961;
   const css=document.createElement('style');
   css.textContent=`
     .fsA4ExportStageV422{position:fixed!important;left:-22000px!important;top:0!important;width:1800px!important;max-width:1800px!important;background:#fff!important;z-index:-1!important;pointer-events:none!important;overflow:visible!important;opacity:1!important;}
@@ -6503,7 +6503,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
       html2canvas(el,{scale:3,backgroundColor:'#ffffff',useCORS:true,allowTaint:true,logging:false,windowWidth:w+80,windowHeight:h+80,scrollX:0,scrollY:0}).then(src=>{
         const out=document.createElement('canvas'); out.width=A4W; out.height=A4H;
         const ctx=out.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,A4W,A4H);
-        const margin=tipo==='cronograma'?28:45;
+        const margin=tipo==='cronograma'?56:90;
         const maxW=A4W-margin*2, maxH=A4H-margin*2;
         const ratio=Math.min(maxW/src.width,maxH/src.height);
         const dw=Math.floor(src.width*ratio), dh=Math.floor(src.height*ratio);
@@ -13441,7 +13441,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       const el=stage.firstElementChild,w=Math.ceil(el.scrollWidth),h=Math.ceil(el.scrollHeight);
       html2canvas(el,{scale:2,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:w+40,windowHeight:h+40}).then(src=>{
-        const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=55,r=Math.min((out.width-m*2)/src.width,(out.height-m*2)/src.height),dw=Math.floor(src.width*r),dh=Math.floor(src.height*r);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,(out.width-dw)/2,(out.height-dh)/2,dw,dh);const a=document.createElement('a');a.download='Relacao_Geral_Horarios_Carga_Semanal_A4_Retrato.png';a.href=out.toDataURL('image/png');a.click();
+        const out=document.createElement('canvas');out.width=4961;out.height=7016;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=110,r=Math.min((out.width-m*2)/src.width,(out.height-m*2)/src.height),dw=Math.floor(src.width*r),dh=Math.floor(src.height*r);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,(out.width-dw)/2,(out.height-dh)/2,dw,dh);const a=document.createElement('a');a.download='Relacao_Geral_Horarios_Carga_Semanal_A4_Retrato.png';a.href=out.toDataURL('image/png');a.click();
       }).catch(e=>alert('Erro ao gerar relatório: '+(e&&e.message?e.message:e))).finally(()=>stage.remove());
     }));
   };
@@ -13562,7 +13562,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function descanso(p){const f=dias.filter(d=>!workingOn(p,d)).map(d=>diasLabel[d]);f.push('Domingo');return [...new Set(f)].join(' + ');}
   function pagina(lista,pi,total,d){return `<section class="fsJornadaPagina">${cabecalho(d,pi,total)}${tabela(lista,pi*MAX_POR_PAGINA)}<div class="fsJornadaDirFooter"><div class="fsJornadaDirObs"><b>Observação:</b> documento gerado automaticamente a partir dos horários individuais cadastrados. O símbolo “* varia por dia” indica que o colaborador possui horário ou folga diferente entre segunda e sexta-feira.</div><div class="fsJornadaDirAss"><span></span>ASSINATURA DO EMPREGADOR OU REPRESENTANTE LEGAL</div><div class="fsJornadaDirPag">Página ${pi+1} de ${total} • Emitido em ${new Date().toLocaleDateString('pt-BR')}</div></div></section>`;}
   window.montarRelatorioJornadaGeral=function(){const d=window.fsGetDadosEmpresa?fsGetDadosEmpresa():{},lista=typeof ordenar==='function'?ordenar(state.pessoas||[]):(state.pessoas||[]),ps=partes(lista,MAX_POR_PAGINA);return `<div class="fsJornadaPacote">${ps.map((x,i)=>pagina(x,i,ps.length,d)).join('')}</div>`;};
-  async function canvasPagina(el){const src=await html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const margem=85,maxW=out.width-margem*2,maxH=out.height-margem*2,ratio=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*ratio),dh=Math.floor(src.height*ratio);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;}
+  async function canvasPagina(el){const src=await html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=4961;out.height=7016;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const margem=170,maxW=out.width-margem*2,maxH=out.height-margem*2,ratio=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*ratio),dh=Math.floor(src.height*ratio);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;}
   window.baixarRelatorioJornadaGeral=async function(){
     if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
     document.getElementById('fsJornadaGeralStage')?.remove();const stage=document.createElement('div');stage.id='fsJornadaGeralStage';stage.style.cssText='position:fixed;left:-12000px;top:0;width:1600px;background:#fff;z-index:-1';stage.innerHTML=montarRelatorioJornadaGeral();document.body.appendChild(stage);
@@ -13598,7 +13598,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.montarRelatorioJornadaPorFuncao=function(){return `<div class="fsJornadaPacote fsJornadaPorFuncao">${gruposFuncao().map(([f,ps])=>htmlGrupo(f,ps)).join('')}</div>`;};
   async function renderA4(el){
     const src=await html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});
-    const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,0,0,out.width,out.height);return out;
+    const out=document.createElement('canvas');out.width=4961;out.height=7016;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,0,0,out.width,out.height);return out;
   }
   window.baixarRelatorioJornadaPorFuncao=async function(){
     if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
@@ -13650,7 +13650,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   window.montarRelatorioJornadaPorFuncao=function(){const lista=ordenarAgrupado(),ps=blocos(lista);return `<div class="fsJornadaPacote fsJornadaPorFuncao">${ps.map((b,i)=>montarPaginaDoBloco(b,i,ps.length)).join('')}</div>`;};
   async function renderComMargem(el){
-    const src=await html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=2480;out.height=3508;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=70,maxW=out.width-m*2,maxH=out.height-m*2,r=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*r),dh=Math.floor(src.height*r);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;
+    const src=await html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:1640,windowHeight:2300});const out=document.createElement('canvas');out.width=4961;out.height=7016;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=140,maxW=out.width-m*2,maxH=out.height-m*2,r=Math.min(maxW/src.width,maxH/src.height),dw=Math.floor(src.width*r),dh=Math.floor(src.height*r);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,Math.floor((out.width-dw)/2),Math.floor((out.height-dh)/2),dw,dh);return out;
   }
   window.baixarRelatorioJornadaPorFuncao=async function(){
     if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou. Aguarde e tente novamente.');
@@ -13796,7 +13796,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     function garantirBotaoRelatorio(){const grid=document.querySelector('#relatorios .execExportGrid');if(!grid)return;let b=grid.querySelector('[data-fs-domingo-relatorio]');if(ativo()&&!b){b=document.createElement('button');b.className='primary fsSundayReportButton';b.dataset.fsDomingoRelatorio='1';b.innerHTML='🟠 Domingo<br><small>operação dominical</small>';b.onclick=()=>window.baixarRelatorioExecutivo('domingo');const cron=grid.querySelector('button[onclick*="cronograma"]');grid.insertBefore(b,cron);}else if(!ativo()&&b)b.remove();}
 
     const montarExecutivoAnterior=window.montarRelatorioExecutivo||montarRelatorioExecutivo;window.montarRelatorioExecutivo=function(tipo){if(tipo==='domingo')return montarRelatorioDia('domingo');return montarExecutivoAnterior(tipo);};try{montarRelatorioExecutivo=window.montarRelatorioExecutivo}catch(e){}
-    const baixarAnterior=window.baixarRelatorioExecutivo;window.baixarRelatorioExecutivo=function(tipo){if(tipo!=='domingo')return baixarAnterior(tipo);if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou.');const old=document.getElementById('fsDomingoExportStage');if(old)old.remove();const stage=document.createElement('div');stage.id='fsDomingoExportStage';stage.className='fsA4ExportStageV422';stage.innerHTML=window.montarRelatorioExecutivo('domingo');document.body.appendChild(stage);const el=stage.firstElementChild;requestAnimationFrame(()=>requestAnimationFrame(()=>{const w=Math.ceil(Math.max(el.scrollWidth,el.offsetWidth,1600)),h=Math.ceil(Math.max(el.scrollHeight,el.offsetHeight,900));html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:w+80,windowHeight:h+80}).then(src=>{const out=document.createElement('canvas');out.width=3508;out.height=2480;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=45,r=Math.min((out.width-m*2)/src.width,(out.height-m*2)/src.height),dw=src.width*r,dh=src.height*r;c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,(out.width-dw)/2,(out.height-dh)/2,dw,dh);const a=document.createElement('a');a.download='Relatorio_Executivo_Domingo_A4_Paisagem.png';a.href=out.toDataURL('image/png');a.click();}).catch(e=>alert('Erro ao baixar domingo: '+e.message)).finally(()=>stage.remove());}));};
+    const baixarAnterior=window.baixarRelatorioExecutivo;window.baixarRelatorioExecutivo=function(tipo){if(tipo!=='domingo')return baixarAnterior(tipo);if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou.');const old=document.getElementById('fsDomingoExportStage');if(old)old.remove();const stage=document.createElement('div');stage.id='fsDomingoExportStage';stage.className='fsA4ExportStageV422';stage.innerHTML=window.montarRelatorioExecutivo('domingo');document.body.appendChild(stage);const el=stage.firstElementChild;requestAnimationFrame(()=>requestAnimationFrame(()=>{const w=Math.ceil(Math.max(el.scrollWidth,el.offsetWidth,1600)),h=Math.ceil(Math.max(el.scrollHeight,el.offsetHeight,900));html2canvas(el,{scale:3,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:w+80,windowHeight:h+80}).then(src=>{const out=document.createElement('canvas');out.width=7016;out.height=4961;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=90,r=Math.min((out.width-m*2)/src.width,(out.height-m*2)/src.height),dw=src.width*r,dh=src.height*r;c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,(out.width-dw)/2,(out.height-dh)/2,dw,dh);const a=document.createElement('a');a.download='Relatorio_Executivo_Domingo_A4_Paisagem.png';a.href=out.toDataURL('image/png');a.click();}).catch(e=>alert('Erro ao baixar domingo: '+e.message)).finally(()=>stage.remove());}));};
 
     const overviewAnterior=window.cronoOverviewTable||cronoOverviewTable;window.cronoOverviewTable=function(){if(!ativo())return overviewAnterior();const ds=[...dias,'domingo'],rowDias=ds.map(d=>`<td><div class="dayName">${diasLabel[d]}</div></td>`).join(''),rowP=ds.map(d=>`<td><div class="peopleCell ${d==='sabado'||d==='domingo'?'orange':''}">👤 ${pessoasDia(d).length}</div></td>`).join(''),rowO=ds.map(d=>`<td><span class="opPill ${d==='sabado'||d==='domingo'?'orange':''}">100%</span></td>`).join('');return `<div class="cronoOverviewTableWrap"><table class="cronoOverviewTable"><tbody><tr><th class="rowHead">Dia da semana</th>${rowDias}</tr><tr><th class="rowHead">Colaboradores</th>${rowP}</tr><tr><th class="rowHead">Operação</th>${rowO}</tr></tbody></table></div>`;};try{cronoOverviewTable=window.cronoOverviewTable}catch(e){}
 
@@ -15058,7 +15058,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function board(data,slot,lista,total){const h=window.fsV561HorarioData?.(data,slot)||horario(lista[0],data,slot),dom=predominante(lista),rows=lista.map((p,i)=>{const hp=horario(p,data,slot);return`<tr><td>${pad(i+1)}</td><td class="nome">${nome(p)}</td><td class="funcao">${funcao(p)}</td><td>${hp.entrada}</td><td>${intervaloLocal(hp)}</td><td>${hp.saida}</td><td><b>${carga(hp)}</b></td></tr>`}).join('')||'<tr><td colspan="7">Nenhum colaborador escalado nesta equipe.</td></tr>';return`<div class="execBoard sunday"><div class="execTitle">EQUIPE ${pad(slot+1)} — DOMINGO, ${br(data)}</div><div class="execInfo"><div><b>📅 JORNADA</b><span>Domingo</span></div><div><b>🕘 HORÁRIO</b><span>${periodoLocal(h)}</span></div><div><b>🍽️ INTERVALO</b><span>${intervaloLocal(h)}</span></div><div><b>📊 CARGA DIA</b><span>${carga(h)}</span></div><div><b>${dom.emoji} ${dom.label}</b><span>${lista.length}</span></div></div><table class="execTable"><colgroup><col style="width:56px"><col style="width:480px"><col style="width:250px"><col style="width:130px"><col style="width:410px"><col style="width:130px"><col style="width:130px"></colgroup><thead><tr><th>Nº</th><th>COLABORADOR</th><th>FUNÇÃO</th><th>ENTRADA</th><th>INTERVALO</th><th>SAÍDA</th><th>TOTAL DIA</th></tr></thead><tbody>${rows}</tbody></table></div>`}
   function resumo(lista,data){let out='';try{out=execResumoHtml(lista,`Composição operacional do domingo, ${br(data)}`)}catch(e){}return out+`<div class="fsV556ProjectionNote"><b>Observação:</b> Esta escala constitui uma projeção operacional definida pela empresa e poderá ser alterada conforme suas necessidades.</div>`}
   function relatorio(data){const lista=escalados(data),gs=grupos(data);return`<div class="execReport dayLandscape fsDailyExportA4 relatorio-a4-paisagem" style="width:2400px;max-width:none;margin:0;background:#f8fbff">${gs.map((g,i)=>board(data,i,g,gs.length)).join('')}${resumo(lista,data)}</div>`}
-  async function baixarUm(data){const stage=document.createElement('div');stage.className='fsA4ExportStageV422';stage.style.cssText='position:fixed!important;left:-22000px!important;top:0!important;width:2400px!important;background:#fff!important;pointer-events:none!important';stage.innerHTML=relatorio(data);document.body.appendChild(stage);const el=stage.firstElementChild;try{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const w=Math.ceil(Math.max(el.scrollWidth,el.offsetWidth,1800)),h=Math.ceil(Math.max(el.scrollHeight,el.offsetHeight,1000)),src=await html2canvas(el,{scale:2.4,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:w+80,windowHeight:h+80}),out=document.createElement('canvas');out.width=3508;out.height=2480;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=45,r=Math.min((out.width-m*2)/src.width,(out.height-m*2)/src.height),dw=src.width*r,dh=src.height*r;c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,(out.width-dw)/2,(out.height-dh)/2,dw,dh);const a=document.createElement('a');a.download=`Relatorio_Executivo_Domingo_${data}_A4_Paisagem.png`;a.href=out.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove()}finally{stage.remove()}}
+  async function baixarUm(data){const stage=document.createElement('div');stage.className='fsA4ExportStageV422';stage.style.cssText='position:fixed!important;left:-22000px!important;top:0!important;width:2400px!important;background:#fff!important;pointer-events:none!important';stage.innerHTML=relatorio(data);document.body.appendChild(stage);const el=stage.firstElementChild;try{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const w=Math.ceil(Math.max(el.scrollWidth,el.offsetWidth,1800)),h=Math.ceil(Math.max(el.scrollHeight,el.offsetHeight,1000)),src=await html2canvas(el,{scale:2.4,backgroundColor:'#fff',useCORS:true,allowTaint:true,logging:false,windowWidth:w+80,windowHeight:h+80}),out=document.createElement('canvas');out.width=7016;out.height=4961;const c=out.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,out.width,out.height);const m=90,r=Math.min((out.width-m*2)/src.width,(out.height-m*2)/src.height),dw=src.width*r,dh=src.height*r;c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(src,(out.width-dw)/2,(out.height-dh)/2,dw,dh);const a=document.createElement('a');a.download=`Relatorio_Executivo_Domingo_${data}_A4_Paisagem.png`;a.href=out.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove()}finally{stage.remove()}}
 
   const baixarAnterior=window.baixarRelatorioExecutivo;
   window.fsV557ExportarDomingosExecutivos=async function(){if(!window.html2canvas)return alert('O gerador de imagem ainda não carregou.');const ds=datas();if(!ds.length)return alert('Selecione e programe primeiro uma competência dominical.');const falt=faltas();if(falt.length)return alert(`Ainda existem pendências em ${falt.length} domingo(s). Finalize a programação antes de exportar.`);if(!confirmada())return alert('Confirme primeiro a conclusão da competência no final da Escala Dominical.');const btn=document.querySelector('[data-fs-domingo-relatorio]'),original=btn?.innerHTML;if(btn?.disabled)return;if(btn){btn.disabled=true;btn.classList.add('fsV556ExportBusy')}try{for(let i=0;i<ds.length;i++){if(btn)btn.innerHTML=`🟠 Domingo<br><small>gerando ${i+1} de ${ds.length}</small>`;await baixarUm(ds[i]);await new Promise(r=>setTimeout(r,220))}}catch(e){alert('Não foi possível gerar todos os relatórios: '+e.message)}finally{if(btn){btn.disabled=false;btn.classList.remove('fsV556ExportBusy');btn.innerHTML=original||'🟠 Domingo<br><small>uma imagem por data</small>'}}};
