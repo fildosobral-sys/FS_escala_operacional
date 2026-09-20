@@ -15378,7 +15378,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     }
     return aplicados;
   }
-  function identidadeLocal(){const o={};CHAVES_LOCAIS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)o[k]=v});return o}
+  function identidadeLocal(){const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||(!CHAVES_LOCAIS.has(k)&&!k.startsWith('fs_cloud_')))continue;const v=localStorage.getItem(k);if(v!==null)o[k]=v}return o}
   function restaurar(file){
     if(!file||window.__fsRestaurandoBackupV612)return;
     const reader=new FileReader();reader.onload=function(){
@@ -15390,6 +15390,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
         Object.entries(ls).forEach(([k,v])=>{if(v==null)return;try{localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v))}catch(e){}});
         localStorage.setItem(STORAGE,JSON.stringify(canon));
         Object.entries(identidade).forEach(([k,v])=>localStorage.setItem(k,v));
+        if(identidade.fs_cloud_mode_v705==='admin')localStorage.setItem('fs_cloud_restore_pending_v709','1');
         try{state=clone(canon)}catch(e){}try{window.state=clone(canon)}catch(e){}
         const modo=canon.config?.modo==='6x1'?'6x1':canon.config?.modo==='distribuido'?'5x2 distribuído':'5x2';
         alert(`Backup restaurado fielmente.\n\n${canon.pessoas.length} colaborador(es) • modalidade ${modo} • meta ${Number(canon.cargaMeta||0)}h • ${equipesRestauradas} posição(ões) de equipe restaurada(s).\n\nA identidade de acesso deste computador foi preservada. A página será recarregada.`);
@@ -15403,4 +15404,4 @@ window.baixarImagem=function(elementId,nomeArquivo){
   try{importarDadosJson=importar}catch(e){}try{exportarDadosJson=window.fsBaixarBackupCompleto}catch(e){}
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v705.css?v=708"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v705.js?v=708"></script></body></html>
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v705.css?v=709"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v705.js?v=709"></script></body></html>
