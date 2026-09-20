@@ -29,7 +29,11 @@ Os dados permanecem somente no navegador utilizado. Faça backups periódicos pe
 
 As regras de cálculo e distribuição da escala não foram alteradas.
 
-## FS Nuvem por filial (v713)
+## FS Nuvem por filial (v714)
+
+- limpeza de `fs_cloud_safety_backup_*` e caches volumosos antigos;
+- nova tentativa de restauração após remover somente resíduos FS obsoletos;
+- credenciais, filial ativa e informações externas ao sistema permanecem protegidas.
 
 - visualização Desktop/Mobile isolada do estado operacional;
 - troca visual instantânea, sem recarregar a plataforma;
