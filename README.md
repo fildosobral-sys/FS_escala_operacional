@@ -29,7 +29,7 @@ Os dados permanecem somente no navegador utilizado. Faça backups periódicos pe
 
 As regras de cálculo e distribuição da escala não foram alteradas.
 
-## FS Nuvem por filial (v705)
+## FS Nuvem por filial (v706)
 
 Esta versão mantém o funcionamento local e acrescenta sincronização opcional com Google Sheets + Apps Script.
 
