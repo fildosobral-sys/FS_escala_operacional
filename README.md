@@ -29,7 +29,9 @@ Os dados permanecem somente no navegador utilizado. Faça backups periódicos pe
 
 As regras de cálculo e distribuição da escala não foram alteradas.
 
-## FS Nuvem por filial (v706)
+## FS Nuvem por filial (v707)
+
+Na v707, a sincronização é manual: alterações locais apenas exibem o botão flutuante **Salvar edição**. A leitura da nuvem também é explícita e nunca substitui automaticamente os dados locais do administrador.
 
 Esta versão mantém o funcionamento local e acrescenta sincronização opcional com Google Sheets + Apps Script.
 
