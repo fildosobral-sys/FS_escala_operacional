@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-nuvem-v714';
+const CACHE_NAME = 'fs-escala-nuvem-v715';
 const CORE_FILES = [
   './',
   './index.html',
@@ -7,8 +7,8 @@ const CORE_FILES = [
   './fs-stability.css',
   './fs-continuity-v2.js',
   './fs-continuity-v2.css',
-  './fs-cloud-v705.js',
-  './fs-cloud-v705.css',
+  './fs-cloud-v715.js',
+  './fs-cloud-v715.css',
   './manifest.webmanifest',
   './LOGO%20ATUAL.png',
   './icone-192.png',
@@ -49,6 +49,19 @@ self.addEventListener('fetch', function (event) {
           return response;
         })
         .catch(function () { return caches.match('./index.html'); })
+    );
+    return;
+  }
+
+  if (/fs-cloud-v715\.(?:js|css)$/.test(url.pathname)) {
+    event.respondWith(
+      fetch(event.request).then(function (response) {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, copy); });
+        }
+        return response;
+      }).catch(function () { return caches.match(event.request); })
     );
     return;
   }

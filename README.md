@@ -29,7 +29,11 @@ Os dados permanecem somente no navegador utilizado. Faça backups periódicos pe
 
 As regras de cálculo e distribuição da escala não foram alteradas.
 
-## FS Nuvem por filial (v714)
+## FS Nuvem por filial (v715)
+
+- novos arquivos `fs-cloud-v715.js` e `fs-cloud-v715.css` para quebra definitiva do cache antigo;
+- identificação v715 visível dentro do painel;
+- estratégia network-first para os arquivos críticos da nuvem.
 
 - limpeza de `fs_cloud_safety_backup_*` e caches volumosos antigos;
 - nova tentativa de restauração após remover somente resíduos FS obsoletos;
