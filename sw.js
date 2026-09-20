@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-nuvem-v712';
+const CACHE_NAME = 'fs-escala-nuvem-v713';
 const CORE_FILES = [
   './',
   './index.html',

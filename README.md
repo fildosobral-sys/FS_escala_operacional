@@ -29,7 +29,12 @@ Os dados permanecem somente no navegador utilizado. Faça backups periódicos pe
 
 As regras de cálculo e distribuição da escala não foram alteradas.
 
-## FS Nuvem por filial (v712)
+## FS Nuvem por filial (v713)
+
+- visualização Desktop/Mobile isolada do estado operacional;
+- troca visual instantânea, sem recarregar a plataforma;
+- restauração da nuvem com limpeza de aliases antigos e rollback em caso de falha;
+- horários, equipes, configuração de domingo e demais dados não são modificados pela visualização.
 
 - alternância Desktop/Mobile agora modifica efetivamente toda a estrutura visual;
 - no modo Desktop, a plataforma usa a grade larga e é redimensionada para caber na tela do celular;
