@@ -29,6 +29,20 @@ Os dados permanecem somente no navegador utilizado. Faça backups periódicos pe
 
 As regras de cálculo e distribuição da escala não foram alteradas.
 
+## FS Nuvem por filial (v705)
+
+Esta versão mantém o funcionamento local e acrescenta sincronização opcional com Google Sheets + Apps Script.
+
+1. Na planilha vinculada, substitua o conteúdo de `Code.gs` pelo arquivo `Code.gs` entregue junto deste pacote.
+2. Execute `setupFSCloud()` uma vez e autorize o script.
+3. No menu **FS Nuvem**, escolha **Definir acesso do administrador** e crie um código forte.
+4. Implante como **Aplicativo da Web**, executando como o proprietário e permitindo acesso a qualquer pessoa que tenha o link.
+5. Abra a plataforma, clique no indicador **Modo local** e informe a URL `/exec` e o código administrativo.
+
+O administrador pode criar filiais copiando a configuração atual, trocar de filial, salvar e gerar links gerais de visualização. Os links gerais não solicitam senha e não permitem edição. Convites antigos do perfil visualizador são migrados automaticamente quando possível.
+
+Não coloque o código administrativo dentro de links compartilhados. Os links de consulta usam um token independente e podem ser desativados pelo administrador.
+
 ### Estrutura hierárquica e operações grandes
 
 No módulo Continuidade Operacional, a aba **Configurar Estrutura** usa as funções e os colaboradores já cadastrados/importados. Defina apenas os vínculos de superior imediato, apoio funcional e continuidade. Em estruturas grandes, a impressão/PDF é paginada automaticamente para preservar a legibilidade.
