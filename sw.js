@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-nuvem-v710';
+const CACHE_NAME = 'fs-escala-nuvem-v711';
 const CORE_FILES = [
   './',
   './index.html',
@@ -28,7 +28,7 @@ self.addEventListener('activate', function (event) {
     caches.keys()
       .then(function (keys) {
         return Promise.all(keys.filter(function (key) {
-          return key !== CACHE_NAME && key.indexOf('fs-escala-local-') === 0;
+          return key !== CACHE_NAME && key.indexOf('fs-escala-') === 0;
         }).map(function (key) { return caches.delete(key); }));
       })
       .then(function () { return self.clients.claim(); })
