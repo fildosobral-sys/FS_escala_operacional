@@ -15404,4 +15404,20 @@ window.baixarImagem=function(elementId,nomeArquivo){
   try{importarDadosJson=importar}catch(e){}try{exportarDadosJson=window.fsBaixarBackupCompleto}catch(e){}
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v705.css?v=709"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v705.js?v=709"></script></body></html>
+<script id="fs-v710-cabecalho-colaboradores">
+(function(){
+  function atualizar(root=document){
+    root.querySelectorAll?.('.board .info,.execBoard .execInfo').forEach(info=>{
+      const quadro=info.closest('.board,.execBoard'),indicador=info.lastElementChild;if(!quadro||!indicador)return;
+      const linhas=[...quadro.querySelectorAll('tbody tr')].filter(tr=>tr.querySelectorAll('td').length>1&&!/nenhum colaborador/i.test(tr.textContent||''));
+      const titulo=indicador.querySelector('b'),valor=indicador.querySelector('span');
+      if(titulo)titulo.textContent='👥 COLABORADORES';
+      if(valor)valor.textContent=String(linhas.length);
+    });
+  }
+  let timer=0;new MutationObserver(m=>{clearTimeout(timer);timer=setTimeout(()=>m.forEach(x=>x.addedNodes.forEach(n=>{if(n.nodeType===1)atualizar(n.matches?.('.board,.execBoard')?n:n)})),0)}).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('click',()=>setTimeout(()=>atualizar(),0),true);setTimeout(()=>atualizar(),200);
+  window.fsAtualizarCabecalhosColaboradores=atualizar;
+})();
+</script>
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v705.css?v=710"><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v705.js?v=710"></script></body></html>
