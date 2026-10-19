@@ -10,9 +10,9 @@ function configUI(){const root=document.getElementById('configContent');if(!root
 const c=state.config;[['atual','Folga semanal + sábado — 40h'],['distribuido','Folga distribuída — 40h'],['6x1','Jornada padrão 6×1 — 44h'],['42h','Jornada flexível — 42h']].forEach(([v,t])=>{let e=Array.from(sel.options).find(o=>o.value===v);if(!e){e=document.createElement('option');e.value=v;sel.appendChild(e)}e.textContent=t});sel.value=c.modo;
 let panel=root.querySelector('#fs42Options');if(!panel){panel=document.createElement('div');panel.id='fs42Options';panel.style.cssText='padding:15px;border:1px solid #cad7ef;border-radius:14px;margin:12px 0;background:#f6f9ff';(root.querySelector('.strategyGrid')||sel.parentElement).after(panel)}
 panel.hidden=!active();panel.style.display=active()?'block':'none';if(active()){panel.innerHTML='<b>Distribuição da jornada de 42h</b><div style="display:flex;gap:22px;margin:12px 0;flex-wrap:wrap"><label style="display:inline-flex;align-items:center;gap:7px"><input style="width:auto" type="radio" name="fs42type" value="6x1" '+(c.fs42Tipo!=='5x2'?'checked':'')+'> 6×1</label><label style="display:inline-flex;align-items:center;gap:7px"><input style="width:auto" type="radio" name="fs42type" value="5x2" '+(c.fs42Tipo==='5x2'?'checked':'')+'> 5×2</label></div><p id="fs42Description" style="margin:6px 0">'+(c.fs42Tipo==='5x2'?'Folga geral no domingo e segunda folga distribuída entre terça, quarta e quinta. Sábado em operação, como na folga distribuída de 40h.':'Segunda a sábado, com domingo de folga e pelo menos quatro horas efetivas no sábado.')+'</p><strong>Jornada semanal: 42 horas</strong><p style="margin:7px 0 0">A seleção prepara a configuração. A distribuição só acontece após clicar em Gerar distribuição inteligente.</p>';
-panel.querySelectorAll('input').forEach(i=>i.addEventListener('change',()=>{c.fs42Tipo=i.value;snapshot();save();render();configUI();integrar42()}));}
+panel.querySelectorAll('input').forEach(i=>i.addEventListener('change',()=>{if(c.fs42Tipo===i.value)return;c.fs42Tipo=i.value;c.fs42Pendente=true;snapshot();save();render();configUI();integrar42()}));}
 const strategy=root.querySelector('.strategyBox');if(strategy&&!strategy.querySelector('.fsPerfilBanner')){const el=document.createElement('div');el.className='fsPerfilBanner';strategy.prepend(el)}const banner=root.querySelector('.fsPerfilBanner');if(banner){if(!banner.querySelector('b'))banner.innerHTML='<b></b><small>Horários gerais e ajustes do modelo são preservados separadamente.</small>';const title=banner.querySelector('b');if(title)title.textContent=active()?'Perfil ativo: '+(c.fs42Tipo==='5x2'?'5×2':'6×1')+' — jornada flexível (42h)':('Perfil ativo: '+(c.modo==='6x1'?'6×1 — padrão (44h)':c.modo==='distribuido'?'Folga distribuída (40h)':'Dia especial + sábado (40h)'));}
-const grid=root.querySelector('.strategyGrid');if(grid){Array.from(grid.children).slice(1,3).forEach(e=>e.style.display=active()?'none':'');}if(grid&&active()){const note=grid.nextElementSibling;if(note?.classList.contains('note'))note.textContent='Jornada flexível de 42h: selecione 6×1 ou 5×2. O sistema só redistribui colaboradores após a confirmação em Gerar distribuição inteligente.'} }
+const grid=root.querySelector('.strategyGrid');if(grid){Array.from(grid.children).slice(1,3).forEach(e=>e.style.display=active()?'none':'');}if(active()&&c.fs42Pendente){const description=panel.querySelector('#fs42Description');if(description)description.textContent+=' Modalidade alterada: clique em Gerar distribuição inteligente para aplicar a nova escala aos colaboradores.'}if(grid&&active()){const note=grid.nextElementSibling;if(note?.classList.contains('note'))note.textContent='Jornada flexível de 42h: selecione 6×1 ou 5×2. O sistema só redistribui colaboradores após a confirmação em Gerar distribuição inteligente.'} }
 function change(mode){if(mode!=='42h'){if(active()){snapshot();const before=state.config.fs42BeforeProfile;if(before){state.horarios=copy(before.horarios);state.config.equipesDia=copy(before.equipesDia);(state.pessoas||[]).forEach(p=>{if(before.pessoas[p.id])Object.assign(p,copy(before.pessoas[p.id]))})}state.config.modo=state.config.fs42Anterior||'6x1';state.cargaMeta=state.config.modo==='6x1'?44:40;}if(mode===state.config.modo){save();renderConfig();configUI();return}return window.fs42LegacyChange(mode)}if(active())return;const c=state.config;const previous=c.modo;const existing=c.perfisEscala?.['42h'];
 // Guardar o perfil anterior por meio do gerenciador legado: a transição de volta
 // ao mesmo modo não altera pessoas e não destrói o perfil anterior.
@@ -85,19 +85,19 @@ function generate(){
   if(Object.values(computed).some(v=>!v))return;
   p.usarDiasIndividuais=true;p.fs42AutoGerado=true;p.diasAtivosIndividuais=days;
   p.horariosIndividuais={...p.horariosIndividuais,...computed};
-  p.sabadoSim=true;p.equipeBase=index%Math.max(1,c.equipesDia?.segunda||1);changed++;
+  p.sabadoSim=true;if(type==='6x1')p.folgaDistribuida=null;p.equipeBase=index%Math.max(1,c.equipesDia?.segunda||1);changed++;
  }));
- snapshot();save();render();configUI();
+ c.fs42Pendente=false;snapshot();save();render();configUI();
  alert((errors.length?'Há horários que precisam de ajuste manual: '+errors.slice(0,5).join('; '):'Distribuição de 42h concluída.')+' Colaboradores atualizados: '+changed+'.');
 }
 function integrar42(){
  if(active()&&!window.fs42DisplayInstalled){
    const originalWorking=window.workingOn;
-   const work=function(p,d){if(active()&&state.config.fs42Tipo==='5x2')return d!=='domingo'&&d!==(p.folgaDistribuida||'terca')&&(p.usarDiasIndividuais&&p.fs42AutoGerado? p.diasAtivosIndividuais.includes(d):true);return originalWorking(p,d)};
+   const work=function(p,d){if(active()){if(d==='domingo')return false;if(state.config.fs42Pendente)return p.fs42AutoGerado?((p.diasAtivosIndividuais||[]).includes(d)):originalWorking(p,d);if(state.config.fs42Tipo==='5x2')return d!==(p.folgaDistribuida||'terca')&&(p.usarDiasIndividuais&&p.fs42AutoGerado?p.diasAtivosIndividuais.includes(d):true);if(state.config.fs42Tipo==='6x1'&&p.fs42AutoGerado)return (p.diasAtivosIndividuais||[]).includes(d)}return originalWorking(p,d)};
    window.workingOn=work;try{workingOn=work}catch(e){}
    const originalOperation=window.operacaoDia;
    const operation=function(d){if(active()){
-     if(state.config.fs42Tipo==='6x1')return '100% operação';
+     if(state.config.fs42Tipo==='6x1'&&!state.config.fs42Pendente)return '100% operação';
      const total=state.pessoas?.length||0;
      return total?Math.round(100*(state.pessoas||[]).filter(p=>work(p,d)).length/total)+'% operação':'0% operação';
    }return originalOperation(d)};
@@ -107,7 +107,7 @@ function integrar42(){
 
  if(!active())return;
  const tipo=state.config.fs42Tipo||'6x1';state.cargaMeta=42;
- const descricao='JORNADA FLEXÍVEL — 42 HORAS ('+tipo.toUpperCase()+')';
+ const descricao='JORNADA FLEXÍVEL — 42 HORAS ('+tipo.toUpperCase()+')'+(state.config.fs42Pendente?' — AGUARDANDO GERAÇÃO':'');
  const cv=window.cronoModeLabel;if(typeof cv==='function'&&!cv.__fs42){const fn=function(){return active()?descricao:cv.apply(this,arguments)};fn.__fs42=true;window.cronoModeLabel=fn;try{cronoModeLabel=fn}catch(e){}}
  const cr=window.cronoRegraAplicada;if(typeof cr==='function'&&!cr.__fs42){const fn=function(){return active()?'<div class="cronoRuleBox"><b>Regras aplicadas</b><span>Jornada flexível de 42 horas • '+tipo+' • horários efetivos individuais • domingo de folga. A distribuição considera o horário de funcionamento da filial.</span></div>':cr.apply(this,arguments)};fn.__fs42=true;window.cronoRegraAplicada=fn;try{cronoRegraAplicada=fn}catch(e){}}
  const ex=window.cronogramaExecutivoHtml;if(typeof ex==='function'&&!ex.__fs42){const fn=function(){let h=String(ex.apply(this,arguments));if(!active())return h;const t=state.config.fs42Tipo||'6x1';return h.replace(/CRONOGRAMA 40 HORAS SEMANAIS \(5X2\)/gi,'CRONOGRAMA 42 HORAS SEMANAIS ('+t.toUpperCase()+')').replace(/CRONOGRAMA 44 HORAS SEMANAIS \(6X1\)/gi,'CRONOGRAMA 42 HORAS SEMANAIS ('+t.toUpperCase()+')').replace(/DIA ESPECIAL \+ SÁBADO[^<]*/gi,'JORNADA FLEXÍVEL 42H — '+t.toUpperCase()).replace(/FOLGA DISTRIBUÍDA[^<]*/gi,'JORNADA FLEXÍVEL 42H — '+t.toUpperCase())};fn.__fs42=true;window.cronogramaExecutivoHtml=fn;try{cronogramaExecutivoHtml=fn}catch(e){}}

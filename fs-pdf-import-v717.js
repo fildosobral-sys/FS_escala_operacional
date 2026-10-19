@@ -209,6 +209,12 @@
           const ids={empregador:'fsEmpregadorInput',filial:'fsFilialInput',atividade:'fsAtividadeInput',cidade:'fsCidadeInput',cnpj:'fsCnpjInput',inscricaoEstadual:'fsInscricaoEstadualInput',aniversarioFilial:'fsAniversarioFilialInput',endereco1:'fsEndereco1Input',endereco2:'fsEndereco2Input'};
           Object.entries(novos).forEach(([k,v])=>{const input=document.getElementById(ids[k]);if(input)input.value=String(v).replace(/\n/g,' - ')});
           try{window.fsAplicarDadosEmpresa?.(document)}catch(e){console.warn('[FS PDF] atualização do cabeçalho',e)}
+
+        }}}
+    // Proposta de funcionamento independente da aceitação dos dados cadastrais.
+    // Os turnos individuais não provam o horário oficial; o gestor confirma antes de aplicar.
+    {
+      let atualizados={};try{atualizados=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{}}catch(_){}
           // Os horários individuais do PDF não são necessariamente o funcionamento
           // oficial. Oferecer uma proposta separada, explicitamente confirmada.
           const faixa=ds=>{const hs=revisados.flatMap(p=>ds.map(d=>p.horariosIndividuais?.[d]).filter(Boolean));
@@ -224,7 +230,7 @@
               Object.entries(propostas).forEach(([k,v])=>{const el=document.getElementById(hids[k]);if(el)el.value=v});
             }
           }
-        }}}
+    }
     window.fsImportacaoPdfPendente=null;
     if(typeof save==='function')save();
     if(typeof fsForcarRedistribuicaoIgualitaria==='function')fsForcarRedistribuicaoIgualitaria();else if(typeof aplicarDistribuicao==='function')aplicarDistribuicao();
@@ -245,7 +251,27 @@
     input.dataset.fsPdfChange='1';
     input.addEventListener('change',()=>{
       const files=[...(input.files||[])];
-      window.fsImportacaoPdfPendente=null;
+      // Proposta de funcionamento independente da aceitação dos dados cadastrais.
+    // Os turnos individuais não provam o horário oficial; o gestor confirma antes de aplicar.
+    {
+      let atualizados={};try{atualizados=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{}}catch(_){}
+          // Os horários individuais do PDF não são necessariamente o funcionamento
+          // oficial. Oferecer uma proposta separada, explicitamente confirmada.
+          const faixa=ds=>{const hs=revisados.flatMap(p=>ds.map(d=>p.horariosIndividuais?.[d]).filter(Boolean));
+            const valid=hs.filter(h=>/^\d\d:\d\d$/.test(h.entrada||'')&&/^\d\d:\d\d$/.test(h.saida||''));
+            if(!valid.length)return null;return [valid.map(h=>h.entrada).sort()[0],valid.map(h=>h.saida).sort().at(-1)];};
+          const sem=faixa(DIAS_UTEIS),sab=faixa(['sabado']);const propostas={};
+          if(sem){propostas.horarioSemanaEntrada=sem[0];propostas.horarioSemanaSaida=sem[1]}
+          if(sab){propostas.horarioSabadoEntrada=sab[0];propostas.horarioSabadoSaida=sab[1]}
+          if(Object.keys(propostas).length){const texto='O PDF contém turnos individuais. Como sugestão, os limites observados são:\n'+(sem?'Segunda a sexta: '+sem.join(' às ')+'\n':'')+(sab?'Sábado: '+sab.join(' às ')+'\n':'')+'\nEsses horários podem não representar a abertura e o fechamento oficiais da filial. Deseja aplicá-los como padrão?';
+            if(confirm(texto)){Object.assign(atualizados,propostas);localStorage.setItem('fsDadosEmpresa',JSON.stringify(atualizados));
+              state.config.funcionamentoUnidade={...(state.config.funcionamentoUnidade||{}),...propostas};
+              const hids={horarioSemanaEntrada:'fsHorarioSemanaEntrada',horarioSemanaSaida:'fsHorarioSemanaSaida',horarioSabadoEntrada:'fsHorarioSabadoEntrada',horarioSabadoSaida:'fsHorarioSabadoSaida'};
+              Object.entries(propostas).forEach(([k,v])=>{const el=document.getElementById(hids[k]);if(el)el.value=v});
+            }
+          }
+    }
+    window.fsImportacaoPdfPendente=null;
       status(files.length?`PDF recebido: ${files.map(f=>f.name).join(', ')}. Iniciando leitura...`:'Nenhum PDF selecionado.');
       if(files.length)processarArquivosPdf(files);
     });
