@@ -13244,6 +13244,40 @@ window.baixarImagem=function(elementId,nomeArquivo){
     });
     return registros;
   }
+  function extrairRelatorioFortes(texto,nomeArquivo){
+    const linhas=String(texto||'').replace(/\r/g,'\n').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+    if(!linhas.some(x=>/hor[aá]rio de trabalho/i.test(x))||!linhas.some(x=>/turno 1/i.test(x)&&/turno 2/i.test(x)))return [];
+    const papeis=[
+      [/vendedor(?:a)? de com[eé]rcio varejista/i,'Vendedor(a)'],[/vendedor(?:a|\(a\))?/i,'Vendedor(a)'],
+      [/ajudante de motorista/i,'Ajudante de Motorista'],[/supervisor de carga e descarga/i,'Supervisor de Carga e Descarga'],
+      [/gerente de cr[eé]dito e cobran[cç]a/i,'Gerente de Crédito'],[/gerente de cr[eé]dito/i,'Gerente de Crédito'],
+      [/gerente de vendas?/i,'Gerente de Vendas'],[/operador(?:a)? de caixa/i,'Operadora de Caixa'],
+      [/atendente de lojas?/i,'Atendente de Loja'],[/auxiliar de limpeza/i,'Auxiliar de Limpeza'],
+      [/motorista de furg[aã]o ou ve[ií]culo/i,'Motorista de Furgão'],[/motorista de carro de passeio/i,'Motorista'],
+      [/assistente administrativ[oa]/i,'Assistente Administrativo'],[/armazenista/i,'Armazenista'],
+      [/faturista/i,'Faturista'],[/aprendiz/i,'Aprendiz']
+    ];
+    const localizarPapel=linha=>{for(const [re,nome] of papeis){const m=linha.match(re);if(m)return {m,nome,indice:m.index||0};}return null;};
+    const saida=[];
+    for(let i=0;i<linhas.length;i++){
+      const linha=linhas[i];
+      if(!/^\d{1,3}\s+[A-Za-zÀ-ÿ]/.test(linha))continue;
+      const papel=localizarPapel(linha);if(!papel)continue;
+      const nome=limparNome(linha.slice(0,papel.indice));if(!nomeValido(nome))continue;
+      const depois=linha.slice(papel.indice+papel.m[0].length),ts=tempos(depois);
+      const carteira=(depois.split(/(?:[0-2]?\d)\s*[:;.]\s*[0-5]\d/)[0].match(/\b\d{4,11}\b/)||[])[0]||'';
+      if(ts.length>=2){
+        const h=horarioDosTempos(ts.slice(0,4));
+        saida.push({nome,funcao:papel.nome,dias:DIAS_UTEIS.slice(),horario:h,carteira,origem:nomeArquivo});
+      }
+      const proxima=linhas[i+1]||'';
+      if(proxima&&!/^\d{1,3}\s+[A-Za-zÀ-ÿ]/.test(proxima)){
+        const sab=tempos(proxima);
+        if(sab.length>=2)saida.push({nome,funcao:papel.nome,dias:['sabado'],horario:horarioDosTempos(sab.slice(0,4)),carteira,origem:nomeArquivo});
+      }
+    }
+    return saida;
+  }
   function distancia(a,b){
     a=chaveNome(a);b=chaveNome(b);const m=Array.from({length:b.length+1},(_,i)=>i);
     for(let i=1;i<=a.length;i++){let ant=m[0];m[0]=i;for(let j=1;j<=b.length;j++){const x=m[j];m[j]=Math.min(m[j]+1,m[j-1]+1,ant+(a[i-1]===b[j-1]?0:1));ant=x;}}
@@ -13359,7 +13393,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     if(botao){botao.disabled=true;botao.textContent='Lendo arquivos...';}
     try{
       let paginas=[];for(let i=0;i<files.length;i++)paginas.push(...await lerArquivo(files[i],i,files.length));
-      const brutos=paginas.flatMap(p=>extrairRegistrosPagina(p.texto,p.nome));const itens=enriquecerPorNomes(corrigirComBaseAtual(consolidar(brutos)),paginas);
+      const brutos=paginas.flatMap(p=>{const fortes=extrairRelatorioFortes(p.texto,p.nome);return fortes.length?fortes:extrairRegistrosPagina(p.texto,p.nome);});const itens=enriquecerPorNomes(corrigirComBaseAtual(consolidar(brutos)),paginas);
       const temSemana=paginas.some(p=>diasDoDocumento(p.texto,p.nome).includes('segunda'));
       const temSabado=paginas.some(p=>diasDoDocumento(p.texto,p.nome).includes('sabado'));
       const indicaDomingo=paginas.some(p=>/descanso\s+semanal|domingo/i.test(p.texto));

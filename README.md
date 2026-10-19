@@ -85,5 +85,8 @@ No módulo Continuidade Operacional, a aba **Configurar Estrutura** usa as funç
 - A leitura aguarda a inicialização do leitor antes de processar o documento.
 - PDFs com várias páginas continuam sendo percorridos integralmente.
 - A tela informa a quantidade e os nomes dos arquivos selecionados.
+- Relatórios "Horário de Trabalho" gerados pelo Fortes são reconhecidos por linha, incluindo a jornada complementar de sábado.
+- Funções presentes nesse relatório, como motorista, ajudante, aprendiz e supervisor, também são importadas.
+- O service worker e os módulos FS Nuvem/Continuidade permanecem idênticos aos da v716 original.
 - Nenhuma lógica de nuvem, filial, salvamento, escala, Desktop ou Mobile foi alterada.
 
