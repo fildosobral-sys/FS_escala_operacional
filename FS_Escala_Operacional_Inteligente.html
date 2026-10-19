@@ -5633,8 +5633,9 @@ function renderConfig(){
         <option value="atual" ${c.modo==='atual'?'selected':''}>Modelo atual — Dia especial + sábado</option>
         <option value="distribuido" ${c.modo==='distribuido'?'selected':''}>Folga distribuída — Ter/Qua/Qui</option>
         <option value="6x1" ${c.modo==='6x1'?'selected':''}>Dias normais — 6x1 (44h)</option>
+        <option value="42h" ${c.modo==='42h'?'selected':''}>Jornada flexível — 42h</option>
       </select></div>
-      ${c.modo==='6x1'?`<div><label>Dias de trabalho</label><div class="fakeInput">Segunda a sábado</div></div>
+      ${c.modo==='42h'?`<div><label>Modelo de trabalho</label><div class="fakeInput"><b>${c.fs42Tipo==='5x2'?'5×2':'6×1'}</b></div></div><div><label>Jornada semanal</label><div class="fakeInput"><b>42 horas</b></div></div>`:c.modo==='6x1'?`<div><label>Dias de trabalho</label><div class="fakeInput">Segunda a sábado</div></div>
       <div><label>Jornada semanal</label><div class="fakeInput"><b>44 horas</b></div></div>`:c.modo==='atual'?`<div><label>Dia especial</label><select onchange="state.config.diaEspecial=this.value;save();render();">
         <option value="segunda" ${c.diaEspecial==='segunda'?'selected':''}>Segunda</option>
         <option value="terca" ${c.diaEspecial==='terca'?'selected':''}>Terça</option>
@@ -14197,6 +14198,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   function toast(t){document.querySelector('.fsProfileToast')?.remove();const x=document.createElement('div');x.className='fsProfileToast';x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),3200)}
   function alterar(novo){
+    if(novo==='42h' && typeof window.fs42Activate==='function')return window.fs42Activate();
     if(!['6x1','distribuido','atual'].includes(novo)||novo===state.config.modo)return;
     const anterior=state.config.modo;snapshot(anterior);const pf=state.config.perfisEscala?.[novo];if(pf)restaurar(pf);else gerarNovoPerfil(novo);
     state.config.modo=novo;state.cargaMeta=novo==='6x1'?44:40;snapshot(novo);save();render();toast(`Perfil ${perfilNome(novo)} carregado. O perfil ${perfilNome(anterior)} foi preservado.`);
@@ -14209,11 +14211,11 @@ window.baixarImagem=function(elementId,nomeArquivo){
     snapshot(state.config.modo);save();render();if(restante>5)alert('A sugestão foi aplicada parcialmente. Ainda existem '+fmt(restante)+' que exigem ajuste manual dentro do funcionamento da filial.');else toast('Sugestão aplicada e perfil atualizado.');
   };
   function painel(){
-    if(state.config.modo==='6x1')return'';const rows=(state.pessoas||[]).map(p=>{const s=sugestao(p),alerta=!!s.cobertura;return`<div class="fsAssistRow"><strong>${html(p.nome)}${p.jovemAprendiz?'<span class="fsProfileTag">APRENDIZ</span>':''}</strong><span>${fmt(s.t)}</span><span>${fmt(s.meta)}</span><span class="${s.ok&&!alerta?'fsAssistOk':'fsAssistWarn'}">${html(s.texto)}</span>${s.ok?`<span class="${alerta?'fsAssistWarn':'fsAssistOk'}">${alerta?'⚠ COBERTURA':'✓ OK'}</span>`:`<button class="fsAssistBtn" onclick="fsAplicarSugestaoPessoa('${p.id}')">Aplicar sugestão</button>`}</div>`}).join('');return`<div class="fsAssistPanel"><div class="fsAssistHead"><b>⚙️ Conferência inteligente da jornada</b><span>Meta do modelo: 40 horas</span></div><div class="fsAssistBody"><div class="fsAssistRow"><strong>Colaborador</strong><b>Calculado</b><b>Meta</b><b>Divergência e possível solução</b><b>Ação</b></div>${rows}</div></div>`;
+    if(state.config.modo==='6x1'||state.config.modo==='42h')return'';const rows=(state.pessoas||[]).map(p=>{const s=sugestao(p),alerta=!!s.cobertura;return`<div class="fsAssistRow"><strong>${html(p.nome)}${p.jovemAprendiz?'<span class="fsProfileTag">APRENDIZ</span>':''}</strong><span>${fmt(s.t)}</span><span>${fmt(s.meta)}</span><span class="${s.ok&&!alerta?'fsAssistOk':'fsAssistWarn'}">${html(s.texto)}</span>${s.ok?`<span class="${alerta?'fsAssistWarn':'fsAssistOk'}">${alerta?'⚠ COBERTURA':'✓ OK'}</span>`:`<button class="fsAssistBtn" onclick="fsAplicarSugestaoPessoa('${p.id}')">Aplicar sugestão</button>`}</div>`}).join('');return`<div class="fsAssistPanel"><div class="fsAssistHead"><b>⚙️ Conferência inteligente da jornada</b><span>Meta do modelo: 40 horas</span></div><div class="fsAssistBody"><div class="fsAssistRow"><strong>Colaborador</strong><b>Calculado</b><b>Meta</b><b>Divergência e possível solução</b><b>Ação</b></div>${rows}</div></div>`;
   }
   function posRender(){
     const cfg=document.querySelector('#configContent .strategyBox');if(cfg&&!cfg.querySelector('.fsPerfilBanner'))cfg.insertAdjacentHTML('afterbegin',`<div class="fsPerfilBanner"><b>Perfil ativo: ${perfilNome(state.config.modo)}</b><small>Os horários gerais, dias, equipes, folgas e ajustes individuais deste modelo são salvos separadamente. Ao trocar e retornar, esta configuração será restaurada.</small></div>`);
-    const base=document.getElementById('baseContent');if(base&&!base.querySelector('.fsAssistPanel')&&state.config.modo!=='6x1')base.insertAdjacentHTML('beforeend',painel());
+    const base=document.getElementById('baseContent');if(base&&!base.querySelector('.fsAssistPanel')&&state.config.modo!=='6x1'&&state.config.modo!=='42h')base.insertAdjacentHTML('beforeend',painel());
   }
   function instalar(){
     state.config.perfisEscala=state.config.perfisEscala||{};if(!state.config.perfisEscala[state.config.modo])snapshot(state.config.modo);save();
@@ -15489,4 +15491,4 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.fsAtualizarCabecalhosColaboradores=atualizar;
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v716.css"><script src="./fs-pdf-import-v717.js?v=720"></script><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v716.js"></script><script src="./fs-42h.js?v=6"></script></body></html>
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v716.css"><script src="./fs-pdf-import-v717.js?v=720"></script><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v716.js"></script><script src="./fs-42h.js?v=7"></script></body></html>
