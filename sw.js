@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-nuvem-v716';
+const CACHE_NAME = 'fs-escala-nuvem-v716-pdf-fix-1';
 const CORE_FILES = [
   './',
   './index.html',
@@ -9,6 +9,9 @@ const CORE_FILES = [
   './fs-continuity-v2.css',
   './fs-cloud-v716.js',
   './fs-cloud-v716.css',
+  './pdf.min.mjs',
+  './pdf.worker.min.mjs',
+  './PDFJS-LICENSE.txt',
   './manifest.webmanifest',
   './LOGO%20ATUAL.png',
   './icone-192.png',

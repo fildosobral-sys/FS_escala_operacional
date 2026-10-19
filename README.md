@@ -78,3 +78,12 @@ Não coloque o código administrativo dentro de links compartilhados. Os links d
 ### Estrutura hierárquica e operações grandes
 
 No módulo Continuidade Operacional, a aba **Configurar Estrutura** usa as funções e os colaboradores já cadastrados/importados. Defina apenas os vínculos de superior imediato, apoio funcional e continuidade. Em estruturas grandes, a impressão/PDF é paginada automaticamente para preservar a legibilidade.
+# Correção isolada — Importação assistida de PDF
+
+- O seletor reconhece explicitamente arquivos `.pdf` no Windows.
+- O leitor de PDF e seu worker agora acompanham a própria plataforma.
+- A leitura aguarda a inicialização do leitor antes de processar o documento.
+- PDFs com várias páginas continuam sendo percorridos integralmente.
+- A tela informa a quantidade e os nomes dos arquivos selecionados.
+- Nenhuma lógica de nuvem, filial, salvamento, escala, Desktop ou Mobile foi alterada.
+

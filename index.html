@@ -5662,7 +5662,7 @@ function renderConfig(){
     </div>
   </div>
 
-  <div class="panel noPrint"><div class="panelTitle">BACKUP, RESTAURAÇÃO E IMPORTAÇÃO EM LOTE</div><div class="content"><div class="toolsGrid"><div class="toolCard"><h4>💾 Exportar dados</h4><p>Baixe uma cópia completa da base, configurações, horários e distribuição atual.</p><button class="primary" onclick="exportarDadosJson()">Baixar backup completo</button><button class="secondary dangerBtn" style="margin-top:10px" onclick="limparPlataformaComBackup()">🧹 Limpar plataforma com backup</button></div><div class="toolCard"><h4>📂 Restaurar dados</h4><p>Importe um backup .json gerado por esta própria plataforma para recuperar tudo.</p><input type="file" id="backupInput" accept="application/json,.json"><button class="secondary" onclick="importarDadosJson()">Restaurar backup</button></div><div class="toolCard"><h4>📥 Importação assistida</h4><p>Selecione até várias imagens, PDFs ou TXT. O sistema cruza as páginas e reconhece nomes, funções, dias e horários.</p><input type="file" id="listaInput" multiple accept="image/*,application/pdf,text/plain,.txt,.csv"><button class="secondary" onclick="lerArquivoAssistido()">Ler arquivos selecionados</button></div></div><label>Texto conferido para importar</label><textarea id="importText" class="textareaImport" placeholder="Ex.:
+  <div class="panel noPrint"><div class="panelTitle">BACKUP, RESTAURAÇÃO E IMPORTAÇÃO EM LOTE</div><div class="content"><div class="toolsGrid"><div class="toolCard"><h4>💾 Exportar dados</h4><p>Baixe uma cópia completa da base, configurações, horários e distribuição atual.</p><button class="primary" onclick="exportarDadosJson()">Baixar backup completo</button><button class="secondary dangerBtn" style="margin-top:10px" onclick="limparPlataformaComBackup()">🧹 Limpar plataforma com backup</button></div><div class="toolCard"><h4>📂 Restaurar dados</h4><p>Importe um backup .json gerado por esta própria plataforma para recuperar tudo.</p><input type="file" id="backupInput" accept="application/json,.json"><button class="secondary" onclick="importarDadosJson()">Restaurar backup</button></div><div class="toolCard"><h4>📥 Importação assistida</h4><p>Selecione até várias imagens, PDFs ou TXT. O sistema cruza as páginas e reconhece nomes, funções, dias e horários.</p><input type="file" id="listaInput" multiple accept=".pdf,application/pdf,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp,.txt,text/plain,.csv,text/csv"><button class="secondary" onclick="lerArquivoAssistido()">Ler arquivos selecionados</button></div></div><label>Texto conferido para importar</label><textarea id="importText" class="textareaImport" placeholder="Ex.:
 Alex Alves Feitosa - Armazenista
 Maria Neuma de Souza Batista; Gerente de Crédito
 José Flávio Chagas    Vendedor(a)"></textarea><div class="fileLine"><div><label>Modo de importação</label><select id="importMode"><option value="merge">Adicionar/atualizar pela identificação do nome</option><option value="replace">Substituir toda a base de colaboradores</option></select></div><button class="primary" onclick="importarListaColaboradores()">Importar lista conferida e distribuir automaticamente</button></div><div id="importStatus" class="importStatus">Regra: a importação usa nome completo + função. Depois de importar, clique em gerar distribuição inteligente para aplicar a escala escolhida.</div></div></div>`;
@@ -13290,6 +13290,38 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   window.fsExtrairEscalaTabelaTexto=(texto,nome)=>consolidar(extrairRegistrosPagina(texto,nome||'documento'));
   window.fsAnalisarTextosEscala=paginas=>enriquecerPorNomes(corrigirComBaseAtual(consolidar((paginas||[]).flatMap(p=>extrairRegistrosPagina(p.texto,p.nome)))),paginas||[]);
+  let promessaPdfJs=null;
+  async function garantirLeitorPdf(){
+    if(window.pdfjsLib?.getDocument)return window.pdfjsLib;
+    if(promessaPdfJs)return promessaPdfJs;
+    promessaPdfJs=(async()=>{
+      if(typeof setImportStatus==='function')setImportStatus('Preparando o leitor de PDF...');
+      try{
+        const modulo=await import('./pdf.min.mjs');
+        window.pdfjsLib=modulo;
+        modulo.GlobalWorkerOptions.workerSrc=new URL('./pdf.worker.min.mjs',location.href).href;
+        return modulo;
+      }catch(localError){
+        await new Promise((resolve,reject)=>{
+          const existente=document.getElementById('fs-lib-pdfjs');
+          if(existente){
+            if(window.pdfjsLib?.getDocument)return resolve();
+            existente.addEventListener('load',resolve,{once:true});
+            existente.addEventListener('error',()=>reject(localError),{once:true});
+            setTimeout(()=>window.pdfjsLib?.getDocument?resolve():reject(localError),12000);
+            return;
+          }
+          const script=document.createElement('script');
+          script.id='fs-lib-pdfjs';script.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+          script.onload=resolve;script.onerror=()=>reject(localError);document.head.appendChild(script);
+        });
+        if(!window.pdfjsLib?.getDocument)throw new Error('O leitor de PDF não pôde ser iniciado. Atualize a página e tente novamente.');
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        return window.pdfjsLib;
+      }
+    })().catch(e=>{promessaPdfJs=null;throw e;});
+    return promessaPdfJs;
+  }
   function linhasPdf(items){
     const grupos=[];
     items.forEach(it=>{const y=Math.round((it.transform&&it.transform[5])||0);let g=grupos.find(x=>Math.abs(x.y-y)<=3);if(!g){g={y,itens:[]};grupos.push(g);}g.itens.push(it);});
@@ -13306,9 +13338,8 @@ window.baixarImagem=function(elementId,nomeArquivo){
     const rot=`Arquivo ${indice+1}/${total}`;
     if(file.type.includes('text')||/\.(txt|csv)$/i.test(file.name))return [{texto:await file.text(),nome:file.name}];
     if(file.type==='application/pdf'||/\.pdf$/i.test(file.name)){
-      if(!window.pdfjsLib)throw new Error('Leitor de PDF indisponível');
-      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,out=[];
+      const leitor=await garantirLeitorPdf();
+      const pdf=await leitor.getDocument({data:await file.arrayBuffer()}).promise,out=[];
       for(let p=1;p<=pdf.numPages;p++){
         if(typeof setImportStatus==='function')setImportStatus(`${rot}: lendo página ${p}/${pdf.numPages}`);
         const page=await pdf.getPage(p),conteudo=await page.getTextContent();let texto=linhasPdf(conteudo.items);
@@ -13323,6 +13354,9 @@ window.baixarImagem=function(elementId,nomeArquivo){
     const inp=document.getElementById('listaInput'),ta=document.getElementById('importText');const files=Array.from(inp?.files||[]);
     if(!files.length)return alert('Selecione uma ou mais imagens, PDFs ou arquivos de texto.');
     if(files.length>12)return alert('Selecione no máximo 12 arquivos por vez.');
+    const botao=Array.from((document.getElementById('configContent')||document).querySelectorAll('button')).find(b=>/ler arquivos selecionados/i.test(b.textContent||''));
+    const rotuloBotao=botao?.textContent;
+    if(botao){botao.disabled=true;botao.textContent='Lendo arquivos...';}
     try{
       let paginas=[];for(let i=0;i<files.length;i++)paginas.push(...await lerArquivo(files[i],i,files.length));
       const brutos=paginas.flatMap(p=>extrairRegistrosPagina(p.texto,p.nome));const itens=enriquecerPorNomes(corrigirComBaseAtual(consolidar(brutos)),paginas);
@@ -13336,6 +13370,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
       setImportStatus(`${itens.length} colaborador(es) reconhecido(s), ${comHorario} com horários e ${files.length} arquivo(s) cruzado(s). ${window.fsImportacaoEstruturadaPendente.modoDetectado==='6x1'?'Escala 6x1 identificada. ':''}Confira a lista limpa antes de importar.`);
       if(!itens.length)alert('Nenhuma linha foi considerada segura. Tente fotos mais retas, nítidas e mostrando a tabela completa.');
     }catch(e){console.error(e);setImportStatus('Falha na leitura: '+e.message);alert('Não consegui concluir a leitura: '+e.message);}
+    finally{if(botao){botao.disabled=false;botao.textContent=rotuloBotao||'Ler arquivos selecionados';}}
   };
   try{lerArquivoAssistido=window.lerArquivoAssistido}catch(e){}
 
@@ -13367,7 +13402,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
     area.querySelectorAll('div,section,article').forEach(el=>{
       if(typeof el.onclick==='function'&&/limpar plataforma com backup|limpar com backup/i.test(el.innerText||''))el.onclick=null;
     });
-    area.querySelectorAll('input[type="file"]').forEach(inp=>{if(inp.dataset.fsCliqueSeguro)return;inp.dataset.fsCliqueSeguro='1';inp.addEventListener('click',ev=>ev.stopPropagation());});
+    area.querySelectorAll('input[type="file"]').forEach(inp=>{if(inp.dataset.fsCliqueSeguro)return;inp.dataset.fsCliqueSeguro='1';inp.addEventListener('click',ev=>ev.stopPropagation());if(inp.id==='listaInput'){inp.accept='.pdf,application/pdf,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp,.txt,text/plain,.csv,text/csv';inp.addEventListener('change',()=>{const arquivos=Array.from(inp.files||[]);if(typeof setImportStatus==='function')setImportStatus(arquivos.length?`${arquivos.length} arquivo(s) selecionado(s): ${arquivos.map(f=>f.name).join(', ')}`:'Nenhum arquivo selecionado.');});}});
     area.querySelectorAll('button').forEach(btn=>{
       const t=(btn.textContent||'').trim().toLowerCase();
       if(t.includes('ler arquivos selecionados')||t.includes('ler arquivo / imagem')){
