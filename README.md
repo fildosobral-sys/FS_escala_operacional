@@ -90,3 +90,12 @@ No módulo Continuidade Operacional, a aba **Configurar Estrutura** usa as funç
 - O service worker e os módulos FS Nuvem/Continuidade permanecem idênticos aos da v716 original.
 - Nenhuma lógica de nuvem, filial, salvamento, escala, Desktop ou Mobile foi alterada.
 
+## v717 - Leitura de PDF isolada
+
+- Importador de PDF movido para `fs-pdf-import-v717.js`, carregado depois das versões antigas para impedir sobrescritas.
+- Leitor PDF.js inicializado antecipadamente e com mensagens de erro detalhadas.
+- Suporte validado aos relatórios Fortes e aos quadros de horários produzidos pelo LibreOffice.
+- Reconhecimento de empregador, filial/denominação, atividade, cidade, CNPJ, IE, aniversário e endereços para o cabeçalho.
+- Reconhecimento de colaboradores, funções e horários sem alterar automaticamente o modo da escala.
+- `fs-cloud-v716.js`, `fs-continuity-v2.js` e `sw.js` preservados sem modificações.
+
