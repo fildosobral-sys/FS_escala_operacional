@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-nuvem-v721';
+const CACHE_NAME = 'fs-escala-central-v803-1';
 const CORE_FILES = [
   './',
   './index.html',
@@ -9,6 +9,8 @@ const CORE_FILES = [
   './fs-continuity-v2.css',
   './fs-cloud-v716.js',
   './fs-cloud-v716.css',
+  './fs-dashboard-v800.js',
+  './fs-dashboard-v800.css',
   './fs-pdf-import-v717.js',
   './pdf.min.mjs',
   './pdf.worker.min.mjs',
@@ -56,7 +58,7 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  if (/fs-cloud-v716\.(?:js|css)$/.test(url.pathname)) {
+  if (/fs-(?:cloud-v716|dashboard-v800)\.(?:js|css)$/.test(url.pathname)) {
     event.respondWith(
       fetch(event.request).then(function (response) {
         if (response.ok) {
