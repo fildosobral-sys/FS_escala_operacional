@@ -37,9 +37,26 @@ function target(p,d,minutes){
  return {ativo:true,entrada:clock(start),almocoIni:clock(lunch),almocoFim:clock(lunch+pause),saida:clock(end)};
 }
 function distribuirFolgas42(people){
- // Mesmo princípio da folga distribuída de 40h: balancear por função e por dia.
- const roles={};people.forEach(p=>(roles[p.funcao||'Sem função']??=[]).push(p));
- Object.values(roles).forEach(group=>group.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR')).forEach((p,i)=>{p.folgaDistribuida=FOLGAS[i%3]}));
+ // Equilibrio GLOBAL: capacidades diferem no maximo em uma pessoa.
+ // Dentro de cada funcao, priorizar o dia com menos folgas da propria funcao.
+ const eligible=people.filter(p=>!p.jovemAprendiz);
+ const n=eligible.length, counts=Object.fromEntries(FOLGAS.map(d=>[d,0]));
+ const capacities=Object.fromEntries(FOLGAS.map((d,i)=>[d,Math.floor(n/3)+(i<n%3?1:0)]));
+ const roles={};
+ eligible.forEach(p=>(roles[p.funcao||'Sem função']??=[]).push(p));
+ const roleCounts={};
+ Object.keys(roles).forEach(k=>{roles[k].sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));roleCounts[k]=Object.fromEntries(FOLGAS.map(d=>[d,0]));});
+ // Processar primeiro as funcoes mais numerosas, alternando colaboradores
+ // de cada funcao para evitar esgotar um dia prematuramente.
+ const keys=Object.keys(roles).sort((a,b)=>roles[b].length-roles[a].length||a.localeCompare(b,'pt-BR'));
+ let pending=true;
+ while(pending){pending=false;for(const k of keys){const p=roles[k].shift();if(!p)continue;pending=true;
+   const options=FOLGAS.filter(d=>counts[d]<capacities[d]);
+   if(!options.length)throw Error('Distribuicao de folgas sem capacidade disponivel');
+   options.sort((a,b)=>roleCounts[k][a]-roleCounts[k][b]||counts[a]-counts[b]||FOLGAS.indexOf(a)-FOLGAS.indexOf(b));
+   const day=options[0];p.folgaDistribuida=day;counts[day]++;roleCounts[k][day]++;
+ }}
+ return counts;
 }
 function generate(){
  if(!active())return window.fs42LegacyGenerate();
