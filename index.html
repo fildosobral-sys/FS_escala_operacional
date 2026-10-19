@@ -5823,7 +5823,7 @@ function cronoDayPercent(dia){
 }
 function cronoModeLabel(){
   const c=state.config;
-  if(c.modo==='distribuido') return 'FOLGA DISTRIBUÍDA — TERÇA / QUARTA / QUINTA';
+  if(c.modo==='42h')return c.fs42Tipo==='5x2'?'JORNADA FLEXÍVEL 42H — FOLGAS DISTRIBUÍDAS TERÇA / QUARTA / QUINTA':'JORNADA FLEXÍVEL 42H — SEGUNDA A SÁBADO';if(c.modo==='distribuido') return 'FOLGA DISTRIBUÍDA — TERÇA / QUARTA / QUINTA';
   return `DIA ESPECIAL + SÁBADO — ${diasLabel[c.diaEspecial].toUpperCase()} ${c.percentualEspecial}% / SÁBADO ${100-c.percentualEspecial}%`;
 }
 
@@ -5906,14 +5906,14 @@ function cronoOverviewTable(){
 function cronogramaExecutivoHtml(){
   const c=state.config;
   const total=state.pessoas.length;
-  const blocos=c.modo==='6x1'?crono6x1Blocos():(c.modo==='distribuido'?cronoDistribuidoBlocos():cronoModoAtualBlocos());
+  const blocos=c.modo==='42h'?(c.fs42Tipo==='5x2'?cronoDistribuidoBlocos():crono6x1Blocos()):c.modo==='6x1'?crono6x1Blocos():(c.modo==='distribuido'?cronoDistribuidoBlocos():cronoModoAtualBlocos());
   const fullDays=dias.filter(d=>cronoDayPercent(d)>=100).length;
   const parcialDays=dias.length-fullDays;
   const qtdMin=Math.min(...dias.map(d=>pessoasDia(d).length));
   const qtdMax=Math.max(...dias.map(d=>pessoasDia(d).length));
   const foco=`<div class="cronoFocusBox"><div class="cronoSubTitle">PAINEL GERENCIAL</div><div class="cronoFocusGrid"><div class="cronoFocusItem"><b>Colaboradores</b><span>${total}</span><small>base ativa</small></div><div class="cronoFocusItem"><b>Operação completa</b><span>${fullDays}</span><small>dias com operação completa</small></div><div class="cronoFocusItem"><b>Operação parcial</b><span>${parcialDays}</span><small>dias com percentual reduzido</small></div><div class="cronoFocusItem"><b>Variação diária</b><span>${qtdMin} a ${qtdMax}</span><small>colaboradores</small></div></div></div>`;
   const resumo=cronoResumoCompacto(total);
-  return `<div class="cronoExecModel v407"><div class="cronoExecTop"><h2>🗓️ ${c.modo==='6x1'?'CRONOGRAMA 44 HORAS SEMANAIS (6X1)':'CRONOGRAMA 40 HORAS SEMANAIS (5X2)'}</h2><p>${cronoModeLabel()}</p></div>${blocos}<div class="cronoWeekTitle">VISÃO GERAL DA SEMANA</div>${cronoOverviewTable()}<div class="cronoInfoStrip"><div class="compCard"><div class="cronoInfoIcon">▣</div>${cronoRegraAplicada()}</div><div class="compCard ok"><div class="cronoInfoIcon">⏱</div><div><b>Jornada semanal</b><small>Meta: ${state.cargaMeta}h por colaborador<br>Domingo: folga geral • Total: ${total} colaboradores</small></div></div><div class="compCard logoMiniCard">${cronoLogoGrande()}</div></div><div class="cronoBottom v407">${foco}${resumo}</div><div class="cronoFootnote"><b>ⓘ</b> <span class="fsDevSignature">Developed by FildoSobral © 2026</span></div></div>`;
+  return `<div class="cronoExecModel v407"><div class="cronoExecTop"><h2>🗓️ ${c.modo==='42h'?'CRONOGRAMA 42 HORAS SEMANAIS ('+(c.fs42Tipo||'6x1').toUpperCase()+')':c.modo==='6x1'?'CRONOGRAMA 44 HORAS SEMANAIS (6X1)':'CRONOGRAMA 40 HORAS SEMANAIS (5X2)'}</h2><p>${cronoModeLabel()}</p></div>${blocos}<div class="cronoWeekTitle">VISÃO GERAL DA SEMANA</div>${cronoOverviewTable()}<div class="cronoInfoStrip"><div class="compCard"><div class="cronoInfoIcon">▣</div>${cronoRegraAplicada()}</div><div class="compCard ok"><div class="cronoInfoIcon">⏱</div><div><b>Jornada semanal</b><small>Meta: ${state.cargaMeta}h por colaborador<br>Domingo: folga geral • Total: ${total} colaboradores</small></div></div><div class="compCard logoMiniCard">${cronoLogoGrande()}</div></div><div class="cronoBottom v407">${foco}${resumo}</div><div class="cronoFootnote"><b>ⓘ</b> <span class="fsDevSignature">Developed by FildoSobral © 2026</span></div></div>`;
 }
 function renderCronograma(){const box=document.getElementById('cronograma40Capture');if(box)box.innerHTML=cronogramaExecutivoHtml()}
 
@@ -15491,4 +15491,4 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.fsAtualizarCabecalhosColaboradores=atualizar;
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v716.css"><script src="./fs-pdf-import-v717.js?v=720"></script><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v716.js"></script><script src="./fs-42h.js?v=8"></script></body></html>
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v716.css"><script src="./fs-pdf-import-v717.js?v=720"></script><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v716.js"></script><script src="./fs-42h.js?v=9"></script></body></html>

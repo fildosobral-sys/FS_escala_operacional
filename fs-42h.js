@@ -1,15 +1,15 @@
 /* FS Escala: perfil independente de 42 horas. Sem efeitos sobre nuvem ou leitor PDF. */
 (function(){'use strict';
-const DAYS=['segunda','terca','quarta','quinta','sexta','sabado'], WEEK=DAYS.slice(0,5);
+const DAYS=['segunda','terca','quarta','quinta','sexta','sabado'], WEEK=DAYS.slice(0,5), FOLGAS=['terca','quarta','quinta'];
 const copy=x=>JSON.parse(JSON.stringify(x));
 const mins=s=>{const m=String(s||'00:00').split(':').map(Number);return(m[0]||0)*60+(m[1]||0)};
 const clock=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
 const active=()=>typeof state!=='undefined'&&state?.config?.modo==='42h';
-function snapshot(){const c=state.config;c.perfisEscala=c.perfisEscala||{};c.perfisEscala['42h']={modo:'42h',cargaMeta:42,fs42Tipo:c.fs42Tipo||'6x1',horarios:copy(state.horarios),equipesDia:copy(c.equipesDia),pessoas:Object.fromEntries((state.pessoas||[]).map(p=>[p.id,{horariosIndividuais:copy(p.horariosIndividuais||{}),diasAtivosIndividuais:copy(p.diasAtivosIndividuais||[]),usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim,equipeBase:p.equipeBase,slots:copy(p.slots||{}),fs42AutoGerado:!!p.fs42AutoGerado}]))};}
+function snapshot(){const c=state.config;c.perfisEscala=c.perfisEscala||{};c.perfisEscala['42h']={modo:'42h',cargaMeta:42,fs42Tipo:c.fs42Tipo||'6x1',horarios:copy(state.horarios),equipesDia:copy(c.equipesDia),pessoas:Object.fromEntries((state.pessoas||[]).map(p=>[p.id,{horariosIndividuais:copy(p.horariosIndividuais||{}),diasAtivosIndividuais:copy(p.diasAtivosIndividuais||[]),usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim,equipeBase:p.equipeBase,slots:copy(p.slots||{}),fs42AutoGerado:!!p.fs42AutoGerado,folgaDistribuida:p.folgaDistribuida}]))};}
 function configUI(){const root=document.getElementById('configContent');if(!root||typeof state==='undefined')return;const sel=root.querySelector('select[onchange*="fsAlterarModoEscala"]');if(!sel)return;
 const c=state.config;[['atual','Folga semanal + sábado — 40h'],['distribuido','Folga distribuída — 40h'],['6x1','Jornada padrão 6×1 — 44h'],['42h','Jornada flexível — 42h']].forEach(([v,t])=>{let e=Array.from(sel.options).find(o=>o.value===v);if(!e){e=document.createElement('option');e.value=v;sel.appendChild(e)}e.textContent=t});sel.value=c.modo;
 let panel=root.querySelector('#fs42Options');if(!panel){panel=document.createElement('div');panel.id='fs42Options';panel.style.cssText='padding:15px;border:1px solid #cad7ef;border-radius:14px;margin:12px 0;background:#f6f9ff';(root.querySelector('.strategyGrid')||sel.parentElement).after(panel)}
-panel.hidden=!active();panel.style.display=active()?'block':'none';if(active()){panel.innerHTML='<b>Distribuição da jornada de 42h</b><div style="display:flex;gap:22px;margin:12px 0;flex-wrap:wrap"><label style="display:inline-flex;align-items:center;gap:7px"><input style="width:auto" type="radio" name="fs42type" value="6x1" '+(c.fs42Tipo!=='5x2'?'checked':'')+'> 6×1</label><label style="display:inline-flex;align-items:center;gap:7px"><input style="width:auto" type="radio" name="fs42type" value="5x2" '+(c.fs42Tipo==='5x2'?'checked':'')+'> 5×2</label></div><p id="fs42Description" style="margin:6px 0">'+(c.fs42Tipo==='5x2'?'Cinco dias de trabalho e dois dias de folga, respeitando a cobertura da filial.':'Segunda a sábado, com domingo de folga e pelo menos quatro horas efetivas no sábado.')+'</p><strong>Jornada semanal: 42 horas</strong><p style="margin:7px 0 0">A seleção prepara a configuração. A distribuição só acontece após clicar em Gerar distribuição inteligente.</p>';
+panel.hidden=!active();panel.style.display=active()?'block':'none';if(active()){panel.innerHTML='<b>Distribuição da jornada de 42h</b><div style="display:flex;gap:22px;margin:12px 0;flex-wrap:wrap"><label style="display:inline-flex;align-items:center;gap:7px"><input style="width:auto" type="radio" name="fs42type" value="6x1" '+(c.fs42Tipo!=='5x2'?'checked':'')+'> 6×1</label><label style="display:inline-flex;align-items:center;gap:7px"><input style="width:auto" type="radio" name="fs42type" value="5x2" '+(c.fs42Tipo==='5x2'?'checked':'')+'> 5×2</label></div><p id="fs42Description" style="margin:6px 0">'+(c.fs42Tipo==='5x2'?'Folga geral no domingo e segunda folga distribuída entre terça, quarta e quinta. Sábado em operação, como na folga distribuída de 40h.':'Segunda a sábado, com domingo de folga e pelo menos quatro horas efetivas no sábado.')+'</p><strong>Jornada semanal: 42 horas</strong><p style="margin:7px 0 0">A seleção prepara a configuração. A distribuição só acontece após clicar em Gerar distribuição inteligente.</p>';
 panel.querySelectorAll('input').forEach(i=>i.addEventListener('change',()=>{c.fs42Tipo=i.value;snapshot();save();render();configUI();integrar42()}));}
 const strategy=root.querySelector('.strategyBox');if(strategy&&!strategy.querySelector('.fsPerfilBanner')){const el=document.createElement('div');el.className='fsPerfilBanner';strategy.prepend(el)}const banner=root.querySelector('.fsPerfilBanner');if(banner){if(!banner.querySelector('b'))banner.innerHTML='<b></b><small>Horários gerais e ajustes do modelo são preservados separadamente.</small>';const title=banner.querySelector('b');if(title)title.textContent=active()?'Perfil ativo: '+(c.fs42Tipo==='5x2'?'5×2':'6×1')+' — jornada flexível (42h)':('Perfil ativo: '+(c.modo==='6x1'?'6×1 — padrão (44h)':c.modo==='distribuido'?'Folga distribuída (40h)':'Dia especial + sábado (40h)'));}
 const grid=root.querySelector('.strategyGrid');if(grid){Array.from(grid.children).slice(1,3).forEach(e=>e.style.display=active()?'none':'');}if(grid&&active()){const note=grid.nextElementSibling;if(note?.classList.contains('note'))note.textContent='Jornada flexível de 42h: selecione 6×1 ou 5×2. O sistema só redistribui colaboradores após a confirmação em Gerar distribuição inteligente.'} }
@@ -20,15 +20,74 @@ c.fs42Anterior=previous;c.fs42BeforeProfile={horarios:copy(state.horarios),equip
 c.modo='42h';c.fs42Tipo=c.fs42Tipo||'6x1';state.cargaMeta=42;snapshot();save();renderConfig();configUI();integrar42();document.getElementById('tituloCarga')&&(document.getElementById('tituloCarga').textContent='42H')}
 window.fs42Activate=()=>change('42h');
 function limits(d){const e=Object.assign({},window.fsGetDadosEmpresa?.()||{},state.config.funcionamentoUnidade||{});const sat=d==='sabado';return{open:mins(sat?e.horarioSabadoEntrada||'08:00':e.horarioSemanaEntrada||'08:00'),close:mins(sat?e.horarioSabadoSaida||'14:00':e.horarioSemanaSaida||'18:00')}}
-function target(p,d,minutes){const lim=limits(d),width=lim.close-lim.open;if(width<minutes)return null;const old=p.horariosIndividuais?.[d]||state.horarios?.[d]?.[p.slots?.[d]||p.equipeBase||0]||{};const pause=minutes>360?Math.min(60,width-minutes):minutes>=240?Math.min(15,width-minutes):0;const start=Math.max(lim.open,Math.min(mins(old.entrada||clock(lim.open)),lim.close-minutes-pause));const lunch=start+Math.floor(minutes/2);return{ativo:true,entrada:clock(start),almocoIni:pause?clock(lunch):'00:00',almocoFim:pause?clock(lunch+pause):'00:00',saida:clock(start+minutes+pause)}}
-function generate(){if(!active())return window.fs42LegacyGenerate();const c=state.config,type=c.fs42Tipo||'6x1',people=state.pessoas||[],errors=[];const roles={};people.forEach(p=>(roles[p.funcao||'Sem função']??=[]).push(p));let changed=0;const hasPdf=people.some(p=>p.fsPdfImportado&&!p.fs42AutoGerado);const allowPdf=hasPdf&&confirm('Os colaboradores importados do PDF já possuem horários. Deseja substituir esses horários pela distribuição inteligente de 42h?\n\nCancelar preserva os horários do PDF e atualiza apenas colaboradores sem horários próprios.');
-Object.values(roles).forEach(group=>group.forEach((p,index)=>{if(p.jovemAprendiz)return;const locked=p.fs42ManualLock===true||(p.usarDiasIndividuais===true&&!p.fs42AutoGerado)||(Object.values(p.horariosIndividuais||{}).some(h=>h?.ativo)&&!p.fs42AutoGerado);if(locked&&!(p.fsPdfImportado&&allowPdf&&!p.fs42ManualLock))return;
-const days=type==='6x1'?[...DAYS]:[...WEEK];const sat=days.includes('sabado'),windowSat=limits('sabado').close-limits('sabado').open;
-if(sat&&windowSat<240){errors.push(p.nome+': sábado com menos de 4 horas de funcionamento');return}
-const satMinutes=sat?Math.min(480,windowSat):0,weekday=days.filter(d=>d!=='sabado'),remaining=2520-satMinutes,base=Math.floor(remaining/weekday.length),rest=remaining%weekday.length,computed={};
-weekday.forEach((d,i)=>{computed[d]=target(p,d,base+(i<rest?1:0));if(!computed[d])errors.push(p.nome+': horário insuficiente em '+d)});if(sat){computed.sabado=target(p,'sabado',satMinutes);if(!computed.sabado)errors.push(p.nome+': sábado insuficiente')}
-if(Object.values(computed).some(v=>!v))return;p.usarDiasIndividuais=true;p.fs42AutoGerado=true;p.diasAtivosIndividuais=days;p.horariosIndividuais={...p.horariosIndividuais,...computed};p.sabadoSim=sat;p.equipeBase=index%Math.max(1,c.equipesDia?.segunda||1);changed++}));snapshot();save();render();configUI();alert((errors.length?'Distribuição parcial. '+errors.slice(0,4).join('; '):'Distribuição de 42 horas gerada.')+' Colaboradores atualizados: '+changed+'. Ajustes manuais anteriores preservados.');}
+function target(p,d,minutes){
+ const lim=limits(d),width=lim.close-lim.open;
+ if(width<minutes)return null;
+ const old=p.horariosIndividuais?.[d]||state.horarios?.[d]?.[p.slots?.[d]||p.equipeBase||0]||{};
+ // Respeitar os limites da unidade: primeiro tentar preservar entrada e saída do turno.
+ const oldStart=mins(old.entrada||clock(lim.open)),oldEnd=mins(old.saida||clock(lim.close));
+ const fixedStart=Math.max(lim.open,oldStart),fixedEnd=Math.min(lim.close,oldEnd);
+ let start=fixedStart,end=fixedEnd,pause=end-start-minutes;
+ if(pause<0||pause>120){
+   // Uma jornada inviável não pode ser 'corrigida' encurtando silenciosamente o expediente.
+   return null;
+ }
+ const a=mins(old.almocoIni||'00:00');
+ const lunch=Math.max(start+Math.floor(minutes/3),Math.min(a||start+Math.floor(minutes/2),end-pause));
+ return {ativo:true,entrada:clock(start),almocoIni:clock(lunch),almocoFim:clock(lunch+pause),saida:clock(end)};
+}
+function distribuirFolgas42(people){
+ // Mesmo princípio da folga distribuída de 40h: balancear por função e por dia.
+ const roles={};people.forEach(p=>(roles[p.funcao||'Sem função']??=[]).push(p));
+ Object.values(roles).forEach(group=>group.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR')).forEach((p,i)=>{p.folgaDistribuida=FOLGAS[i%3]}));
+}
+function generate(){
+ if(!active())return window.fs42LegacyGenerate();
+ const c=state.config,type=c.fs42Tipo||'6x1',people=state.pessoas||[],errors=[];
+ const roles={};people.forEach(p=>(roles[p.funcao||'Sem função']??=[]).push(p));
+ let changed=0;
+ const hasPdf=people.some(p=>p.fsPdfImportado&&!p.fs42AutoGerado);
+ const allowPdf=hasPdf&&confirm('Existem horários importados do PDF. Deseja permitir a redistribuição automática desses horários?\n\nCancelar mantém os horários individuais importados.');
+ if(type==='5x2')distribuirFolgas42(people.filter(p=>!p.fs42ManualLock));
+ Object.values(roles).forEach(group=>group.forEach((p,index)=>{
+  if(p.jovemAprendiz)return;
+  const locked=p.fs42ManualLock===true||(p.usarDiasIndividuais===true&&!p.fs42AutoGerado)||(Object.values(p.horariosIndividuais||{}).some(h=>h?.ativo)&&!p.fs42AutoGerado);
+  if(locked&&!(p.fsPdfImportado&&allowPdf&&!p.fs42ManualLock))return;
+  const days=type==='6x1'?[...DAYS]:DAYS.filter(d=>d!==p.folgaDistribuida);
+  const satWindow=limits('sabado').close-limits('sabado').open;
+  if(satWindow<240){errors.push(p.nome+': sábado tem menos de 4h disponíveis');return}
+  // A carga do sábado segue o horário real da filial/PDF, não o modelo de 40h.
+  const existingSat=p.horariosIndividuais?.sabado||state.horarios?.sabado?.[p.equipeBase||0]||{};
+  const existingSatMinutes=existingSat.entrada&&existingSat.saida?mins(existingSat.saida)-mins(existingSat.entrada)-Math.max(0,mins(existingSat.almocoFim)-mins(existingSat.almocoIni)):satWindow;
+  const satMinutes=Math.max(240,Math.min(satWindow,existingSatMinutes));
+  const weekdays=days.filter(d=>d!=='sabado');const remaining=2520-satMinutes;
+  const base=Math.floor(remaining/weekdays.length),rest=remaining%weekdays.length,computed={};
+  weekdays.forEach((d,i)=>{computed[d]=target(p,d,base+(i<rest?1:0));if(!computed[d])errors.push(p.nome+': não é possível fechar 42h mantendo entrada/saída e intervalo máximo de 2h em '+d)});
+  computed.sabado=target(p,'sabado',satMinutes);
+  if(!computed.sabado)errors.push(p.nome+': horário do sábado incompatível com 42h');
+  if(Object.values(computed).some(v=>!v))return;
+  p.usarDiasIndividuais=true;p.fs42AutoGerado=true;p.diasAtivosIndividuais=days;
+  p.horariosIndividuais={...p.horariosIndividuais,...computed};
+  p.sabadoSim=true;p.equipeBase=index%Math.max(1,c.equipesDia?.segunda||1);changed++;
+ }));
+ snapshot();save();render();configUI();
+ alert((errors.length?'Há horários que precisam de ajuste manual: '+errors.slice(0,5).join('; '):'Distribuição de 42h concluída.')+' Colaboradores atualizados: '+changed+'.');
+}
 function integrar42(){
+ if(active()&&!window.fs42DisplayInstalled){
+   const originalWorking=window.workingOn;
+   const work=function(p,d){if(active()&&state.config.fs42Tipo==='5x2')return d!=='domingo'&&d!==(p.folgaDistribuida||'terca')&&(p.usarDiasIndividuais&&p.fs42AutoGerado? p.diasAtivosIndividuais.includes(d):true);return originalWorking(p,d)};
+   window.workingOn=work;try{workingOn=work}catch(e){}
+   const originalOperation=window.operacaoDia;
+   const operation=function(d){if(active()){
+     if(state.config.fs42Tipo==='6x1')return '100% operação';
+     const total=state.pessoas?.length||0;
+     return total?Math.round(100*(state.pessoas||[]).filter(p=>work(p,d)).length/total)+'% operação':'0% operação';
+   }return originalOperation(d)};
+   window.operacaoDia=operation;try{operacaoDia=operation}catch(e){}
+   window.fs42DisplayInstalled=true;
+ }
+
  if(!active())return;
  const tipo=state.config.fs42Tipo||'6x1';state.cargaMeta=42;
  const descricao='JORNADA FLEXÍVEL — 42 HORAS ('+tipo.toUpperCase()+')';
