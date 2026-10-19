@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-dashboard-v802';
+const CACHE_NAME = 'fs-escala-nuvem-v721';
 const CORE_FILES = [
   './',
   './index.html',
@@ -10,8 +10,6 @@ const CORE_FILES = [
   './fs-cloud-v716.js',
   './fs-cloud-v716.css',
   './fs-pdf-import-v717.js',
-  './fs-dashboard-v800.js',
-  './fs-dashboard-v800.css',
   './pdf.min.mjs',
   './pdf.worker.min.mjs',
   './manifest.webmanifest',
