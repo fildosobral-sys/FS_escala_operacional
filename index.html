@@ -15449,7 +15449,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   }
   function identidadeLocal(){const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||(!CHAVES_LOCAIS.has(k)&&!k.startsWith('fs_cloud_')))continue;const v=localStorage.getItem(k);if(v!==null)o[k]=v}return o}
   function restaurar(file){
-    if(!file||window.__fsRestaurandoBackupV612)return;
+    if(!file||/\.pdf$/i.test(file.name||'')||file.type==='application/pdf'||window.__fsRestaurandoBackupV612)return;
     const reader=new FileReader();reader.onload=function(){
       try{
         const data=JSON.parse(reader.result),canon=estadoDoArquivo(data);if(!canon)throw new Error('O arquivo não contém um estado operacional válido.');const equipesRestauradas=aplicarEstruturaRecebida(data,canon);canon.config=canon.config||{};canon.config.fsRestauracaoFiel=true;canon.config.fsDistribuicaoFuncaoV560=true;
@@ -15489,4 +15489,4 @@ window.baixarImagem=function(elementId,nomeArquivo){
   window.fsAtualizarCabecalhosColaboradores=atualizar;
 })();
 </script>
-<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v716.css"><script src="./fs-pdf-import-v717.js?v=719"></script><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v716.js"></script><script src="./fs-42h.js?v=3"></script></body></html>
+<link rel="stylesheet" href="./fs-stability.css"><link rel="stylesheet" href="./fs-continuity-v2.css?v=604"><link rel="stylesheet" href="./fs-cloud-v716.css"><script src="./fs-pdf-import-v717.js?v=720"></script><script src="./fs-continuity-v2.js?v=604"></script><script src="./fs-cloud-v716.js"></script><script src="./fs-42h.js?v=5"></script></body></html>

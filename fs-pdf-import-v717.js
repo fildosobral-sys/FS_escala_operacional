@@ -196,14 +196,35 @@
     revisados.forEach((it,i)=>{
       let p=mapa.get(chave(it.nome));
       if(!p){p={id:'p'+Date.now()+'_'+i,nome:it.nome,funcao:it.funcao,especialSlot:null,sabadoSim:false,folgaDistribuida:['terca','quarta','quinta'][i%3],equipeBase:0,slots:{}};copia.push(p);}
-      p.nome=it.nome;p.funcao=it.funcao;
+      p.nome=it.nome;p.funcao=it.funcao;p.fsPdfImportado=true;
       p.horariosIndividuais={...(p.horariosIndividuais||{}),...it.horariosIndividuais};
       if(it.diasTrabalho.includes('sabado'))p.sabadoSim=true;
       mapa.set(chave(it.nome),p);
     });
     state.pessoas=copia;state.colaboradores=state.pessoas;
     const novos=Object.fromEntries(Object.entries(pend.metadados||{}).filter(([,v])=>String(v||'').trim()));
-    if(Object.keys(novos).length){let atuais={};try{atuais=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{};}catch(_){}const mudancas=Object.entries(novos).filter(([k,v])=>String(atuais[k]||'').trim()!==String(v).trim());if(mudancas.length){const descricao=mudancas.map(([k,v])=>k+': '+v).join('\n');if(confirm('O PDF contém dados da filial. Deseja atualizar os seguintes campos?\n\n'+descricao+'\n\nCancelar mantém os dados atuais.')){localStorage.setItem('fsDadosEmpresa',JSON.stringify({...atuais,...novos}));}}}
+    if(Object.keys(novos).length){let atuais={};try{atuais=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{};}catch(_){}const mudancas=Object.entries(novos).filter(([k,v])=>String(atuais[k]||'').trim()!==String(v).trim());if(mudancas.length){const descricao=mudancas.map(([k,v])=>k+': '+v).join('\n');if(confirm('O PDF contém dados da filial. Deseja atualizar os seguintes campos?\n\n'+descricao+'\n\nCancelar mantém os dados atuais.')){
+          const atualizados={...atuais,...novos};localStorage.setItem('fsDadosEmpresa',JSON.stringify(atualizados));
+          // Atualizar os campos visíveis: o painel não recria seus inputs após a importação.
+          const ids={empregador:'fsEmpregadorInput',filial:'fsFilialInput',atividade:'fsAtividadeInput',cidade:'fsCidadeInput',cnpj:'fsCnpjInput',inscricaoEstadual:'fsInscricaoEstadualInput',aniversarioFilial:'fsAniversarioFilialInput',endereco1:'fsEndereco1Input',endereco2:'fsEndereco2Input'};
+          Object.entries(novos).forEach(([k,v])=>{const input=document.getElementById(ids[k]);if(input)input.value=String(v).replace(/\n/g,' - ')});
+          try{window.fsAplicarDadosEmpresa?.(document)}catch(e){console.warn('[FS PDF] atualização do cabeçalho',e)}
+          // Os horários individuais do PDF não são necessariamente o funcionamento
+          // oficial. Oferecer uma proposta separada, explicitamente confirmada.
+          const faixa=ds=>{const hs=revisados.flatMap(p=>ds.map(d=>p.horariosIndividuais?.[d]).filter(Boolean));
+            const valid=hs.filter(h=>/^\d\d:\d\d$/.test(h.entrada||'')&&/^\d\d:\d\d$/.test(h.saida||''));
+            if(!valid.length)return null;return [valid.map(h=>h.entrada).sort()[0],valid.map(h=>h.saida).sort().at(-1)];};
+          const sem=faixa(DIAS_UTEIS),sab=faixa(['sabado']);const propostas={};
+          if(sem){propostas.horarioSemanaEntrada=sem[0];propostas.horarioSemanaSaida=sem[1]}
+          if(sab){propostas.horarioSabadoEntrada=sab[0];propostas.horarioSabadoSaida=sab[1]}
+          if(Object.keys(propostas).length){const texto='O PDF contém turnos individuais. Como sugestão, os limites observados são:\n'+(sem?'Segunda a sexta: '+sem.join(' às ')+'\n':'')+(sab?'Sábado: '+sab.join(' às ')+'\n':'')+'\nEsses horários podem não representar a abertura e o fechamento oficiais da filial. Deseja aplicá-los como padrão?';
+            if(confirm(texto)){Object.assign(atualizados,propostas);localStorage.setItem('fsDadosEmpresa',JSON.stringify(atualizados));
+              state.config.funcionamentoUnidade={...(state.config.funcionamentoUnidade||{}),...propostas};
+              const hids={horarioSemanaEntrada:'fsHorarioSemanaEntrada',horarioSemanaSaida:'fsHorarioSemanaSaida',horarioSabadoEntrada:'fsHorarioSabadoEntrada',horarioSabadoSaida:'fsHorarioSabadoSaida'};
+              Object.entries(propostas).forEach(([k,v])=>{const el=document.getElementById(hids[k]);if(el)el.value=v});
+            }
+          }
+        }}}
     window.fsImportacaoPdfPendente=null;
     if(typeof save==='function')save();
     if(typeof fsForcarRedistribuicaoIgualitaria==='function')fsForcarRedistribuicaoIgualitaria();else if(typeof aplicarDistribuicao==='function')aplicarDistribuicao();
