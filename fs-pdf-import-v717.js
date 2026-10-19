@@ -137,7 +137,9 @@
       const itens=extrairPessoas(paginas),metadados=extrairMetadados(paginas.map(p=>p.texto).join('\n'));
       if(!itens.length)throw new Error('o PDF abriu, mas nenhuma linha de colaborador foi reconhecida');
       window.fsImportacaoPdfPendente={itens,metadados,arquivos:files.length};
-      if(area)area.value=itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n');
+      const previa=itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n');
+      if(area){area.value=previa;area.dispatchEvent(new Event('input',{bubbles:true}));}
+      window.fsPdfUltimaPrevia=previa;
       const modo=document.getElementById('importMode');if(modo)modo.value='replace';
       const unidade=[metadados.filial,metadados.cnpj].filter(Boolean).join(' - ');
       status(`${itens.length} colaborador(es) reconhecido(s) em ${files.length} arquivo(s). ${unidade?'Unidade identificada: '+unidade+'. ':''}Confira a lista e clique em importar.`);
@@ -171,21 +173,47 @@
   window.importarListaColaboradores=function(){
     const pend=window.fsImportacaoPdfPendente,area=document.getElementById('importText');
     if(!pend?.itens?.length)return importacaoAnterior?.apply(this,arguments);
-    if(String(area?.value||'').trim()!==pend.itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n').trim()){window.fsImportacaoPdfPendente=null;return importacaoAnterior?.apply(this,arguments);}
-    if(!window.state||!Array.isArray(state.pessoas))throw new Error('Base local de colaboradores indisponível.');
-    const modo=document.getElementById('importMode')?.value||'replace';if(modo==='replace')state.pessoas=[];
-    const mapa=new Map(state.pessoas.map(p=>[chave(p.nome),p]));
-    pend.itens.forEach((it,i)=>{let p=mapa.get(chave(it.nome));if(!p){p={id:'p'+Date.now()+'_'+i,nome:it.nome,funcao:it.funcao,especialSlot:null,sabadoSim:false,folgaDistribuida:['terca','quarta','quinta'][i%3],equipeBase:0,slots:{}};state.pessoas.push(p);}p.nome=it.nome;p.funcao=it.funcao;p.horariosIndividuais={...(p.horariosIndividuais||{}),...it.horariosIndividuais};if(it.diasTrabalho.includes('sabado'))p.sabadoSim=true;mapa.set(chave(it.nome),p);});
-    state.colaboradores=state.pessoas;
+    const texto=String(area?.value||'').trim();
+    if(!texto){status('A lista está vazia. Leia o PDF e confira os nomes antes de importar.');return alert('A lista de conferência está vazia.');}
+    // Respeitar inclusões, exclusões e correções realizadas pelo responsável.
+    const linhas=texto.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    const revisados=[];const vistos=new Set();
+    for(const linha of linhas){
+      const separador=linha.lastIndexOf(' - ');
+      if(separador<1)return alert('Revise esta linha: '+linha+'\nUse Nome completo - Função.');
+      const nome=limparNome(linha.slice(0,separador)),funcao=linha.slice(separador+3).trim();
+      if(!nomeValido(nome)||!funcao)return alert('Nome ou função inválidos: '+linha);
+      const k=chave(nome);if(vistos.has(k))return alert('Nome repetido: '+nome);
+      vistos.add(k);
+      const original=pend.itens.find(x=>chave(x.nome)===k);
+      revisados.push({...original,nome,funcao,horariosIndividuais:original?.horariosIndividuais||{},diasTrabalho:original?.diasTrabalho||[]});
+    }
+    if(!revisados.length)return alert('Nenhum colaborador válido para importar.');
+    if(!window.state||!Array.isArray(state.pessoas))return alert('Base local indisponível. Nenhum dado foi alterado.');
+    const modo=document.getElementById('importMode')?.value||'replace';
+    const copia=modo==='replace'?[]:state.pessoas.map(p=>({...p}));
+    const mapa=new Map(copia.map(p=>[chave(p.nome),p]));
+    revisados.forEach((it,i)=>{
+      let p=mapa.get(chave(it.nome));
+      if(!p){p={id:'p'+Date.now()+'_'+i,nome:it.nome,funcao:it.funcao,especialSlot:null,sabadoSim:false,folgaDistribuida:['terca','quarta','quinta'][i%3],equipeBase:0,slots:{}};copia.push(p);}
+      p.nome=it.nome;p.funcao=it.funcao;
+      p.horariosIndividuais={...(p.horariosIndividuais||{}),...it.horariosIndividuais};
+      if(it.diasTrabalho.includes('sabado'))p.sabadoSim=true;
+      mapa.set(chave(it.nome),p);
+    });
+    state.pessoas=copia;state.colaboradores=state.pessoas;
     const novos=Object.fromEntries(Object.entries(pend.metadados||{}).filter(([,v])=>String(v||'').trim()));
     if(Object.keys(novos).length){let atuais={};try{atuais=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{};}catch(_){}localStorage.setItem('fsDadosEmpresa',JSON.stringify({...atuais,...novos}));}
     window.fsImportacaoPdfPendente=null;
     if(typeof save==='function')save();
     if(typeof fsForcarRedistribuicaoIgualitaria==='function')fsForcarRedistribuicaoIgualitaria();else if(typeof aplicarDistribuicao==='function')aplicarDistribuicao();
     if(typeof render==='function')render();
-    status(`${pend.itens.length} colaborador(es) importado(s). Dados da unidade, nomes, funções e horários reconhecidos foram aplicados.`);
-    alert('Importação do PDF concluída. Confira o cabeçalho, a lista de colaboradores e os horários.');
+    status(`${revisados.length} colaborador(es) importado(s). Confira a aba Colaboradores.`);
+    alert(`${revisados.length} colaborador(es) importado(s). Confira a aba Colaboradores.`);
   };
+  // O HTML também utiliza uma função global declarada lexicalmente.
+  // Atualizar essa referência impede que o clique invoque o importador antigo.
+  try{importarListaColaboradores=window.importarListaColaboradores;}catch(e){}
 
   function prepararSeletorPdf(){
     const input=document.getElementById('listaInput');if(!input)return;
@@ -209,7 +237,7 @@
       input.before(aviso,botao);
     }
   }
-  const observar=new MutationObserver(prepararSeletorPdf);observar.observe(document.documentElement,{childList:true,subtree:true});
+  const observar=new MutationObserver(()=>{prepararSeletorPdf();const area=document.getElementById('importText');if(area&&window.fsImportacaoPdfPendente&&window.fsPdfUltimaPrevia&&!area.value.trim())area.value=window.fsPdfUltimaPrevia;});observar.observe(document.documentElement,{childList:true,subtree:true});
   prepararSeletorPdf();
   document.addEventListener('click',e=>{if(e.target?.closest?.('button')?.textContent?.match(/configura[cç][oõ]es/i))setTimeout(prepararSeletorPdf,80);},true);
 })();
