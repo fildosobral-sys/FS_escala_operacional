@@ -1,4 +1,4 @@
-/* FS Escala Operacional - importador de PDF isolado v717 */
+/* FS Escala Operacional - importador de PDF isolado v718 */
 (function(){
   'use strict';
 
@@ -98,15 +98,20 @@
   let leitorPromise=null;
   function iniciarLeitor(){
     if(leitorPromise)return leitorPromise;
-    leitorPromise=import('./pdf.min.mjs?v=717').then(pdf=>{pdf.GlobalWorkerOptions.workerSrc=new URL('./pdf.worker.min.mjs?v=717',document.baseURI).href;return pdf;})
+    leitorPromise=import('./pdf.min.mjs?v=718').then(pdf=>{pdf.GlobalWorkerOptions.workerSrc=new URL('./pdf.worker.min.mjs?v=718',document.baseURI).href;return pdf;})
       .catch(e=>{leitorPromise=null;throw new Error('Leitor de PDF não iniciou: '+e.message);});
     return leitorPromise;
   }
   window.fsPdfReaderReady=iniciarLeitor();
   window.fsPdfReaderReady.catch(e=>console.error('[FS PDF]',e));
 
+  function lerBuffer(file){
+    if(typeof file.arrayBuffer==='function')return file.arrayBuffer();
+    return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error||new Error('não foi possível acessar o arquivo'));r.readAsArrayBuffer(file);});
+  }
+
   async function lerPdf(file,indice,total){
-    const leitor=await iniciarLeitor(),pdf=await leitor.getDocument({data:await file.arrayBuffer()}).promise,out=[];
+    const leitor=await iniciarLeitor(),pdf=await leitor.getDocument({data:await lerBuffer(file)}).promise,out=[];
     for(let n=1;n<=pdf.numPages;n++){
       status(`Arquivo ${indice+1}/${total}: lendo página ${n}/${pdf.numPages}...`);
       const page=await pdf.getPage(n),conteudo=await page.getTextContent(),linhas=linhasDaPagina(conteudo.items);
@@ -159,4 +164,21 @@
     status(`${pend.itens.length} colaborador(es) importado(s). Dados da unidade, nomes, funções e horários reconhecidos foram aplicados.`);
     alert('Importação do PDF concluída. Confira o cabeçalho, a lista de colaboradores e os horários.');
   };
+
+  function prepararSeletorPdf(){
+    const input=document.getElementById('listaInput');if(!input)return;
+    input.accept='.pdf,application/pdf';
+    input.removeAttribute('capture');
+    input.dataset.fsPdfV='718';
+    if(input.dataset.fsPdfChange==='1')return;
+    input.dataset.fsPdfChange='1';
+    input.addEventListener('change',()=>{
+      const files=[...(input.files||[])];
+      window.fsImportacaoPdfPendente=null;
+      status(files.length?`PDF selecionado: ${files.map(f=>f.name).join(', ')}. Clique em Ler arquivos selecionados.`:'Nenhum PDF selecionado.');
+    });
+  }
+  const observar=new MutationObserver(prepararSeletorPdf);observar.observe(document.documentElement,{childList:true,subtree:true});
+  prepararSeletorPdf();
+  document.addEventListener('click',e=>{if(e.target?.closest?.('button')?.textContent?.match(/configura[cç][oõ]es/i))setTimeout(prepararSeletorPdf,80);},true);
 })();
