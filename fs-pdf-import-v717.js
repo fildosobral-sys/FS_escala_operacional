@@ -54,7 +54,7 @@
     let atividade=pegar(/ATIVIDADE\s*:\s*([^\n]+)/i);
     let cidade=pegar(/CIDADE\s*:\s*([^\n]+)/i);
     const cnpj=(String(texto||'').match(/\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b/)||[])[0]||'';
-    const ie=pegar(/(?:^|\n)\s*IE\s*:\s*([^;\n]+)/im);
+    const ie=pegar(/(?:^|\n)\s*(?:IE|INSCRI[CÇ][AÃ]O\s+ESTADUAL)\s*[:\-]\s*([^;\n]+)/im);
     const aniversario=pegar(/ANIVERS[AÁ]RIO\s*:\s*([^;\n]+)/i);
     const enderecos=linhas.filter(x=>/^(?:ENDERE[CÇ]O\s*:\s*)?(?:RUA|AVENIDA|AV\.|RODOVIA|TRAVESSA)\b/i.test(x))
       .map(x=>x.replace(/^ENDERE[CÇ]O\s*:\s*/i,'')).slice(0,2);
@@ -203,7 +203,7 @@
     });
     state.pessoas=copia;state.colaboradores=state.pessoas;
     const novos=Object.fromEntries(Object.entries(pend.metadados||{}).filter(([,v])=>String(v||'').trim()));
-    if(Object.keys(novos).length){let atuais={};try{atuais=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{};}catch(_){}localStorage.setItem('fsDadosEmpresa',JSON.stringify({...atuais,...novos}));}
+    if(Object.keys(novos).length){let atuais={};try{atuais=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{};}catch(_){}const mudancas=Object.entries(novos).filter(([k,v])=>String(atuais[k]||'').trim()!==String(v).trim());if(mudancas.length){const descricao=mudancas.map(([k,v])=>k+': '+v).join('\n');if(confirm('O PDF contém dados da filial. Deseja atualizar os seguintes campos?\n\n'+descricao+'\n\nCancelar mantém os dados atuais.')){localStorage.setItem('fsDadosEmpresa',JSON.stringify({...atuais,...novos}));}}}
     window.fsImportacaoPdfPendente=null;
     if(typeof save==='function')save();
     if(typeof fsForcarRedistribuicaoIgualitaria==='function')fsForcarRedistribuicaoIgualitaria();else if(typeof aplicarDistribuicao==='function')aplicarDistribuicao();
