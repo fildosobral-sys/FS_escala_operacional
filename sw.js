@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-dashboard-v801';
+const CACHE_NAME = 'fs-escala-dashboard-v802';
 const CORE_FILES = [
   './',
   './index.html',
