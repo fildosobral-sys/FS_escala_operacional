@@ -641,7 +641,7 @@
   function newAccess() {
     const m = modal(
       "Gerar novo acesso",
-      `<label>Nome completo<input name="name" required autocomplete="name"></label><label>Telefone (opcional)<input name="phone" inputmode="tel"></label><label>Perfil<select name="role" id="fsAccessRole"><option value="manager">Gerente</option><option value="branch_admin">Administrador da filial</option><option value="regional_admin">Administrador regional</option><option value="consultant">Consultor</option>${accessData.globalAdmin ? '<option value="developer">Desenvolvedor</option>' : ""}<option value="viewer">Visualizador</option></select></label><label id="fsAccessBranchLabel">Filial<select name="branchId">${branchOptions()}</select></label><label id="fsAccessRegionLabel" hidden>Regional<select name="regionId">${regionOptions()}</select></label><label class="fsAccessCheck"><input type="checkbox" name="canShare" value="1"> Permitir que esta pessoa compartilhe acessos</label>`,
+      `<label>Nome completo<input name="name" required autocomplete="name"></label><label>Telefone (necessário para reentrada)<input name="phone" inputmode="tel" required></label><label>Perfil<select name="role" id="fsAccessRole"><option value="manager">Gerente</option><option value="branch_admin">Administrador da filial</option><option value="regional_admin">Administrador regional</option><option value="consultant">Consultor</option>${accessData.globalAdmin ? '<option value="developer">Desenvolvedor</option>' : ""}<option value="viewer">Visualizador</option></select></label><label id="fsAccessBranchLabel">Filial<select name="branchId">${branchOptions()}</select></label><label id="fsAccessRegionLabel" hidden>Regional<select name="regionId">${regionOptions()}</select></label><label class="fsAccessCheck"><input type="checkbox" name="cloudAccess" value="1" checked> Permitir consultar e sincronizar os dados da nuvem</label><label class="fsAccessCheck"><input type="checkbox" name="canShare" value="1"> Permitir que esta pessoa compartilhe acessos</label>`,
       "Gerar convite",
       async (f, w) => {
         const selectedRole = f.get("role"),
@@ -662,6 +662,7 @@
             phone: f.get("phone"),
             role: selectedRole,
             canShare: f.get("canShare") || "0",
+            cloudAccess: f.get("cloudAccess") || "0",
             mode: "same",
             branchId: f.get("branchId") || cfg().branch,
             scopeType,
@@ -864,12 +865,16 @@
             );
             if (!r.ok) throw new Error(r.message);
             localStorage.setItem(K.url, cloud);
+            localStorage.setItem("fs_central_portal_v812", "1");
             localStorage.setItem("fs_access_token", r.session);
             localStorage.setItem("fs_access_data_v1", JSON.stringify(r));
             localStorage.setItem(K.branch, r.branchId);
             localStorage.setItem(K.branchName, r.branchName || "Filial");
             localStorage.setItem(K.version, String(r.version || 0));
-            localStorage.setItem("fs_cloud_mode_v705", "admin");
+            localStorage.setItem(
+              "fs_cloud_mode_v705",
+              r.cloudAccess === false ? "local" : "admin",
+            );
             localStorage.removeItem(K.token);
             w.remove();
             q.delete("invite");
