@@ -7,6 +7,9 @@
       branchName: "fs_cloud_branch_name_v708",
       version: "fs_cloud_version_v705",
     },
+    MAIN_STATE_KEY = "fs_escala_limpa_v381",
+    OPTIONAL_STATE_KEYS = ["fsDadosEmpresa", "fs_continuidade_operacional_v1", "fsDomingosMensaisV550", "fsDomMinimosV551"],
+    DASH_CACHE_KEY = "fs_management_dashboard_cache_v814",
     ROLES = {
       developer: "Desenvolvedor",
       global_admin: "Desenvolvedor",
@@ -77,7 +80,7 @@
     else p.token = c.token;
     return p;
   }
-  function jsonp(action, extra) {
+  function jsonp(action, extra, timeoutMs) {
     return new Promise((resolve, reject) => {
       const c = cfg();
       if (!c.url) return reject(new Error("Nuvem não configurada."));
@@ -86,7 +89,7 @@
         timer = setTimeout(
           () =>
             done(new Error("Tempo excedido ao consultar a Central Gerencial.")),
-          25000,
+          timeoutMs || 12000,
         );
       function done(e, x) {
         clearTimeout(timer);
@@ -208,7 +211,7 @@
   function publish() {
     const c = cfg(),
       x = summary();
-    if (!c.url || (!c.token && !c.session) || !x) return;
+    if (sessionStorage.getItem("fs_dashboard_branch_mode") !== "1" || document.getElementById("fsDashRoot") || document.getElementById("fsAccessRoot") || !c.url || (!c.token && !c.session) || !x) return;
     fetch(c.url, {
       method: "POST",
       mode: "no-cors",
@@ -335,6 +338,40 @@
     setTimeout(() => {
       if (!x.classList.contains("show")) x.remove();
     }, 180);
+  }
+  function branchLoading(name) {
+    let x = document.getElementById("fsBranchLoading");
+    if (!x) {
+      x = document.createElement("div");
+      x.id = "fsBranchLoading";
+      x.innerHTML = `<section><img class="fsBranchLogo" src="./LOGO ATUAL.png" alt="Zenir"><b></b><span></span><small>Carregando dados atualizados da filial</small></section>`;
+      document.body.appendChild(x);
+    }
+    x.querySelector("b").textContent = name || "Abrindo filial";
+    requestAnimationFrame(() => x.classList.add("show"));
+  }
+  function stopBranchLoading() {
+    const x = document.getElementById("fsBranchLoading");
+    if (!x) return;
+    x.classList.remove("show");
+    setTimeout(() => x.remove(), 180);
+  }
+  function applyBranchPayload(raw) {
+    let pack;
+    try { pack = typeof raw === "string" ? JSON.parse(raw) : raw; }
+    catch (_) { throw new Error("Os dados recebidos desta filial estão inválidos."); }
+    const storage = pack?.storage || pack || {};
+    let main = storage[MAIN_STATE_KEY];
+    if (main == null) {
+      for (const alias of ["FS_ESCALA_OPERACIONAL_STATE", "FS_ESCALA_STATE", "FS_OPERACIONAL_STATE", "fs_state", "state"])
+        if (storage[alias] != null) { main = storage[alias]; break; }
+    }
+    if (main == null) throw new Error("Esta filial ainda não publicou a escala na nuvem.");
+    localStorage.setItem(MAIN_STATE_KEY, typeof main === "string" ? main : JSON.stringify(main));
+    OPTIONAL_STATE_KEYS.forEach((key) => {
+      if (storage[key] == null) localStorage.removeItem(key);
+      else localStorage.setItem(key, typeof storage[key] === "string" ? storage[key] : JSON.stringify(storage[key]));
+    });
   }
   function kpiDetails(kind) {
     const bs = filtered();
@@ -531,6 +568,7 @@
   }
   function renderAccess() {
     document.getElementById("fsAccessRoot")?.remove();
+    document.documentElement.classList.add("fsDashboardOpen");
     const root = document.createElement("div");
     root.id = "fsAccessRoot";
     root.className = "fsAccessRoot";
@@ -943,6 +981,7 @@
       K.branchName,
       K.version,
       "fs_cloud_mode_v705",
+      DASH_CACHE_KEY,
     ].forEach((k) => localStorage.removeItem(k));
     sessionStorage.removeItem("fs_dashboard_branch_mode");
     sessionStorage.removeItem("fs_cloud_admin_loaded");
@@ -983,6 +1022,7 @@
     if (!data) return;
     const bs = filtered();
     document.getElementById("fsDashRoot")?.remove();
+    document.documentElement.classList.add("fsDashboardOpen");
     const root = document.createElement("div");
     root.id = "fsDashRoot";
     root.className = "fsDashShell";
@@ -1065,21 +1105,25 @@
   async function openBranch(id) {
     if (busy) return;
     busy = true;
-    loading("Abrindo a filial…");
+    const branch = (data?.branches || []).find((x) => x.id === id);
+    branchLoading(branch?.name || "Abrindo filial");
     try {
-      const r = await jsonp("switchBranch", { branchId: id });
+      const r = await jsonp("read", { branchId: id }, 9000);
       if (!r.ok)
-        throw new Error(r.message || "Não foi possível selecionar a filial.");
-      localStorage.setItem(K.branch, r.branchId);
-      localStorage.setItem(K.branchName, r.branchName || "Filial");
+        throw new Error(r.message || "Não foi possível carregar a filial.");
+      applyBranchPayload(r.payload);
+      localStorage.setItem(K.branch, r.branchId || id);
+      localStorage.setItem(K.branchName, r.branchName || branch?.name || "Filial");
       localStorage.setItem(K.version, String(r.version || 0));
       sessionStorage.setItem("fs_dashboard_branch_mode", "1");
-      sessionStorage.setItem("fs_dashboard_open_cloud", "1");
+      sessionStorage.setItem("fs_cloud_admin_loaded", r.branchId || id);
+      sessionStorage.removeItem("fs_dashboard_open_cloud");
+      document.documentElement.classList.remove("fsDashboardOpen");
       location.reload();
     } catch (e) {
       error(e.message);
       busy = false;
-      stopLoading();
+      stopBranchLoading();
     }
   }
   function error(msg) {
@@ -1103,6 +1147,7 @@
       b.innerHTML = "← <span>Central Gerencial</span>";
       b.onclick = () => {
         sessionStorage.removeItem("fs_dashboard_branch_mode");
+        document.documentElement.classList.add("fsDashboardOpen");
         autoEntry = true;
         data ? render() : load(true);
       };
@@ -1113,7 +1158,11 @@
   async function load(open) {
     if (busy) return;
     busy = true;
-    if (open) loading("Atualizando a Central…");
+    const refreshButton = document.getElementById("fsDashRefresh");
+    if (open && refreshButton) {
+      refreshButton.disabled = true;
+      refreshButton.textContent = "↻ Atualizando…";
+    }
     try {
       const r = await jsonp("managementDashboard");
       if (!r.ok) {
@@ -1124,6 +1173,7 @@
         throw new Error(r.message || "Central indisponível.");
       }
       data = r;
+      try { localStorage.setItem(DASH_CACHE_KEY, JSON.stringify(r)); } catch (_) {}
       centralButton();
       if (open || autoEntry || document.getElementById("fsDashRoot")) {
         autoEntry = false;
@@ -1134,7 +1184,10 @@
       if (open) error(e.message);
     } finally {
       busy = false;
-      if (open) stopLoading();
+      if (refreshButton) {
+        refreshButton.disabled = false;
+        refreshButton.textContent = "↻ Atualizar";
+      }
     }
   }
   async function start() {
@@ -1145,16 +1198,24 @@
       return;
     }
     const branchMode =
-        sessionStorage.getItem("fs_dashboard_branch_mode") === "1",
-      openCloud = sessionStorage.getItem("fs_dashboard_open_cloud") === "1";
+      sessionStorage.getItem("fs_dashboard_branch_mode") === "1";
     autoEntry = !branchMode;
-    if (!branchMode) boot(true);
+    if (!branchMode) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(DASH_CACHE_KEY) || "null");
+        if (cached?.ok && Array.isArray(cached.branches)) {
+          data = cached;
+          autoEntry = false;
+          render();
+        } else boot(true);
+      } catch (_) { boot(true); }
+    }
     else {
       boot(false);
       centralButton();
     }
-    publish();
-    load(false);
+    if (branchMode) publish();
+    if (!branchMode) load(false);
     document.addEventListener(
       "click",
       (e) => {
@@ -1175,12 +1236,8 @@
       if (!document.hidden) publish();
     }, 600000);
     setInterval(() => {
-      if (!document.hidden && document.getElementById("fsDashRoot")) load(true);
-    }, 60000);
-    if (openCloud) {
-      sessionStorage.removeItem("fs_dashboard_open_cloud");
-      setTimeout(() => document.getElementById("fsCloudButton")?.click(), 900);
-    }
+      if (!document.hidden && document.getElementById("fsDashRoot") && !document.getElementById("fsAccessRoot") && !document.querySelector(".fsAccessModal,.fsKpiModal")) load(false);
+    }, 300000);
   }
   const c = cfg();
   if (c.url && (c.token || c.session))
