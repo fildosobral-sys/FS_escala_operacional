@@ -1,0 +1,12 @@
+/* V810 — visão semanal, FAB contextual e foto estável na relação */
+.fsV807Fab{display:none!important}
+.fsV807Fab.fsV810Visible{display:flex!important}
+.fsV810Days{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px}
+.fsV810DayCard{appearance:none;border:1px solid #d6e0ef;border-left:5px solid #25a96b;border-radius:14px;background:#fff;padding:14px;text-align:left;color:#102a58;cursor:pointer;display:grid;gap:4px}
+.fsV810DayCard.warn{border-left-color:#e3a514}.fsV810DayCard.bad{border-left-color:#df382b}
+.fsV810DayCard span{font-weight:900}.fsV810DayCard strong{font-size:25px}.fsV810DayCard small{color:#66748b;font-weight:700}
+.fsV810ChooseDay{margin:22px;padding:28px!important;font-size:16px}
+#baseContent .baseAgrupadaTable td:first-child,#baseContent .baseAgrupadaTable th:first-child{width:70px!important;min-width:70px!important;text-align:center!important}
+#baseContent .fsV810ListAvatar{width:50px;height:50px;border-radius:50%;object-fit:cover;display:inline-grid;place-items:center;margin:auto;background:linear-gradient(135deg,#0b2c86,#2670dc);color:#fff;font-size:13px;font-weight:950;border:3px solid #fff;box-shadow:0 0 0 1px #b8c9e2,0 4px 10px #071d6820}
+#baseContent img.fsV810ListAvatar{display:block}
+@media(max-width:900px){.fsV810Days{grid-template-columns:repeat(2,minmax(0,1fr))}.fsV807Fab.fsV810Visible span{display:inline!important}.fsV807Fab.fsV810Visible{max-width:none!important}}
