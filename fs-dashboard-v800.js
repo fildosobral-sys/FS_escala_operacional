@@ -927,6 +927,9 @@
       )
     )
       return;
+    /* A Central continua sendo a porta de entrada deste aparelho. A URL e o
+       marcador do portal ficam salvos; somente a credencial da pessoa sai. */
+    localStorage.setItem("fs_central_portal_v812", "1");
     [
       K.token,
       "fs_access_token",
@@ -938,6 +941,7 @@
     ].forEach((k) => localStorage.removeItem(k));
     sessionStorage.removeItem("fs_dashboard_branch_mode");
     sessionStorage.removeItem("fs_cloud_admin_loaded");
+    sessionStorage.removeItem("fs_dashboard_open_cloud");
     location.reload();
   }
   function toggleUserMenu(anchor) {

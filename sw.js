@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-central-v811';
+const CACHE_NAME = 'fs-escala-central-v812';
 const CORE_FILES = [
   './',
   './index.html',
@@ -11,6 +11,8 @@ const CORE_FILES = [
   './fs-cloud-v716.css',
   './fs-dashboard-v800.js',
   './fs-dashboard-v800.css',
+  './fs-central-v812.js',
+  './fs-central-v812.css',
   './fs-ui-v806.js',
   './fs-ui-v806.css',
   './fs-equilibrio-v807.js',
@@ -70,7 +72,7 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  if (/fs-(?:cloud-v716|dashboard-v800|ui-v806|equilibrio-v807|refino-v808|fotos-relatorios-v809|final-v810|consolidacao-v811)\.(?:js|css)$/.test(url.pathname)) {
+  if (/fs-(?:cloud-v716|dashboard-v800|central-v812|ui-v806|equilibrio-v807|refino-v808|fotos-relatorios-v809|final-v810|consolidacao-v811)\.(?:js|css)$/.test(url.pathname)) {
     event.respondWith(
       fetch(event.request).then(function (response) {
         if (response.ok) {

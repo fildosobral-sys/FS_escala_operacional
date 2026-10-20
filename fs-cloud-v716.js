@@ -684,10 +684,17 @@
     const manageButton = b.querySelector("#fsCloudManage");
     if (manageButton) manageButton.onclick = manage;
     b.querySelector("#fsCloudDisconnect").onclick = () => {
-      Object.values(K).forEach((k) => localStorage.removeItem(k));
+      /* No ambiente online, sair encerra a pessoa, não transforma a filial
+         silenciosamente em uma planilha local. */
+      localStorage.setItem("fs_central_portal_v812", "1");
+      [K.token, K.branch, K.branchName, K.version, K.mode, K.last].forEach((k) =>
+        localStorage.removeItem(k),
+      );
       localStorage.removeItem("fs_access_token");
       localStorage.removeItem("fs_access_data_v1");
       sessionStorage.removeItem("fs_cloud_admin_loaded");
+      sessionStorage.removeItem("fs_dashboard_branch_mode");
+      sessionStorage.removeItem("fs_dashboard_open_cloud");
       location.reload();
     };
   }
