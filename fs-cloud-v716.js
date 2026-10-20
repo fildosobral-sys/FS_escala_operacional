@@ -418,6 +418,25 @@
       toast(e.message, "error");
     }
   }
+  async function checkAdminStatus() {
+    if (!cfg.url || !hasCredential()) return;
+    try {
+      const r = await jsonp(authParams("status"));
+      if (!r.ok) throw new Error(r.message || "Falha na verificação.");
+      cfg.branch = r.branchId || cfg.branch;
+      cfg.branchName = r.branchName || cfg.branchName || "Filial";
+      cfg.version = Number(r.version || 0);
+      localStorage.setItem(K.branch, cfg.branch);
+      localStorage.setItem(K.branchName, cfg.branchName);
+      localStorage.setItem(K.version, String(cfg.version));
+      sessionStorage.setItem("fs_cloud_admin_loaded", cfg.branch);
+      setStatus("ok", "Conectado • " + cfg.branchName);
+      renderPanelInfo(r);
+    } catch (_) {
+      /* A consulta de estado é auxiliar e nunca deve interromper a filial. */
+      setStatus("sync", cfg.branchName || "Nuvem");
+    }
+  }
   async function saveNow() {
     if (busy || cfg.mode !== "admin" || !cfg.url || !hasCredential()) return;
     busy = true;
@@ -629,12 +648,10 @@
       currentRole() === "developer"
         ? '<button id="fsCloudManage">Filiais e links</button>'
         : "";
-    b.innerHTML =
-      '<div class="fsCloudLoading"><i></i><b>Buscando informações da filial…</b><span>Aguarde um instante.</span></div>';
-    if (cfg.mode === "admin" && cfg.url && hasCredential())
-      await loadAdmin(false);
     renderPanel();
     renderPanelInfo({ branchName: cfg.branchName, branchId: cfg.branch });
+    if (cfg.mode === "admin" && cfg.url && hasCredential())
+      checkAdminStatus();
   }
   function renderPanel() {
     const b = document.getElementById("fsCloudBody");
@@ -834,9 +851,17 @@
     cleanLegacyStorage();
     if (viewMode() === "desktop") forceDesktopLayout();
     injectUI();
+    sessionStorage.removeItem("fs_dashboard_open_cloud");
+    const panel = document.getElementById("fsCloudPanel");
+    if (panel) panel.hidden = true;
     if (publicToken) loadPublic();
     else if (cfg.mode === "admin" && cfg.url && hasCredential()) {
-      loadAdmin(false);
+      const inBranch = sessionStorage.getItem("fs_dashboard_branch_mode") === "1";
+      if (!inBranch)
+        setStatus("sync", cfg.branchName || "Nuvem");
+      else if (sessionStorage.getItem("fs_cloud_admin_loaded") === cfg.branch)
+        setStatus("ok", "Conectado • " + (cfg.branchName || "Filial"));
+      else checkAdminStatus();
       watchChanges();
     } else setStatus("local", "Modo local");
   }

@@ -9,7 +9,7 @@
     },
     MAIN_STATE_KEY = "fs_escala_limpa_v381",
     OPTIONAL_STATE_KEYS = ["fsDadosEmpresa", "fs_continuidade_operacional_v1", "fsDomingosMensaisV550", "fsDomMinimosV551"],
-    DASH_CACHE_KEY = "fs_management_dashboard_cache_v814",
+    DASH_CACHE_KEY = "fs_management_dashboard_cache_v815",
     ROLES = {
       developer: "Desenvolvedor",
       global_admin: "Desenvolvedor",
@@ -88,7 +88,13 @@
         s = document.createElement("script"),
         timer = setTimeout(
           () =>
-            done(new Error("Tempo excedido ao consultar a Central Gerencial.")),
+            done(
+              new Error(
+                action === "read"
+                  ? "A filial demorou para responder. Tente novamente em alguns segundos."
+                  : "A Central demorou para atualizar. Os últimos dados válidos continuam disponíveis.",
+              ),
+            ),
           timeoutMs || 12000,
         );
       function done(e, x) {
@@ -176,12 +182,20 @@
           Number(s.config?.equipesDia?.[d] || s.horarios?.[d]?.length || 0),
         ),
       );
-    let divergences = 0;
+    let divergences = 0,
+      pending = 0;
     try {
       ps.forEach((p) => {
-        const total = Number(window.totalPessoa?.(p) || 0),
-          meta = Number(window.fsMetaSemanalPessoa?.(p) || s.cargaMeta || 0);
-        if (Math.abs(total - meta) > 0.08) divergences++;
+        const audit = window.fsV558AuditarPessoa?.(p);
+        if (audit) {
+          if (audit.tipo === "bad") divergences++;
+          else if (audit.tipo === "wait") pending++;
+          return;
+        }
+        const total = Number(window.fsTotalExatoPessoa?.(p) ?? window.totalPessoa?.(p) ?? 0),
+          metaHours = Number(window.fsMetaSemanalPessoa?.(p) ?? (p?.jovemAprendiz ? p.cargaSemanalAprendiz : s.config?.modo === "42h" ? 42 : s.config?.modo === "6x1" ? 44 : s.cargaMeta || 40)),
+          metaMinutes = metaHours * 60;
+        if (Math.abs(total - metaMinutes) > 5) divergences++;
       });
     } catch (_) {}
     let company = {};
@@ -192,6 +206,7 @@
         {};
     } catch (_) {}
     return {
+      branchId: localStorage.getItem(K.branch) || "",
       branchName: company.filial || localStorage.getItem(K.branchName) || "",
       city: company.cidade || "",
       manager: company.gestor || "",
@@ -204,7 +219,7 @@
         ? Math.max(0, Math.round(((ps.length - divergences) * 100) / ps.length))
         : 0,
       divergences,
-      pending: divergences,
+      pending,
       functionCounts: fc,
     };
   }
@@ -1108,7 +1123,19 @@
     const branch = (data?.branches || []).find((x) => x.id === id);
     branchLoading(branch?.name || "Abrindo filial");
     try {
-      const r = await jsonp("read", { branchId: id }, 9000);
+      const currentBranch = localStorage.getItem(K.branch) || "",
+        currentVersion = Number(localStorage.getItem(K.version) || 0),
+        targetVersion = Number(branch?.version || 0),
+        hasLocalState = !!localStorage.getItem(MAIN_STATE_KEY);
+      if (currentBranch === id && hasLocalState && currentVersion >= targetVersion) {
+        sessionStorage.setItem("fs_dashboard_branch_mode", "1");
+        sessionStorage.setItem("fs_cloud_admin_loaded", id);
+        sessionStorage.removeItem("fs_dashboard_open_cloud");
+        document.documentElement.classList.remove("fsDashboardOpen");
+        location.reload();
+        return;
+      }
+      const r = await jsonp("read", { branchId: id }, 22000);
       if (!r.ok)
         throw new Error(r.message || "Não foi possível carregar a filial.");
       applyBranchPayload(r.payload);
@@ -1202,8 +1229,10 @@
     autoEntry = !branchMode;
     if (!branchMode) {
       try {
-        const cached = JSON.parse(localStorage.getItem(DASH_CACHE_KEY) || "null");
-        if (cached?.ok && Array.isArray(cached.branches)) {
+        const cached = JSON.parse(localStorage.getItem(DASH_CACHE_KEY) || "null"),
+          access = JSON.parse(localStorage.getItem("fs_access_data_v1") || "null"),
+          sameUser = !access?.memberId || cached?.context?.memberId === access.memberId;
+        if (cached?.ok && Array.isArray(cached.branches) && sameUser) {
           data = cached;
           autoEntry = false;
           render();
@@ -1214,7 +1243,10 @@
       boot(false);
       centralButton();
     }
-    if (branchMode) publish();
+    if (branchMode) {
+      setTimeout(publish, 2500);
+      setTimeout(publish, 8000);
+    }
     if (!branchMode) load(false);
     document.addEventListener(
       "click",
@@ -1235,9 +1267,8 @@
     setInterval(() => {
       if (!document.hidden) publish();
     }, 600000);
-    setInterval(() => {
-      if (!document.hidden && document.getElementById("fsDashRoot") && !document.getElementById("fsAccessRoot") && !document.querySelector(".fsAccessModal,.fsKpiModal")) load(false);
-    }, 300000);
+    /* A Central somente atualiza ao entrar ou quando o usuário toca em
+       Atualizar. Isso elimina consultas concorrentes durante a navegação. */
   }
   const c = cfg();
   if (c.url && (c.token || c.session))
