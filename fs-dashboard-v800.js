@@ -9,7 +9,8 @@
     },
     MAIN_STATE_KEY = "fs_escala_limpa_v381",
     OPTIONAL_STATE_KEYS = ["fsDadosEmpresa", "fs_continuidade_operacional_v1", "fsDomingosMensaisV550", "fsDomMinimosV551"],
-    DASH_CACHE_KEY = "fs_management_dashboard_cache_v817",
+    DASH_CACHE_KEY = "fs_management_dashboard_cache_v819",
+    BRANCH_CACHE_PREFIX = "fs_branch_payload_cache_v819_",
     ROLES = {
       developer: "Desenvolvedor",
       global_admin: "Desenvolvedor",
@@ -198,6 +199,8 @@
         if (Math.abs(total - metaMinutes) > 5) divergences++;
       });
     } catch (_) {}
+    const consolidatedStatus=document.documentElement.dataset.fsEscalaStatus||"";
+    if(consolidatedStatus==="validada"){divergences=0;pending=0;}
     let company = {};
     try {
       company =
@@ -387,6 +390,29 @@
       if (storage[key] == null) localStorage.removeItem(key);
       else localStorage.setItem(key, typeof storage[key] === "string" ? storage[key] : JSON.stringify(storage[key]));
     });
+  }
+  function branchCache(id) {
+    try {
+      const x = JSON.parse(localStorage.getItem(BRANCH_CACHE_PREFIX + id) || "null");
+      return x && x.payload ? x : null;
+    } catch (_) { return null; }
+  }
+  function saveBranchCache(id, payload, version, name) {
+    try {
+      localStorage.setItem(BRANCH_CACHE_PREFIX + id, JSON.stringify({ payload, version:Number(version||0), name:name||"Filial", savedAt:new Date().toISOString() }));
+      const index = JSON.parse(localStorage.getItem(BRANCH_CACHE_PREFIX + "index") || "[]").filter(x=>x!==id);
+      index.unshift(id);
+      index.slice(3).forEach(old=>localStorage.removeItem(BRANCH_CACHE_PREFIX + old));
+      localStorage.setItem(BRANCH_CACHE_PREFIX + "index", JSON.stringify(index.slice(0,3)));
+    } catch (_) {}
+  }
+  async function readBranchReliable(id) {
+    let last;
+    for (const wait of [18000, 38000]) {
+      try { return await jsonp("read", { branchId:id, attempt:String(wait) }, wait); }
+      catch (e) { last=e; }
+    }
+    throw last || new Error("Não foi possível carregar a filial.");
   }
   function kpiDetails(kind) {
     const bs = filtered();
@@ -1135,10 +1161,24 @@
         location.reload();
         return;
       }
-      const r = await jsonp("read", { branchId: id }, 22000);
+      const cached = branchCache(id);
+      if (cached && Number(cached.version||0) >= targetVersion) {
+        applyBranchPayload(cached.payload);
+        localStorage.setItem(K.branch, id);
+        localStorage.setItem(K.branchName, cached.name || branch?.name || "Filial");
+        localStorage.setItem(K.version, String(cached.version || targetVersion || 0));
+        sessionStorage.setItem("fs_dashboard_branch_mode", "1");
+        sessionStorage.setItem("fs_cloud_admin_loaded", id);
+        sessionStorage.removeItem("fs_dashboard_open_cloud");
+        document.documentElement.classList.remove("fsDashboardOpen");
+        location.reload();
+        return;
+      }
+      const r = await readBranchReliable(id);
       if (!r.ok)
         throw new Error(r.message || "Não foi possível carregar a filial.");
       applyBranchPayload(r.payload);
+      saveBranchCache(r.branchId || id, r.payload, r.version, r.branchName || branch?.name);
       localStorage.setItem(K.branch, r.branchId || id);
       localStorage.setItem(K.branchName, r.branchName || branch?.name || "Filial");
       localStorage.setItem(K.version, String(r.version || 0));
@@ -1148,9 +1188,16 @@
       document.documentElement.classList.remove("fsDashboardOpen");
       location.reload();
     } catch (e) {
-      error(e.message);
-      busy = false;
-      stopBranchLoading();
+      const fallback=branchCache(id);
+      if(fallback){
+        try{
+          applyBranchPayload(fallback.payload);
+          localStorage.setItem(K.branch,id);localStorage.setItem(K.branchName,fallback.name||branch?.name||"Filial");localStorage.setItem(K.version,String(fallback.version||0));
+          sessionStorage.setItem("fs_dashboard_branch_mode","1");sessionStorage.setItem("fs_cloud_admin_loaded",id);sessionStorage.setItem("fs_branch_cache_fallback","1");document.documentElement.classList.remove("fsDashboardOpen");location.reload();return;
+        }catch(_){}
+      }
+      error("Não foi possível atualizar esta filial agora. Tente novamente; nenhuma informação foi apagada.");
+      busy = false;stopBranchLoading();
     }
   }
   function error(msg) {
