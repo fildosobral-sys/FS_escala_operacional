@@ -280,23 +280,127 @@
   function kpis(bs) {
     const t = totals(bs);
     return [
-      { i: "🏢", t: "Filiais no escopo", v: t.branches, c: "blue" },
-      { i: "👥", t: "Colaboradores", v: t.employees, c: "blue" },
-      { i: "🧩", t: "Funções", v: t.functions, c: "blue" },
-      { i: "🟢", t: "Online agora", v: t.online, c: "green" },
       {
+        k: "branches",
+        i: "🏢",
+        t: "Filiais no escopo",
+        v: t.branches,
+        c: "blue",
+      },
+      {
+        k: "employees",
+        i: "👥",
+        t: "Colaboradores",
+        v: t.employees,
+        c: "blue",
+      },
+      { k: "functions", i: "🧩", t: "Funções", v: t.functions, c: "blue" },
+      { k: "online", i: "🟢", t: "Online agora", v: t.online, c: "green" },
+      {
+        k: "coverage",
         i: "📈",
         t: "Cobertura média",
         v: t.coverage + "%",
         c: t.coverage >= 90 ? "green" : "orange",
       },
       {
+        k: "divergences",
         i: "⚠️",
         t: "Divergências",
         v: t.divergences,
         c: t.divergences ? "red" : "green",
       },
     ];
+  }
+  function loading(text) {
+    let x = document.getElementById("fsDashLoading");
+    if (!x) {
+      x = document.createElement("div");
+      x.id = "fsDashLoading";
+      x.innerHTML = "<div><span></span><b></b></div>";
+      document.body.appendChild(x);
+    }
+    x.querySelector("b").textContent = text || "Carregando…";
+    requestAnimationFrame(() => x.classList.add("show"));
+  }
+  function stopLoading() {
+    const x = document.getElementById("fsDashLoading");
+    if (!x) return;
+    x.classList.remove("show");
+    setTimeout(() => {
+      if (!x.classList.contains("show")) x.remove();
+    }, 180);
+  }
+  function kpiDetails(kind) {
+    const bs = filtered();
+    let title = "Detalhamento",
+      description = "Filiais incluídas neste indicador",
+      rows = [];
+    if (kind === "branches") {
+      title = "Filiais no escopo";
+      rows = bs.map((b) => ({ b, value: regionName(b.regionId) }));
+    } else if (kind === "employees") {
+      title = "Colaboradores por filial";
+      rows = bs
+        .filter((b) => Number(b.summary?.employees || 0) > 0)
+        .map((b) => ({
+          b,
+          value: `${Number(b.summary?.employees || 0)} colaborador(es)`,
+        }));
+    } else if (kind === "functions") {
+      title = "Funções por filial";
+      rows = bs
+        .filter((b) => Number(b.summary?.functions || 0) > 0)
+        .map((b) => ({
+          b,
+          value: `${Number(b.summary?.functions || 0)} função(ões)`,
+        }));
+    } else if (kind === "online") {
+      title = "Filiais online agora";
+      rows = bs
+        .filter((b) => b.presence === "online")
+        .map((b) => ({ b, value: `Atualizada ${when(b.lastActivity)}` }));
+    } else if (kind === "coverage") {
+      title = "Cobertura por filial";
+      rows = bs
+        .map((b) => ({
+          b,
+          value: `${Number(b.summary?.coverage || 0)}% de cobertura`,
+        }))
+        .sort(
+          (a, b) =>
+            Number(a.b.summary?.coverage || 0) -
+            Number(b.b.summary?.coverage || 0),
+        );
+    } else if (kind === "divergences") {
+      title = "Divergências por filial";
+      rows = bs
+        .filter((b) => Number(b.summary?.divergences || 0) > 0)
+        .map((b) => ({
+          b,
+          value: `${Number(b.summary?.divergences || 0)} divergência(s)`,
+        }))
+        .sort(
+          (a, b) =>
+            Number(b.b.summary?.divergences || 0) -
+            Number(a.b.summary?.divergences || 0),
+        );
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "fsKpiModal";
+    wrap.innerHTML = `<section><header><div><b>${esc(title)}</b><small>${esc(description)}</small></div><button type="button">×</button></header><main>${rows.map((x) => `<article><div><b>${esc(x.b.name)}</b><small>${esc(regionName(x.b.regionId))}</small></div><strong>${esc(x.value)}</strong><button data-kpi-branch="${esc(x.b.id)}">Abrir filial</button></article>`).join("") || '<div class="fsDashEmpty">Nenhuma filial neste indicador.</div>'}</main></section>`;
+    document.body.appendChild(wrap);
+    wrap.querySelector("header button").onclick = () => wrap.remove();
+    wrap.onclick = (e) => {
+      if (e.target === wrap) wrap.remove();
+    };
+    wrap.querySelectorAll("[data-kpi-branch]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          wrap.remove();
+          openBranch(b.dataset.kpiBranch);
+        }),
+    );
   }
   function regionalCards() {
     return (
@@ -406,6 +510,7 @@
   async function openAccess() {
     if (busy) return;
     busy = true;
+    loading("Abrindo a Central de Acessos…");
     try {
       const r = await jsonp("dashboard");
       if (!r.ok)
@@ -416,6 +521,7 @@
       error(e.message);
     } finally {
       busy = false;
+      stopLoading();
     }
   }
   function renderAccess() {
@@ -476,7 +582,22 @@
       .forEach((x) => (x.onclick = () => wrap.remove()));
     wrap.querySelector("form").onsubmit = async (e) => {
       e.preventDefault();
-      await onSubmit(new FormData(e.currentTarget), wrap);
+      const submit = e.currentTarget.querySelector('[type="submit"]'),
+        previous = submit?.textContent;
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = "Processando…";
+        submit.classList.add("is-loading");
+      }
+      try {
+        await onSubmit(new FormData(e.currentTarget), wrap);
+      } finally {
+        if (submit?.isConnected) {
+          submit.disabled = false;
+          submit.textContent = previous;
+          submit.classList.remove("is-loading");
+        }
+      }
     };
     return wrap;
   }
@@ -616,12 +737,15 @@
   }
   async function mutate(action, payload, question) {
     if (question && !confirm(question)) return;
+    loading("Salvando a alteração…");
     try {
       const r = await jsonp(action, payload);
       if (!r.ok) throw new Error(r.message);
       await openAccess();
     } catch (e) {
       error(e.message);
+    } finally {
+      stopLoading();
     }
   }
   async function activateInvite() {
@@ -690,7 +814,7 @@
     )
       .map(
         (x) =>
-          `<article class="fsDashKpi ${x.c}"><span><i>${x.i}</i>${x.t}</span><strong>${x.v}</strong></article>`,
+          `<article class="fsDashKpi ${x.c}" data-kpi="${x.k}" title="Clique duas vezes para ver as filiais"><span><i>${x.i}</i>${x.t}</span><strong>${x.v}</strong><small>Ver detalhes</small></article>`,
       )
       .join(
         "",
@@ -703,6 +827,13 @@
     root.querySelector("#fsDashRefresh").onclick = () => load(true);
     const access = root.querySelector("#fsDashAccess");
     if (access) access.onclick = openAccess;
+    root.querySelectorAll("[data-kpi]").forEach((x) => {
+      x.ondblclick = () => kpiDetails(x.dataset.kpi);
+      x.onkeydown = (e) => {
+        if (e.key === "Enter" || e.key === " ") kpiDetails(x.dataset.kpi);
+      };
+      x.tabIndex = 0;
+    });
     root.querySelector("#fsDashSearch").addEventListener("input", (e) => {
       query = e.target.value;
       const p = e.target.selectionStart;
@@ -733,6 +864,7 @@
   async function assignRegion(branchId, regionId) {
     if (!regionId || busy) return;
     busy = true;
+    loading("Atualizando a regional…");
     try {
       const r = await jsonp("assignBranchRegion", {
         targetBranchId: branchId,
@@ -746,11 +878,13 @@
       error(e.message);
     } finally {
       busy = false;
+      stopLoading();
     }
   }
   async function openBranch(id) {
     if (busy) return;
     busy = true;
+    loading("Abrindo a filial…");
     try {
       const r = await jsonp("switchBranch", { branchId: id });
       if (!r.ok)
@@ -764,6 +898,7 @@
     } catch (e) {
       error(e.message);
       busy = false;
+      stopLoading();
     }
   }
   function error(msg) {
@@ -797,6 +932,7 @@
   async function load(open) {
     if (busy) return;
     busy = true;
+    if (open) loading("Atualizando a Central…");
     try {
       const r = await jsonp("managementDashboard");
       if (!r.ok) {
@@ -817,6 +953,7 @@
       if (open) error(e.message);
     } finally {
       busy = false;
+      if (open) stopLoading();
     }
   }
   async function start() {
