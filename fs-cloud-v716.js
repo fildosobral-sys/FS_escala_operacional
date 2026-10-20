@@ -90,6 +90,16 @@
   const sessionToken = () =>
     String(localStorage.getItem("fs_access_token") || "").trim();
   const hasCredential = () => !!(cfg.token || sessionToken());
+  const currentRole = () => {
+    if (!sessionToken()) return "developer";
+    try {
+      return (
+        JSON.parse(localStorage.getItem("fs_access_data_v1") || "{}").role || ""
+      );
+    } catch (_) {
+      return "";
+    }
+  };
   function jsonp(params) {
     return new Promise((resolve, reject) => {
       if (!cfg.url) return reject(new Error("URL da nuvem não configurada."));
@@ -615,6 +625,10 @@
       b = document.getElementById("fsCloudBody");
     if (!p || !b) return;
     p.hidden = false;
+    const developerTools =
+      currentRole() === "developer"
+        ? '<button id="fsCloudManage">Filiais e links</button>'
+        : "";
     b.innerHTML =
       '<div class="fsCloudLoading"><i></i><b>Buscando informações da filial…</b><span>Aguarde um instante.</span></div>';
     if (cfg.mode === "admin" && cfg.url && hasCredential())
@@ -657,7 +671,7 @@
       esc(cfg.branch || "Filial") +
       "</b><span>Versão online: " +
       cfg.version +
-      '</span></div><div class="fsCloudNotice fsCloudSafeNotice">Os dados deste aparelho são preservados. <b>Carregar da nuvem</b> só acontece quando você pedir.</div><div class="fsCloudActions"><button class="primary" id="fsCloudSave">Salvar edição</button><button id="fsCloudLoad">Carregar da nuvem</button><button id="fsCloudManage">Filiais e links</button><button class="danger" id="fsCloudDisconnect">Desconectar</button></div><div id="fsCloudManageBox"></div>';
+      `</span></div><div class="fsCloudNotice fsCloudSafeNotice">Os dados deste aparelho são preservados. <b>Carregar da nuvem</b> só acontece quando você pedir.</div><div class="fsCloudActions"><button class="primary" id="fsCloudSave">Salvar edição</button><button id="fsCloudLoad">Carregar da nuvem</button>${developerTools}<button class="danger" id="fsCloudDisconnect">Sair do acesso online</button></div><div id="fsCloudManageBox"></div>`;
     b.querySelector("#fsCloudSave").onclick = saveNow;
     b.querySelector("#fsCloudLoad").onclick = () => {
       if (
@@ -667,7 +681,8 @@
       )
         loadAdmin(true);
     };
-    b.querySelector("#fsCloudManage").onclick = manage;
+    const manageButton = b.querySelector("#fsCloudManage");
+    if (manageButton) manageButton.onclick = manage;
     b.querySelector("#fsCloudDisconnect").onclick = () => {
       Object.values(K).forEach((k) => localStorage.removeItem(k));
       localStorage.removeItem("fs_access_token");

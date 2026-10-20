@@ -22,6 +22,11 @@
     query = "",
     busy = false,
     autoEntry = true;
+  let deferredInstallPrompt = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
   const esc = (s) =>
       String(s ?? "").replace(
         /[&<>"']/g,
@@ -496,7 +501,7 @@
       (i) => i.active && !i.usedAt,
     );
     const links = (accessData.viewLinks || []).filter((l) => l.active);
-    return `<div class="fsAccessGrid"><section class="fsAccessCard fsAccessWide"><header><div><h2>Usuários ativos</h2><p>Quem pode acessar a plataforma e qual é o alcance.</p></div><button class="fsAccessPrimary" id="fsAccessNew">+ Novo acesso</button></header><div class="fsAccessTable">${members.map((m) => `<article><div class="fsAccessAvatar">${esc((m.name || "U").slice(0, 1))}</div><div><b>${esc(m.name)}</b><small>${esc(role(m.role))} • ${esc(scopeName(m.id))}</small><em>${m.lastAccess ? "Último acesso " + when(m.lastAccess) : "Ainda não acessou"}</em></div><span class="fsAccessTag ${m.canShare ? "share" : ""}">${m.canShare ? "Pode compartilhar" : "Acesso padrão"}</span>${accessData.globalAdmin && m.id !== data.context?.memberId ? `<button class="fsAccessMore" data-scope-member="${esc(m.id)}" title="Alterar alcance">Alcance</button><button class="fsAccessDanger" data-revoke-member="${esc(m.id)}">Bloquear</button>` : ""}</article>`).join("") || '<div class="fsDashEmpty">Nenhum usuário cadastrado.</div>'}</div></section><section class="fsAccessCard"><header><div><h2>Convites pendentes</h2><p>Aguardando ativação pelo destinatário.</p></div></header><div class="fsAccessList">${invites.map((i) => `<article><div><b>${esc(i.name)}</b><small>${esc(role(i.role))} • ${esc(branchName(i.branchId || i.originBranchId))}</small><em>Expira ${when(i.expiresAt)}</em></div><button class="fsAccessDanger" data-revoke-invite="${esc(i.id)}">Cancelar</button></article>`).join("") || '<div class="fsDashEmpty">Nenhum convite pendente.</div>'}</div></section><section class="fsAccessCard"><header><div><h2>Links de visualização</h2><p>Consulta sem permissão de edição.</p></div><button class="fsAccessSoft" id="fsAccessNewLink">+ Gerar link</button></header><div class="fsAccessList">${links.map((l) => `<article><div><b>${esc(l.description || "Visualização")}</b><small>${esc(branchName(l.branchId))}</small><em>${l.lastAccess ? "Acessado " + when(l.lastAccess) : "Nunca acessado"}</em></div><button class="fsAccessDanger" data-revoke-link="${esc(l.id)}">Desativar</button></article>`).join("") || '<div class="fsDashEmpty">Nenhum link ativo.</div>'}</div></section><section class="fsAccessCard fsAccessWide"><header><div><h2>Atividade recente</h2><p>Auditoria dos acessos e alterações administrativas.</p></div></header><div class="fsAccessHistory">${
+    return `<div class="fsAccessGrid"><section class="fsAccessCard fsAccessWide"><header><div><h2>Usuários ativos</h2><p>Quem pode acessar a plataforma e qual é o alcance.</p></div><div class="fsAccessHeaderActions">${["developer", "regional_admin"].includes(data.context?.role) || data.context?.globalAdmin ? '<button class="fsAccessSoft" id="fsAccessNewBranch">+ Nova filial</button>' : ""}<button class="fsAccessPrimary" id="fsAccessNew">+ Novo acesso</button></div></header><div class="fsAccessTable">${members.map((m) => `<article><div class="fsAccessAvatar">${esc((m.name || "U").slice(0, 1))}</div><div><b>${esc(m.name)}</b><small>${esc(role(m.role))} • ${esc(scopeName(m.id))}</small><em>${m.lastAccess ? "Último acesso " + when(m.lastAccess) : "Ainda não acessou"}</em></div><span class="fsAccessTag ${m.canShare ? "share" : ""}">${m.canShare ? "Pode compartilhar" : "Acesso padrão"}</span>${m.id !== data.context?.memberId ? `<button class="fsAccessMore" data-reissue-member="${esc(m.id)}">Novo link</button><button class="fsAccessMore" data-end-session="${esc(m.id)}">Encerrar sessão</button>${accessData.globalAdmin ? `<button class="fsAccessMore" data-scope-member="${esc(m.id)}" title="Alterar alcance">Alcance</button>` : ""}<button class="fsAccessDanger" data-revoke-member="${esc(m.id)}">Bloquear</button>` : ""}</article>`).join("") || '<div class="fsDashEmpty">Nenhum usuário cadastrado.</div>'}</div></section><section class="fsAccessCard"><header><div><h2>Convites pendentes</h2><p>Aguardando ativação pelo destinatário.</p></div></header><div class="fsAccessList">${invites.map((i) => `<article><div><b>${esc(i.name)}</b><small>${esc(role(i.role))} • ${esc(branchName(i.branchId || i.originBranchId))}</small><em>Expira ${when(i.expiresAt)}</em></div><button class="fsAccessDanger" data-revoke-invite="${esc(i.id)}">Cancelar</button></article>`).join("") || '<div class="fsDashEmpty">Nenhum convite pendente.</div>'}</div></section><section class="fsAccessCard"><header><div><h2>Links de visualização</h2><p>Consulta sem permissão de edição.</p></div><button class="fsAccessSoft" id="fsAccessNewLink">+ Gerar link</button></header><div class="fsAccessList">${links.map((l) => `<article><div><b>${esc(l.description || "Visualização")}</b><small>${esc(branchName(l.branchId))}</small><em>${l.lastAccess ? "Acessado " + when(l.lastAccess) : "Nunca acessado"}</em></div><button class="fsAccessDanger" data-revoke-link="${esc(l.id)}">Desativar</button></article>`).join("") || '<div class="fsDashEmpty">Nenhum link ativo.</div>'}</div></section><section class="fsAccessCard fsAccessWide"><header><div><h2>Atividade recente</h2><p>Auditoria dos acessos e alterações administrativas.</p></div></header><div class="fsAccessHistory">${
       (accessData.recent || [])
         .slice(0, 30)
         .map(
@@ -529,12 +534,18 @@
     const root = document.createElement("div");
     root.id = "fsAccessRoot";
     root.className = "fsAccessRoot";
-    root.innerHTML = `<header class="fsAccessTop"><button id="fsAccessBack">← Visão geral</button><div><b>Central de Acessos</b><small>Usuários, permissões, convites e links</small></div><button id="fsAccessReload">↻ Atualizar</button></header><main><section class="fsAccessHero"><div><span>ADMINISTRAÇÃO</span><h1>Acessos da plataforma</h1><p>Controle os perfis e o alcance de cada pessoa sem entrar nas filiais.</p></div><div class="fsAccessUser"><b>${esc(data.context?.name || "Administrador")}</b><small>${esc(role(data.context?.role))}</small></div></section>${accessKpis()}${accessRows()}</main>`;
+    root.innerHTML = `<header class="fsAccessTop"><button id="fsAccessBack">← Visão geral</button><div><b>Central de Acessos</b><small>Usuários, permissões, convites e links</small></div><button id="fsAccessReload">↻ Atualizar</button></header><main><section class="fsAccessHero"><div><span>ADMINISTRAÇÃO</span><h1>Acessos da plataforma</h1><p>Controle os perfis e o alcance de cada pessoa sem entrar nas filiais.</p></div><button class="fsAccessUser" id="fsAccessUser"><b>${esc(data.context?.name || "Administrador")}</b><small>${esc(role(data.context?.role))} ▾</small></button></section>${accessKpis()}${accessRows()}</main>`;
     document.body.appendChild(root);
     root.querySelector("#fsAccessBack").onclick = () => root.remove();
     root.querySelector("#fsAccessReload").onclick = openAccess;
+    root.querySelector("#fsAccessUser").onclick = (e) => {
+      e.stopPropagation();
+      toggleUserMenu(e.currentTarget);
+    };
     root.querySelector("#fsAccessNew").onclick = newAccess;
     root.querySelector("#fsAccessNewLink").onclick = newViewLink;
+    const newBranchButton = root.querySelector("#fsAccessNewBranch");
+    if (newBranchButton) newBranchButton.onclick = newBranch;
     root
       .querySelectorAll("[data-revoke-invite]")
       .forEach(
@@ -571,6 +582,22 @@
     root
       .querySelectorAll("[data-scope-member]")
       .forEach((b) => (b.onclick = () => changeScope(b.dataset.scopeMember)));
+    root
+      .querySelectorAll("[data-end-session]")
+      .forEach(
+        (b) =>
+          (b.onclick = () =>
+            mutate(
+              "endMemberSessions",
+              { memberId: b.dataset.endSession },
+              "Encerrar a sessão desta pessoa em todos os aparelhos?",
+            )),
+      );
+    root
+      .querySelectorAll("[data-reissue-member]")
+      .forEach(
+        (b) => (b.onclick = () => reissueMember(b.dataset.reissueMember)),
+      );
   }
   function modal(title, body, submitText, onSubmit) {
     const wrap = document.createElement("div");
@@ -700,6 +727,63 @@
       },
     );
   }
+  function newBranch() {
+    modal(
+      "Cadastrar nova filial",
+      `<label>Nome da filial<input name="name" required placeholder="Ex.: Filial 32 - Centro"></label><label>Setor ou identificação<input name="sector" placeholder="Opcional"></label><label>Usar como modelo<select name="copyFrom">${branchOptions()}</select></label><p class="fsInviteNote">A nova filial será independente. Para Administrador Regional, ela será vinculada automaticamente à sua regional.</p>`,
+      "Criar filial",
+      async (f, w) => {
+        try {
+          const r = await jsonp("createBranch", {
+            name: f.get("name"),
+            sector: f.get("sector"),
+            copyFrom: f.get("copyFrom"),
+          });
+          if (!r.ok) throw new Error(r.message);
+          w.remove();
+          await load(true);
+          await openAccess();
+        } catch (e) {
+          error(e.message);
+        }
+      },
+    );
+  }
+  async function reissueMember(memberId) {
+    if (
+      !confirm("Gerar um novo link e encerrar a sessão anterior desta pessoa?")
+    )
+      return;
+    loading("Gerando novo link seguro…");
+    try {
+      const r = await jsonp("reissueMemberInvite", { memberId });
+      if (!r.ok) throw new Error(r.message);
+      const link =
+        location.href.split("?")[0].split("#")[0] +
+        "?cloud=" +
+        encodeURIComponent(cfg().url) +
+        "&invite=" +
+        encodeURIComponent(r.invite);
+      await navigator.clipboard.writeText(link).catch(() => {});
+      modal(
+        "Novo link gerado",
+        `<div class="fsAccessResult"><span>✓</span><h2>Acesso reemitido</h2><p>A sessão anterior foi encerrada. O link abaixo é individual, expira em 48 horas e será inutilizado após a ativação.</p><textarea readonly>${esc(link)}</textarea><button type="button" class="fsAccessPrimary" id="fsCopyReissue">Copiar link</button></div>`,
+        "Concluir",
+        async (_, w) => w.remove(),
+      );
+      const copy = document.getElementById("fsCopyReissue");
+      if (copy)
+        copy.onclick = async () => {
+          await navigator.clipboard.writeText(link);
+          copy.textContent = "Copiado ✓";
+        };
+      await openAccess();
+    } catch (e) {
+      error(e.message);
+    } finally {
+      stopLoading();
+    }
+  }
   function changeScope(memberId) {
     modal(
       "Alterar alcance",
@@ -756,11 +840,15 @@
     boot(true, "Validando seu convite…");
     try {
       const info = await publicJsonp("inviteInfo", { invite }, cloud);
-      if (!info.ok) throw new Error(info.message);
+      if (!info.ok) {
+        boot(false);
+        showInviteFailure(info.message, info.supportPhone);
+        return true;
+      }
       boot(false);
-      modal(
+      const activation = modal(
         "Ativar acesso",
-        `<div class="fsInviteIntro"><b>${esc(info.recipient)}</b><span>${esc(role(info.role))}</span><small>${esc(info.branchName || "Acesso corporativo")}</small></div><label>Confirme seu nome completo<input name="name" value="${esc(info.recipient)}" required></label><p class="fsInviteNote">O convite é individual e será vinculado a este aparelho após a confirmação.</p>`,
+        `<div class="fsInviteIntro"><b>${esc(info.recipientHint || "Convite individual")}</b><span>${esc(role(info.role))}</span><small>${esc(info.branchName || "Acesso corporativo")}</small></div><div class="fsInstallBox"><b>Instale a FS Escala neste aparelho</b><p>Este link é individual e será inutilizado após a ativação. A instalação facilita o acesso seguro nas próximas entradas.</p><button type="button" id="fsInstallApp">⬇ Instalar / adicionar à tela inicial</button></div><label>Nome completo<input name="name" required autocomplete="name"></label>${info.requiresPhone ? '<label>Últimos 4 números do telefone<input name="phoneLast4" required inputmode="numeric" maxlength="4" pattern="[0-9]{4}"></label>' : ""}<p class="fsInviteNote">Por segurança, os dados precisam corresponder ao cadastro. A sessão será vinculada a este aparelho.</p>`,
         "Entrar na plataforma",
         async (f, w) => {
           try {
@@ -769,6 +857,7 @@
               {
                 invite,
                 name: f.get("name"),
+                phoneLast4: f.get("phoneLast4") || "",
                 deviceId: localStorage.getItem("fs_device_id") || "",
               },
               cloud,
@@ -796,11 +885,90 @@
           }
         },
       );
+      activation.querySelector("#fsInstallApp").onclick = async () => {
+        if (deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          await deferredInstallPrompt.userChoice.catch(() => {});
+          deferredInstallPrompt = null;
+        } else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+          alert(
+            "No iPhone/iPad: toque em Compartilhar e depois em Adicionar à Tela de Início.",
+          );
+        } else {
+          alert(
+            "No menu do navegador, escolha Instalar aplicativo ou Adicionar à tela inicial.",
+          );
+        }
+      };
     } catch (e) {
       boot(false);
       error(e.message);
     }
     return true;
+  }
+  function showInviteFailure(message, supportPhone) {
+    const phone = String(supportPhone || "").replace(/\D/g, ""),
+      text = encodeURIComponent(
+        "Olá. Meu acesso à FS Escala expirou ou foi utilizado e preciso solicitar uma reativação.",
+      );
+    const wrap = document.createElement("div");
+    wrap.className = "fsAccessModal fsInviteExpired";
+    wrap.innerHTML = `<section><span>🔒</span><h1>Acesso indisponível</h1><p>${esc(message || "Este link não pode mais ser utilizado.")}</p><small>Solicite ao responsável a emissão de um novo link de ativação.</small>${phone ? `<a href="https://wa.me/${phone}?text=${text}" target="_blank" rel="noopener">Falar com o suporte pelo WhatsApp</a>` : ""}<button type="button">Usar a plataforma no modo local</button></section>`;
+    document.body.appendChild(wrap);
+    wrap.querySelector("button").onclick = () => {
+      history.replaceState({}, "", location.pathname);
+      location.reload();
+    };
+  }
+  function logoutOnline() {
+    if (
+      !confirm(
+        "Sair deste acesso online? Os dados locais da escala serão preservados.",
+      )
+    )
+      return;
+    [
+      K.token,
+      "fs_access_token",
+      "fs_access_data_v1",
+      K.branch,
+      K.branchName,
+      K.version,
+      "fs_cloud_mode_v705",
+    ].forEach((k) => localStorage.removeItem(k));
+    sessionStorage.removeItem("fs_dashboard_branch_mode");
+    sessionStorage.removeItem("fs_cloud_admin_loaded");
+    location.reload();
+  }
+  function toggleUserMenu(anchor) {
+    document.getElementById("fsUserMenu")?.remove();
+    const menu = document.createElement("div");
+    menu.id = "fsUserMenu";
+    menu.className = "fsUserMenu";
+    menu.innerHTML = `<div><b>${esc(data.context?.name || "Usuário")}</b><small>${esc(role(data.context?.role))}</small></div><button id="fsUserOverview">⌂ Visão geral</button><button id="fsUserAccess">🔐 Central de Acessos</button><button id="fsUserLogout">↪ Sair / trocar usuário</button>`;
+    document.body.appendChild(menu);
+    const rect = anchor.getBoundingClientRect();
+    menu.style.top = `${rect.bottom + 7}px`;
+    menu.style.right = `${Math.max(10, innerWidth - rect.right)}px`;
+    menu.querySelector("#fsUserOverview").onclick = () => {
+      menu.remove();
+      document.getElementById("fsAccessRoot")?.remove();
+    };
+    menu.querySelector("#fsUserAccess").onclick = () => {
+      menu.remove();
+      openAccess();
+    };
+    menu.querySelector("#fsUserLogout").onclick = logoutOnline;
+    setTimeout(
+      () =>
+        document.addEventListener("click", function close(e) {
+          if (!menu.contains(e.target) && e.target !== anchor) {
+            menu.remove();
+            document.removeEventListener("click", close);
+          }
+        }),
+      0,
+    );
   }
   function render() {
     if (!data) return;
@@ -809,7 +977,7 @@
     const root = document.createElement("div");
     root.id = "fsDashRoot";
     root.className = "fsDashShell";
-    root.innerHTML = `<header class="fsDashTop"><div class="fsDashBrand"><i>FS</i><div><b>Central Gerencial</b><small>FS Escala • ${esc(role(data.context?.role))}</small></div></div><nav class="fsDashNav"><button class="active">Visão geral</button>${data.context?.canShare || data.context?.globalAdmin || ["developer", "regional_admin", "branch_admin"].includes(data.context?.role) ? '<button id="fsDashAccess">Central de Acessos</button>' : ""}</nav><div class="fsDashTopActions"><span class="fsDashUser"><b>${esc(data.context?.name || "Administrador")}</b><small>${esc(role(data.context?.role))}</small></span><span class="fsDashLive"><i></i> Monitoramento ativo</span><button class="fsDashGhost" id="fsDashRefresh">↻ Atualizar</button></div></header><main class="fsDashMain"><section class="fsDashWelcome"><div><span class="fsDashEyebrow">VISÃO CONSOLIDADA</span><h1>Olá, ${esc(data.context?.name || "Administrador")}</h1><p>Acompanhe regionais, filiais e indicadores operacionais em um só lugar.</p></div><span class="fsDashStamp">Última consulta<br><b>${new Date(data.generatedAt).toLocaleString("pt-BR")}</b></span></section><section class="fsDashToolbar"><div class="fsDashSearch"><span>⌕</span><input id="fsDashSearch" value="${esc(query)}" placeholder="Buscar filial, cidade, gestor ou regional"></div><div class="fsDashFilters"><button data-region="all" class="${region === "all" ? "active" : ""}">Todas</button>${(data.regions || []).map((r) => `<button data-region="${esc(r.id)}" class="${region === r.id ? "active" : ""}">${esc(r.name)}</button>`).join("")}</div></section><section class="fsDashKpis">${kpis(
+    root.innerHTML = `<header class="fsDashTop"><div class="fsDashBrand"><i>FS</i><div><b>Central Gerencial</b><small>FS Escala • ${esc(role(data.context?.role))}</small></div></div><nav class="fsDashNav"><button class="active">Visão geral</button>${data.context?.canShare || data.context?.globalAdmin || ["developer", "regional_admin", "branch_admin"].includes(data.context?.role) ? '<button id="fsDashAccess">Central de Acessos</button>' : ""}</nav><div class="fsDashTopActions"><button class="fsDashUser" id="fsDashUser"><b>${esc(data.context?.name || "Administrador")}</b><small>${esc(role(data.context?.role))} ▾</small></button><span class="fsDashLive"><i></i> Monitoramento ativo</span><button class="fsDashGhost" id="fsDashRefresh">↻ Atualizar</button></div></header><main class="fsDashMain"><section class="fsDashWelcome"><div><span class="fsDashEyebrow">VISÃO CONSOLIDADA</span><h1>Olá, ${esc(data.context?.name || "Administrador")}</h1><p>Acompanhe regionais, filiais e indicadores operacionais em um só lugar.</p></div><span class="fsDashStamp">Última consulta<br><b>${new Date(data.generatedAt).toLocaleString("pt-BR")}</b></span></section><section class="fsDashToolbar"><div class="fsDashSearch"><span>⌕</span><input id="fsDashSearch" value="${esc(query)}" placeholder="Buscar filial, cidade, gestor ou regional"></div><div class="fsDashFilters"><button data-region="all" class="${region === "all" ? "active" : ""}">Todas</button>${(data.regions || []).map((r) => `<button data-region="${esc(r.id)}" class="${region === r.id ? "active" : ""}">${esc(r.name)}</button>`).join("")}</div></section><section class="fsDashKpis">${kpis(
       bs,
     )
       .map(
@@ -827,6 +995,10 @@
     root.querySelector("#fsDashRefresh").onclick = () => load(true);
     const access = root.querySelector("#fsDashAccess");
     if (access) access.onclick = openAccess;
+    root.querySelector("#fsDashUser").onclick = (e) => {
+      e.stopPropagation();
+      toggleUserMenu(e.currentTarget);
+    };
     root.querySelectorAll("[data-kpi]").forEach((x) => {
       x.ondblclick = () => kpiDetails(x.dataset.kpi);
       x.onkeydown = (e) => {
