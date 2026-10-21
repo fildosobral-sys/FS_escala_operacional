@@ -9,8 +9,13 @@
     const grid=base.closest('.modalGrid');if(!grid)return;grid.classList.add('fsV824EditorGrid');
     const saturday=document.getElementById('mSabado'),off=document.getElementById('mFolga'),satTeam=document.getElementById('mEquipeSabadoIndividual');
     setLabel(saturday,'Trabalha no sábado?');setLabel(off,'Dia da folga distribuída');setLabel(base,'Equipe / horário de segunda a sexta');setLabel(satTeam,'Equipe / horário de sábado');
-    [saturday?.parentElement,off?.parentElement,base.parentElement,satTeam?.closest('.fsV562EquipeSabado')].filter(Boolean).forEach(x=>grid.appendChild(x));
-    const apprentice=m.querySelector('.fsAprendizCadastro');if(apprentice){apprentice.classList.add('fsV824Aprendiz');grid.appendChild(apprentice);const ck=apprentice.querySelector('#mJovemAprendiz'),input=apprentice.querySelector('#mCargaSemanalAprendiz'),lab=apprentice.querySelector('label[for="mCargaSemanalAprendiz"]'),help=apprentice.querySelector('.fsAprendizAjuda'),out=apprentice.querySelector('.fsV610Confirm');if(lab)lab.textContent='Meta oficial do jovem aprendiz';if(input){if(ck?.checked&&Number(input.value)!==12)input.value='12';input.readOnly=true;input.min='12';input.max='12';input.step='1'}if(help)help.textContent='Jornada protegida de 12 horas semanais. A plataforma compara o realizado com 12h, sem usar a meta geral de 40h, 42h ou 44h.';if(out&&ck?.checked){out.classList.remove('off');out.textContent='✓ Meta individual ativa: 12h por semana'}}
+    [saturday,off,base].filter(Boolean).forEach(x=>x.disabled=false);
+    if(satTeam)satTeam.disabled=saturday?.value==='Não';
+    const special=document.getElementById('mEspecial')?.parentElement;
+    const wanted=[special,saturday?.parentElement,off?.parentElement,base.parentElement,satTeam?.closest('.fsV562EquipeSabado')].filter(Boolean);
+    const currentOrder=[...grid.children].filter(x=>wanted.includes(x));
+    if(wanted.some((x,i)=>currentOrder[i]!==x)){const frag=document.createDocumentFragment();wanted.forEach(x=>frag.appendChild(x));grid.prepend(frag)}
+    const apprentice=m.querySelector('.fsAprendizCadastro');if(apprentice){apprentice.classList.add('fsV824Aprendiz');if(apprentice.parentElement!==grid||grid.lastElementChild!==apprentice)grid.appendChild(apprentice);const ck=apprentice.querySelector('#mJovemAprendiz'),input=apprentice.querySelector('#mCargaSemanalAprendiz'),lab=apprentice.querySelector('label[for="mCargaSemanalAprendiz"]'),help=apprentice.querySelector('.fsAprendizAjuda'),out=apprentice.querySelector('.fsV610Confirm');if(lab)lab.textContent='Meta oficial do jovem aprendiz';if(input){if(ck?.checked&&Number(input.value)!==12)input.value='12';input.readOnly=true;input.min='12';input.max='12';input.step='1'}if(help)help.textContent='Jornada protegida de 12 horas semanais. A plataforma compara o realizado com 12h, sem usar a meta geral de 40h, 42h ou 44h.';if(out&&ck?.checked){out.classList.remove('off');out.textContent='✓ Meta individual ativa: 12h por semana'}}
     m.classList.add('fsV824Ready');
   }
   function applyTeams(person,week,saturday){
