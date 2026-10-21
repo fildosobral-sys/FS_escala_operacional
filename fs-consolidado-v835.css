@@ -1,0 +1,38 @@
+/* V835 — consolidação final: nuvem compacta e escala dominical estável. */
+#fsCloudPendingSave{
+  width:44px!important;height:44px!important;min-width:44px!important;
+  padding:0!important;border-radius:50%!important;font-size:0!important;
+  display:grid!important;place-items:center!important;
+}
+#fsCloudPendingSave[hidden]{display:none!important}
+#fsCloudPendingSave::before{content:'☁️';font-size:21px;line-height:1}
+#fsCloudPendingSave:disabled::before{filter:grayscale(.25);opacity:.8}
+body:has(#domingo.active) #fsCloudPendingSave{bottom:84px!important}
+
+#domingo .fsV835MesAcoes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#domingo .fsV835ResetDomingos{border:1px solid #d4a5a5;border-radius:10px;background:#fff7f7;color:#9b1c1c;padding:8px 11px;font:900 10px/1 inherit;cursor:pointer}
+#domingo .fsV835ResetDomingos:hover{background:#feecec}
+#domingo .fsV835Preserva{font-size:9px;color:#667085;font-weight:800}
+#domingo .fsV831Fechado .fsV831Status{display:none!important}
+#domingo .fsV608SundayTitleBar>span:not(.fsV832HeadTools){display:none!important}
+#domingo .fsV831Aberto .fsV830StatusBtn{pointer-events:auto!important;opacity:1!important}
+#domingo .fsV831Aberto .fsDomDataTabela{overflow:visible!important}
+#domingo .fsV831Aberto .fsDomDataTabela td{overflow:visible!important}
+#domingo .fsV835FooterZero{color:#52677f!important}
+
+.fsV835CronoDomingo{display:grid;gap:12px;margin-bottom:18px}
+.fsV835CronoData{border:1px solid #b9cce2;border-radius:14px;background:#f8fbff;overflow:hidden}
+.fsV835CronoData>h4{margin:0;padding:10px 13px;background:#087d86;color:#fff;font-size:14px}
+.fsV835CronoResumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px}
+.fsV835CronoResumo>div{border:1px solid #d9e3ef;border-radius:10px;background:#fff;padding:9px}
+.fsV835CronoResumo b{display:block;color:#52677f;font-size:8px;text-transform:uppercase}
+.fsV835CronoResumo span{display:block;margin-top:3px;color:#071d68;font-size:12px;font-weight:900}
+
+@media(max-width:760px){
+  #fsCloudPendingSave{width:40px!important;height:40px!important;min-width:40px!important;left:10px!important}
+  #fsCloudPendingSave::before{font-size:19px}
+  body:has(#domingo.active) #fsCloudPendingSave{bottom:78px!important}
+  #domingo .fsDomMesTopo{gap:10px!important}
+  #domingo .fsV835MesAcoes{width:100%;justify-content:space-between}
+  .fsV835CronoResumo{grid-template-columns:1fr 1fr}
+}

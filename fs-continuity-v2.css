@@ -1,0 +1,394 @@
+.fsCoHomeCard{font:inherit;border:0;cursor:pointer;text-align:left;color:#fff;background:linear-gradient(135deg,#6d28d9,#2563eb);border-radius:24px;padding:22px;min-height:180px;box-shadow:0 16px 34px #1e3a8a30;display:flex;flex-direction:column;justify-content:space-between}.fsCoLaunchTop{display:flex;gap:10px;align-items:center;font-weight:900}.fsCoLaunchTop i{font-style:normal;font-size:25px}.fsCoLaunchIndex{display:flex;align-items:end;justify-content:space-between}.fsCoLaunchIndex span{font-size:13px;font-weight:700}.fsCoLaunchIndex strong{font-size:42px;line-height:1}.fsCoLaunchStats{display:flex;gap:12px;font-size:12px;font-weight:800}
+html.coOpen,html.coOpen body{overflow:hidden!important}.coOverlay{position:fixed;inset:0;z-index:2147483000;background:#eef3f9;display:grid;grid-template-columns:255px 1fr;color:#0f1f3d;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}.coOverlay *{box-sizing:border-box}.coOverlay aside{background:linear-gradient(180deg,#071f3d,#0c315b);color:#fff;padding:26px 14px;display:flex;flex-direction:column;gap:9px;overflow:auto}.coBrand{display:flex;gap:14px;align-items:center;padding:4px 13px 25px;margin-bottom:8px;border-bottom:1px solid #ffffff1c}.coBrand>i{font-style:normal;font-size:35px}.coBrand span{display:flex;flex-direction:column;gap:6px}.coBrand small{color:#b8c8db}.coOverlay aside button{border:0;background:transparent;color:#e6eef8;text-align:left;padding:14px 16px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer}.coOverlay aside button:hover,.coOverlay aside button.active{background:linear-gradient(90deg,#2467c7,#2f78da);color:#fff;box-shadow:0 8px 20px #00152a50}.coOverlay main{min-width:0;display:flex;flex-direction:column;height:100vh}.coTop{background:#fff;min-height:112px;border-bottom:1px solid #dbe3ed;padding:24px 28px;display:flex;justify-content:space-between;align-items:center;gap:20px}.coTop h2{margin:0;font-size:28px}.coTop p{margin:6px 0 0;color:#64748b}.coTop>div:last-child{display:flex;align-items:end;gap:10px;flex-wrap:wrap;justify-content:flex-end}.coTop label{font-size:11px;font-weight:800;color:#64748b;display:flex;flex-direction:column;gap:4px}.coTop input{font:inherit;font-weight:700;border:1px solid #d4deea;border-radius:10px;padding:10px}.coBtn,.coDialog button{font:inherit;border:1px solid #d5deea;border-radius:11px;padding:10px 14px;background:#fff;color:#102342;font-weight:800;cursor:pointer}.coBtn.primary{background:#2467d1;color:white;border-color:#2467d1}.coBtn.icon{font-size:22px;padding:7px 14px}.coBody{padding:18px 24px 30px;overflow:auto;min-height:0}.coPanel{background:#fff;border:1px solid #d7e0ea;border-radius:16px;box-shadow:0 8px 24px #17365b0a;overflow:hidden}.coPanelHead{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 18px;border-bottom:1px solid #e3e9f0}.coPanelHead h3{margin:0;font-size:17px}.coPanelHead p{margin:4px 0 0;color:#64748b;font-size:12px}.coLegend{display:flex;gap:14px;font-size:11px;flex-wrap:wrap}.coMapViewport{overflow:auto;padding:26px 18px 10px;background:radial-gradient(circle at top,#f8fbff,#fff 55%)}.coTreeCanvas{width:max-content;min-width:100%;padding:0 22px 22px}.coTree,.coTree ul{display:flex;justify-content:center;position:relative;padding-top:34px;margin:0;padding-left:0}.coTree>li{padding-top:0}.coTree li{list-style:none;text-align:center;position:relative;padding:34px 10px 0}.coTree li::before,.coTree li::after{content:"";position:absolute;top:0;right:50%;width:50%;height:34px;border-top:2px solid #233247}.coTree li::after{right:auto;left:50%;border-left:2px solid #233247}.coTree li:only-child::before,.coTree li:only-child::after{display:none}.coTree li:only-child{padding-top:0}.coTree li:first-child::before,.coTree li:last-child::after{border:0}.coTree li:last-child::before{border-right:2px solid #233247;border-radius:0 7px 0 0}.coTree li:first-child::after{border-radius:7px 0 0 0}.coTree ul ul::before{content:"";position:absolute;top:0;left:50%;height:34px;border-left:2px solid #233247}.coNode{width:350px;text-align:left;border:1px solid #d7e0ea;border-left:6px solid #9ca3af;border-radius:15px;background:#fff;box-shadow:0 8px 18px #102f5720;overflow:hidden}.coNode.full{border-left-color:#21a455}.coNode.partial{border-left-color:#eab308}.coNode.none{border-left-color:#e22f3f}.coNode.na{border-left-color:#94a3b8}.coNode>header{display:flex;justify-content:space-between;align-items:flex-start;padding:13px 14px;background:#f8fafc;border-bottom:1px solid #e4eaf0}.coNode>header span{display:flex;flex-direction:column;min-width:0}.coNode>header b{font-size:13px}.coNode>header small{color:#64748b;margin-top:3px}.coNode>header button{border:0;background:#e8eef7;border-radius:8px;padding:5px 8px;cursor:pointer}.coMembers{padding:9px;display:grid;gap:7px}.coMember{border:1px solid #e3e8ef!important;background:#fff!important;border-radius:11px!important;padding:8px!important;text-align:left;cursor:pointer;color:#14243d}.coMember:hover{border-color:#6ba2ee!important;background:#f6faff!important}.coMemberTop{display:grid;grid-template-columns:39px 1fr auto;gap:8px;align-items:center}.coMemberTop>span:nth-child(2){min-width:0;display:flex;flex-direction:column}.coMemberTop b{font-size:11px;white-space:normal}.coMemberTop small{font-size:9px;color:#748297}.coMemberTop i{font-style:normal;color:#6b7b90}.coAvatar{width:39px;height:39px;object-fit:cover;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none}.coInitial{background:#dcecff;color:#135296;font-weight:900;font-size:12px}.coAvatar.tiny{width:27px;height:27px;font-size:9px}.coDuties{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.coDuties em{font-style:normal;font-size:9px;background:#eef4fb;color:#38516f;border-radius:999px;padding:3px 6px}.coNoDuty{display:block;font-size:9px;color:#6d87a6;margin:5px 0 0 47px}.coChain{margin:0 9px 9px;padding:8px;border-radius:10px;background:#f7f9fc;display:flex;align-items:center;gap:4px;overflow-x:auto}.coChainStart{font-size:9px;font-weight:800;white-space:nowrap}.coSubStep{display:flex;align-items:center;gap:3px}.coSubStep>i{font-style:normal;color:#7c3aed;font-weight:900}.coSub{display:flex;align-items:center;gap:4px;min-width:104px}.coSub>span:last-child{display:flex;flex-direction:column}.coSub small{font-size:8px;color:#64748b}.coSub b{font-size:8px;line-height:1.15}.coNode>footer{display:none}.coHint{text-align:center;color:#64748b;font-size:11px;margin:9px 12px 14px}.coKpis{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px;margin-bottom:14px}.coKpis>div{background:#fff;border:1px solid #d9e2ec;border-radius:14px;padding:16px;display:flex;flex-direction:column;box-shadow:0 6px 18px #17365b0c}.coKpis small{color:#64748b;font-weight:700}.coKpis b{font-size:28px;margin-top:5px;color:#2467d1}.coKpis .ok b{color:#19934d}.coKpis .warn b{color:#d59b00}.coKpis .bad b{color:#df2f3d}.coSummary{padding:15px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:9px}.coSummary button{text-align:left;border:1px solid #dde5ee;border-radius:11px;background:#fff;padding:12px;display:flex;flex-direction:column;gap:4px;cursor:pointer}.coSummary button:hover{border-color:#4f8fe5;background:#f7fbff}.coSummary small{color:#64748b}.coSummary span{font-size:11px;font-weight:800}.coTableWrap{overflow:auto;padding:8px 14px 18px}.coTableWrap table{width:100%;border-collapse:collapse;font-size:12px}.coTableWrap th,.coTableWrap td{padding:11px 9px;border-bottom:1px solid #e5eaf0;text-align:left;white-space:nowrap}.coTableWrap th{color:#526278;font-size:10px;text-transform:uppercase}.coAlerts{padding:16px;display:grid;gap:9px}.coAlerts>div{display:flex;align-items:center;gap:10px;border:1px solid #e1e7ee;background:#fbfcfe;border-radius:11px;padding:13px}.coAlerts i{font-style:normal;font-size:20px}
+.coDialogBack{position:fixed;inset:0;z-index:2147483600;background:#091a2b99;display:grid;place-items:center;padding:20px}.coDialog{width:min(720px,96vw);max-height:94vh;background:#fff;border-radius:17px;display:flex;flex-direction:column;box-shadow:0 30px 80px #00112275;overflow:hidden}.coDialog.wide{width:min(1080px,96vw)}.coDialog>header{background:#0c315b;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}.coDialog>header h3{margin:0;font-size:17px}.coDialog>header button{background:#fff;font-size:22px;padding:5px 12px}.coDialogBody{overflow:auto;padding:18px}.coDialog>footer{border-top:1px solid #dfe6ee;padding:13px 18px;display:flex;justify-content:flex-end;gap:10px}.coForm{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.coForm.three{grid-template-columns:repeat(3,1fr)}.coForm label,.coDutyInput{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:800}.coForm input,.coForm select,.coForm textarea,.coDutyInput textarea{font:inherit;font-size:13px;border:1px solid #ced9e5;border-radius:10px;padding:10px;background:#fff}.coForm .check{flex-direction:row;align-items:center;background:#f2f6fa;border-radius:10px;padding:10px}.coForm .full,.coForm .span2{grid-column:span 2}.coPlan{margin-top:14px;border:1px solid #d8e1eb;border-radius:12px;overflow:hidden}.coPlan h4{margin:0;background:#eaf2fb;padding:11px 13px}.coPlan h4 .check{display:flex;align-items:center;gap:7px}.coPlan .coForm{padding:13px}.coExplain{color:#5d6d82;font-size:11px;margin:9px 2px}.coPhotoEditor{display:flex;gap:18px;align-items:center;margin-bottom:20px}.coPhotoEditor>div:first-child{width:125px;height:125px;border-radius:16px;overflow:hidden;background:#dcecff;color:#135296;display:grid;place-items:center;font-size:32px;font-weight:900}.coPhotoEditor img{width:100%;height:100%;object-fit:cover}.coPhotoEditor>div:last-child{display:flex;align-items:flex-start;flex-direction:column;gap:7px}.coPhotoEditor small{color:#64748b}.coUpload{background:#2467d1;color:#fff;padding:9px 13px;border-radius:9px;font-weight:800;cursor:pointer}.coUpload input{display:none}.coDutyInput small{font-weight:500;color:#64748b}.coDutyInput textarea{margin-top:5px;resize:vertical}
+@media(max-width:900px){.coOverlay{grid-template-columns:1fr}.coOverlay aside{display:flex;position:static;flex-direction:row;padding:8px;overflow-x:auto}.coBrand{display:none}.coOverlay aside button{white-space:nowrap;padding:10px}.coTop{min-height:auto;padding:14px;align-items:flex-start}.coTop h2{font-size:21px}.coTop p,.coTop label{display:none}.coTop>div:last-child{gap:5px}.coTop .coBtn{padding:8px;font-size:11px}.coBody{padding:10px}.coKpis{grid-template-columns:repeat(2,1fr)}.coForm,.coForm.three{grid-template-columns:1fr}.coForm .full,.coForm .span2{grid-column:auto}.coNode{width:300px}}
+@page{size:A4 landscape;margin:6mm}@media print{body>*:not(#coOverlay){display:none!important}.coOverlay{position:static;display:block;background:#fff}.coOverlay aside,.coTop,.coPanelHead,.coHint{display:none!important}.coOverlay main{height:auto}.coBody{padding:0;overflow:visible}.coPanel{border:0;box-shadow:none}.coMapViewport{padding:0;overflow:visible;width:277mm;height:190mm}.coTreeCanvas{min-width:0;transform:scale(var(--print-scale,1));transform-origin:top left}.coNode{box-shadow:none}.coMember{padding:4px!important}.coAvatar{width:28px;height:28px}.coMemberTop{grid-template-columns:28px 1fr auto}.coDuties em{font-size:7px}.coChain{padding:4px}.coNode>header{padding:7px}.coNode>footer{padding:5px}}
+
+/* v567 — ajustes pontuais do mapa estrutural e novo mapa de responsabilidades */
+.coPanelTools{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}.coSegment{display:inline-flex;padding:3px;background:#eef3f8;border:1px solid #d9e3ee;border-radius:10px}.coSegment button{border:0;background:transparent;color:#4f6075;font:inherit;font-size:11px;font-weight:800;padding:7px 10px;border-radius:7px;cursor:pointer}.coSegment button.active{background:#fff;color:#174e91;box-shadow:0 2px 7px #17365b18}.coMore{background:#e7eef8!important;color:#174e91!important;font-weight:800!important}
+/* árvore compacta com posicionamento por nível: cada pai fica centralizado sobre os filhos */
+.coMapViewport{overflow:auto;padding:18px 14px 8px}.coTreeCanvas{position:relative;min-width:620px!important;width:620px;min-height:280px;padding:0!important;margin:0 auto}.coTreeNodes{position:absolute;inset:0}.coTreeNodeWrap{position:absolute;width:310px;text-align:left}.coTreeNodeWrap .coNode{width:310px}.coTreeLines{position:absolute;inset:0;overflow:visible;pointer-events:none}.coTreeLines path{fill:none;stroke:#233247;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.coNode{box-shadow:0 7px 17px #102f5717}.coNode>header{padding:11px 12px}.coMembers{padding:8px;gap:6px}.coMember{padding:7px!important}.coChain{margin:0 8px 8px;padding:7px;overflow-x:auto}.coNode>footer{padding:8px 10px}.coHint{margin-top:8px}
+/* mapa de responsabilidades */
+.coRespHead{align-items:center}.coRespToolbar{display:flex;justify-content:space-between;align-items:end;gap:12px;padding:14px 16px;background:#f8fafc;border-bottom:1px solid #e5ebf1}.coRespToolbar label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#5b6b7f;min-width:min(440px,70vw)}.coRespToolbar select{font:inherit;border:1px solid #ccd8e5;border-radius:10px;padding:10px;background:#fff;color:#102342}.coRespGrid,.coRespFunctionGrid{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}.coRespCard,.coRespFunction{border:1px solid #dbe4ee;border-left:5px solid #94a3b8;border-radius:14px;background:#fff;box-shadow:0 6px 18px #17365b0d;overflow:hidden}.coRespCard.full{border-left-color:#21a455}.coRespCard.partial{border-left-color:#eab308}.coRespCard.none{border-left-color:#e22f3f}.coRespCard>header,.coRespFunction>header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 13px;background:#f8fafc;border-bottom:1px solid #e7edf3}.coRespCard>header>div,.coRespFunction>header{min-width:0}.coRespCard header b,.coRespFunction header b{display:block;font-size:13px;color:#102342}.coRespCard header small,.coRespFunction header small{display:block;margin-top:3px;font-size:10px;color:#66768b}.coRespChain{padding:12px;display:grid;gap:4px}.coRespPerson{display:grid;grid-template-columns:auto 38px 1fr;gap:8px;align-items:start;border:1px solid #e4eaf1;border-radius:11px;padding:9px;background:#fff}.coRespPerson.empty{opacity:.62;background:#fafbfc}.coRespRank{font-size:9px;font-weight:900;color:#5e6f84;min-width:67px;padding-top:4px}.coRespPerson>div{min-width:0}.coRespPerson b{font-size:11px}.coRespPerson small{font-size:9px;color:#748297;display:block}.coRespPerson .coDuties{margin-top:5px}.coRespArrow{text-align:center;font-style:normal;font-size:16px;color:#6f42c1;line-height:1}.coRespRelated{border-top:1px solid #e7edf3;padding:10px 12px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;font-size:9px}.coRespRelated>b{width:100%;color:#56667b}.coRespRelated>span{display:inline-flex;align-items:center;gap:4px;background:#f4f7fb;border-radius:999px;padding:4px 7px}.coRespFunctionPeople{padding:10px;display:grid;gap:7px}.coRespFunctionPerson{display:grid;grid-template-columns:39px 1fr;gap:8px;align-items:start;border:1px solid #e4eaf1;border-radius:10px;padding:8px}.coRespFunctionPerson b{font-size:11px}.coRespSubChain{border-top:1px solid #e7edf3;padding:10px;display:grid;gap:6px;background:#fafbfe}.coRespSubChain>div{display:grid;grid-template-columns:92px 28px 1fr;gap:7px;align-items:start}.coRespSubChain>div>span{font-size:9px;font-weight:800;color:#68798d}.coRespSubChain b{font-size:10px}.coRespSubChain .coDuties{grid-column:2/4;margin-top:2px}.coEmpty{grid-column:1/-1;text-align:center;padding:36px 18px;color:#6a7a8f;border:1px dashed #ccd8e5;border-radius:12px;background:#fbfcfe}
+@media(max-width:900px){.coPanelHead{align-items:flex-start;flex-direction:column}.coPanelTools{justify-content:flex-start}.coTreeNodeWrap{width:290px}.coTreeNodeWrap .coNode{width:290px}.coRespToolbar{align-items:stretch;flex-direction:column}.coRespToolbar label{min-width:0;width:100%}.coRespGrid,.coRespFunctionGrid{grid-template-columns:1fr;padding:10px}.coRespPerson{grid-template-columns:auto 32px 1fr}}
+@media print{.coSegment,.coPanelTools,.coRespToolbar,.coRespCard button,.coRespFunction button{display:none!important}.coTreeCanvas{margin:0!important;transform:scale(var(--print-scale,1));transform-origin:top left}.coTreeNodeWrap .coNode{box-shadow:none}.coTreeLines path{stroke-width:1.5}.coDuties em{font-size:7px!important;padding:2px 4px!important}}
+
+/* v568 — visibilidade e consistência de exportação */
+.coOverlay{grid-template-columns:260px minmax(0,1fr);transition:grid-template-columns .18s ease}.coOverlay aside{transition:transform .18s ease,opacity .18s ease,padding .18s ease,border .18s ease}.coOverlay.coSidebarCollapsed{grid-template-columns:0 minmax(0,1fr)}
+.coOverlay.coSidebarCollapsed aside{transform:translateX(-105%);opacity:0;pointer-events:none;padding:0;border-right:0;overflow:hidden}
+.coTop>div:last-child{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.coMapViewport{padding:14px 8px 6px}.coTreeCanvas{margin:0 auto}.coOverlay.coSidebarCollapsed .coBody{padding-left:14px;padding-right:14px}
+@media print{.coNode>header button,.coMemberTop i,#coToggleSidebar{display:none!important}.coOverlay{grid-template-columns:1fr!important}.coOverlay aside{display:none!important}}
+
+/* v569 — fechamento visual da Visão Geral */
+#visao>.cards{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:9px!important;align-items:stretch!important}
+#visao>.cards>.card,#visao>.cards>.fsCoHomeCard{min-height:142px!important;height:142px!important;border-radius:22px!important;padding:14px!important;margin:0!important;box-shadow:0 14px 30px rgba(7,29,104,.14)!important}
+#visao>.cards>.card{display:flex!important;flex-direction:column!important;justify-content:flex-start!important}
+#visao>.cards>.card small{font-size:12px!important}
+#visao>.cards>.card strong{font-size:30px!important;line-height:1.08!important;margin-top:5px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchTop{font-size:13px!important;gap:7px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchTop i{font-size:21px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchIndex{align-items:flex-end!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchIndex span{font-size:11px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchIndex strong{font-size:31px!important}
+#visao>.cards>.fsCoHomeCard .fsCoLaunchStats{font-size:10px!important;gap:8px!important}
+@media(max-width:1050px){#visao>.cards{grid-template-columns:repeat(3,1fr)!important}#visao>.cards>.card,#visao>.cards>.fsCoHomeCard{height:auto!important;min-height:138px!important}}
+@media(max-width:700px){#visao>.cards{grid-template-columns:repeat(2,1fr)!important}}
+
+/* v570 — hierarquia escalável, autoridade funcional e impressão paginada */
+.coAuthorityBadge{display:none!important}.coTreeLines .coDirectLine{stroke:#233247;stroke-width:2}.coLegend{align-items:center}.coLegend span{display:inline-flex;align-items:center;gap:5px}.coLegendDirect{display:inline-block;width:24px;height:0;border-top:2px solid #233247}
+.coStructureStats{display:flex;flex-direction:column;align-items:flex-end}.coStructureStats b{font-size:24px;color:#2467d1}.coStructureStats span{font-size:10px;color:#64748b;font-weight:800}.coStructureActions{padding:13px 16px;display:flex;justify-content:flex-end;gap:8px;border-bottom:1px solid #e5ebf1;background:#fbfcfe}.coStructureNote{margin:14px 16px 5px;border:1px solid #cfe0f5;background:#f5f9ff;border-radius:11px;padding:12px 14px;color:#42546b;font-size:11px}.coStructureTableWrap{overflow:auto;padding:10px 16px 18px}.coStructureTable{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:11px}.coStructureTable th{text-align:left;color:#617187;font-size:9px;text-transform:uppercase;padding:0 8px 4px}.coStructureTable tbody tr{background:#fff;box-shadow:0 2px 10px #17365b0a}.coStructureTable td{padding:10px 8px;border-top:1px solid #e0e7ef;border-bottom:1px solid #e0e7ef;vertical-align:top}.coStructureTable td:first-child{border-left:1px solid #e0e7ef;border-radius:10px 0 0 10px;min-width:180px}.coStructureTable td:last-child{border-right:1px solid #e0e7ef;border-radius:0 10px 10px 0;min-width:155px}.coStructureTable td>b{display:block;font-size:12px}.coStructureTable td>small{display:block;color:#7a899b;margin-top:4px}.coStructureTable select{width:100%;min-width:170px;font:inherit;border:1px solid #cdd9e6;border-radius:8px;background:#fff;padding:8px;color:#17304f}.coMiniPlans{display:grid;gap:5px;min-width:210px}.coMiniPlans label{display:grid;grid-template-columns:72px 1fr;align-items:center;gap:5px;color:#62748a;font-size:9px;font-weight:800}.coMiniPlans select{min-width:140px;padding:6px;font-size:10px}.coSwitchLine{display:flex;align-items:center;gap:6px;margin:4px 0;font-size:10px;font-weight:800;color:#42546b}.coStructureFooter{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid #e5ebf1;background:#f8fafc;font-size:10px;color:#586a80;font-weight:700}
+.coPrintBook{display:none}.coPrintingBook #coOverlay{display:none!important}.coPrintingBook .coPrintBook{display:block!important;background:#fff;color:#102342}.coPrintPage{width:297mm;min-height:210mm;box-sizing:border-box;background:#fff;position:relative;padding:10mm 12mm 9mm;break-after:page;page-break-after:always}.coPrintPage:last-child{break-after:auto;page-break-after:auto}.coPrintImagePage{padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden}.coPrintImagePage>img{width:297mm;height:210mm;object-fit:contain;display:block}.coPrintExecHeader{display:grid;grid-template-columns:46mm 1fr;align-items:center;border-top:2.5mm solid #071d68;border-bottom:1px solid #dce5f0;padding:5mm 5mm 4mm;margin:-10mm -12mm 7mm;background:#f8fbff}.coPrintExecHeader img{max-width:40mm;max-height:16mm;object-fit:contain}.coPrintExecHeader h1{margin:0;text-align:center;color:#071d68;font-size:19pt}.coPrintExecHeader h2{margin:2mm 0 0;text-align:center;color:#334155;font-size:10pt}.coPrintExecHeader p{margin:1.5mm 0 0;text-align:center;color:#64748b;font-size:8pt}.coPrintSummary h3{font-size:13pt;margin:0 0 4mm}.coPrintSummary table{width:100%;border-collapse:collapse;font-size:8.5pt}.coPrintSummary th,.coPrintSummary td{border-bottom:1px solid #dfe6ee;padding:2.5mm 2mm;text-align:left;vertical-align:top}.coPrintSummary th{color:#526278;text-transform:uppercase;font-size:7.5pt}.coPrintSummary td small{display:block;color:#718096;margin-top:1mm}.coPrintPage>footer{position:absolute;bottom:5mm;left:12mm;right:12mm;border-top:1px solid #e0e7ef;padding-top:2mm;text-align:center;color:#6b7b90;font-size:7.5pt}.coPrintFunctionBody{display:flex;justify-content:center;align-items:flex-start;padding:4mm 0 10mm}.coPrintFunctionBody .coNode{width:250mm;max-width:250mm;box-shadow:none;border-width:1px 1px 1px 5px}.coPrintFunctionBody .coMembers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.coPrintFunctionBody .coMember{break-inside:avoid}.coPrintFunctionBody .coNode>header button,.coPrintFunctionBody .coMemberTop i,.coPrintFunctionBody .coMemberOrder{display:none!important}.coPrintFunctionBody .coDuties em{font-size:7.5px}
+@media(max-width:1100px){.coStructureTable{min-width:1080px}}
+@media print{@page{size:A4 landscape;margin:0}.coPrintingBook body>*:not(#coPrintBook),.coPrintingBook #coOverlay{display:none!important}.coPrintingBook #coPrintBook{display:block!important}.coPrintingBook .coPrintPage{display:block!important}}
+
+/* v571 — compactação visual por setores */
+.coMembers.compact{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.coMembers.compact .coMember{padding:6px!important}.coMemberCompact .coMemberTop{grid-template-columns:27px 1fr auto;gap:6px}.coMemberCompact .coAvatar.tiny{width:27px;height:27px;font-size:9px}.coMemberCompact .coMemberTop b{font-size:10px;line-height:1.15}.coMemberCompact .coMemberTop small{font-size:8px}.coMemberCompact .coNoDuty,.coMemberCompact .coDuties{display:none!important}.coNode>header small.coAuthorityBadge{line-height:1.25}.coStructureNote{line-height:1.45}.coTreeCanvas{padding-bottom:8px!important}.coMapViewport{padding-bottom:4px!important}.
+@media(max-width:900px){.coMembers.compact{grid-template-columns:1fr}}
+@media print{.coMembers.compact{grid-template-columns:repeat(2,minmax(0,1fr))}.coMemberCompact .coMemberTop b{font-size:9px}}
+
+/* v573 — centralização, fluxo guiado e acabamento executivo */
+.coOverlay{position:fixed;overflow:hidden}
+.coSidebarHandle{position:absolute;left:238px;top:50%;transform:translateY(-50%);z-index:5;width:34px;height:74px;border:1px solid #d7e0ea;border-left:0;border-radius:0 14px 14px 0;background:#fff;color:#102342;font-size:28px;line-height:1;display:grid;place-items:center;box-shadow:0 12px 28px rgba(15,31,61,.14);cursor:pointer;transition:left .18s ease,transform .18s ease}
+.coSidebarHandle:hover{transform:translateY(-50%) scale(1.02)}
+.coOverlay.coSidebarCollapsed .coSidebarHandle{left:0}
+.coOverlay main{position:relative;background:#eef3f9}
+.coTop{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;padding:18px 28px 16px}
+.coTopInfo{justify-self:center;text-align:center;max-width:780px;width:100%}
+.coTop h2{font-size:24px;line-height:1.1}
+.coTop p{font-size:13px}
+.coTopActions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.coTopDate{min-width:168px;padding:8px 12px;border:1px solid #d7e0ea;border-radius:14px;background:#fff;box-shadow:0 8px 22px rgba(16,35,66,.05)}
+.coTopDate span{font-size:12px;font-weight:800;color:#64748b;display:block;margin-bottom:6px}
+.coTopDate input{width:100%;padding:8px 10px;border-radius:10px}
+.coBtn{border-radius:14px;padding:11px 16px;box-shadow:0 4px 14px rgba(15,31,61,.04)}
+.coBtn.icon{padding:8px 14px;border-radius:14px}
+.coBody{padding:20px 24px 28px}
+.coPanel{border-radius:22px;box-shadow:0 18px 40px rgba(23,54,91,.08)}
+.coPanelHead{padding:20px 22px}
+.coPanelHead h3{font-size:18px}
+.coMapPanel .coPanelHead{justify-content:center;text-align:center;flex-direction:column}
+.coMapPanel .coPanelTools{justify-content:center}
+.coMapViewport{padding:28px 22px 16px}
+.coTreeCanvas{padding:12px 42px 22px}
+.coTreeNodeWrap{filter:drop-shadow(0 10px 22px rgba(15,31,61,.08))}
+.coNode{border-radius:18px}
+.coNode>header{padding:15px 16px}
+.coMembers{padding:11px;gap:9px}
+.coChain{margin:0 11px 11px;padding:10px}
+.coStructureHead{align-items:center}
+.coStructureFlow{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 18px 8px;background:linear-gradient(180deg,#fbfdff,#f6f9fc);border-bottom:1px solid #e5ebf1;flex-wrap:wrap}
+.coFlowStep{min-width:190px;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px;border:1px solid #d9e4f0;background:#fff;color:#64748b;box-shadow:0 6px 18px rgba(15,31,61,.05)}
+.coFlowStep strong{width:28px;height:28px;border-radius:50%;background:#e9f0fb;color:#2467d1;display:grid;place-items:center;font-size:13px}
+.coFlowStep.active{border-color:#98b8eb;color:#102342}
+.coFlowStep.done{border-color:#9cd0b0;background:#f7fffa;color:#123d22}
+.coFlowStep.done strong{background:#dff4e6;color:#19934d}
+.coFlowStep.pending{opacity:.75}
+.coFlowArrow{color:#8aa0bc;font-weight:900}
+.coStructureActions{padding:14px 18px;justify-content:flex-end;gap:10px}
+.coStructureNote{margin:16px 18px 6px;border-radius:16px;padding:14px 16px;font-size:12px;background:#f7fbff}
+.coStructureTableWrap{padding:12px 18px 18px}
+.coStructureTable{border-spacing:0 12px}
+.coStructureTable th{font-size:11px;color:#274467;padding:0 10px 6px}
+.coStructureTable thead tr{background:transparent}
+.coStructureTable td{padding:12px 10px;background:#fff}
+.coStructureTable td:first-child,.coStructureTable td:last-child{background:#fff}
+.coStructureTable td:first-child{min-width:230px}
+.coStructureTable select{border-radius:12px;padding:10px}
+.coMiniPlans{gap:7px}
+.coMiniPlans label{font-size:10px;grid-template-columns:82px 1fr}
+.coMiniPlans select{border-radius:10px}
+.coSwitchLine{font-size:11px}
+.coStructureFooter{padding:14px 18px;font-size:11px;background:#fbfcfe}
+.coTableWrap table{border-collapse:separate;border-spacing:0 8px}
+.coTableWrap tbody tr{background:#fff;box-shadow:0 4px 14px rgba(23,54,91,.05)}
+.coTableWrap td,.coTableWrap th{white-space:normal}
+.coTableWrap tbody td:first-child{border-radius:12px 0 0 12px}
+.coTableWrap tbody td:last-child{border-radius:0 12px 12px 0}
+.coPrintExecHeader{background:linear-gradient(180deg,#ffffff,#f7fbff);border-top:3mm solid #071d68;box-shadow:inset 0 -1px 0 #dce5f0}
+.coPrintSummary{border:1px solid #dfe7f0;border-radius:16px;padding:6mm 6mm 4mm;background:#fff;box-shadow:0 4mm 10mm rgba(15,31,61,.04)}
+.coPrintSummary h3{color:#071d68}
+.coPrintSummary table{margin-top:3mm}
+.coPrintFunctionBody .coNode{border-radius:16px;background:#fff}
+.coPrintPage>footer{letter-spacing:.3px}
+@media(max-width:1100px){.coTop{grid-template-columns:1fr}.coTopInfo{order:1}.coTopActions{order:2;justify-content:center}.coSidebarHandle{top:72px;transform:none;height:56px}.coSidebarHandle:hover{transform:scale(1.02)}.coOverlay.coSidebarCollapsed .coSidebarHandle{left:0;top:72px}}
+@media print{#coSidebarHandle{display:none!important}}
+
+/* v574 — Suporte interno na Visão Geral */
+.coOverviewSupportRow{display:flex;justify-content:flex-end;margin:-2px 0 10px}.coSupportBtn{border:1px solid #d6e1ed;background:#fff;color:#17304f;border-radius:999px;padding:8px 13px;font:inherit;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(23,54,91,.07)}.coSupportBtn:hover{background:#f7fbff;border-color:#9dbce5}.coSupportBack{position:fixed;inset:0;z-index:2147483900;background:rgba(9,26,43,.52);display:grid;place-items:center;padding:20px}.coSupportPanel{width:min(720px,96vw);max-height:88vh;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 30px 80px rgba(0,17,34,.35);display:flex;flex-direction:column;border:1px solid #dfe7f0}.coSupportPanel>header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:linear-gradient(180deg,#fff,#f6f9fd);border-bottom:1px solid #e3eaf2;gap:14px}.coSupportPanel>header>div{display:flex;flex-direction:column;gap:4px}.coSupportPanel>header b{font-size:20px;color:#102342}.coSupportPanel>header small{font-size:12px;color:#718096}.coSupportPanel>header button{width:40px;height:40px;border:1px solid #d7e0ea;border-radius:12px;background:#fff;font-size:22px;cursor:pointer}.coSupportChat{padding:18px;display:flex;flex-direction:column;gap:12px;overflow:auto;min-height:240px;max-height:400px;background:#fbfdff}.coSupportMsg{max-width:92%;display:flex;flex-direction:column;gap:5px}.coSupportMsg>span{font-size:11px;font-weight:800;color:#7a899b}.coSupportMsg p{margin:0;padding:12px 14px;border-radius:16px;font-size:15px;line-height:1.55}.coSupportMsg.bot{align-self:flex-start}.coSupportMsg.bot p{background:#eef5fd;color:#193651;border:1px solid #dce9f8;border-top-left-radius:6px}.coSupportMsg.user{align-self:flex-end;align-items:flex-end}.coSupportMsg.user p{background:#2467d1;color:#fff;border-top-right-radius:6px}.coSupportQuick{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid #e7edf3;background:#fff}.coSupportQuick button{border:1px solid #dce5ef;border-radius:999px;background:#fff;padding:9px 12px;font:inherit;font-size:12px;font-weight:700;color:#38516f;cursor:pointer}.coSupportQuick button:hover{background:#f5f9ff}.coSupportPanel form{display:grid;grid-template-columns:1fr auto;gap:10px;padding:14px 16px;border-top:1px solid #e7edf3;background:#fff}.coSupportPanel input{min-width:0;border:1px solid #ccd9e6;border-radius:14px;padding:14px 14px;font:inherit;font-size:15px;outline:none}.coSupportPanel input:focus{border-color:#6f9fe1;box-shadow:0 0 0 3px rgba(36,103,209,.09)}.coSupportPanel form button{border:0;border-radius:14px;background:#2467d1;color:#fff;padding:12px 18px;font:inherit;font-weight:800;cursor:pointer;font-size:15px}.coSupportPanel>footer{padding:10px 16px 14px;text-align:center;font-size:11px;color:#8795a7;background:#fff}@media(max-width:600px){.coSupportBack{padding:10px}.coSupportPanel{width:100%;border-radius:18px}.coSupportQuick{gap:6px}.coSupportPanel form{grid-template-columns:1fr}.coSupportPanel form button{width:100%}.coSupportPanel>header{align-items:flex-start}.coSupportPanel>header b{font-size:18px}}
+
+/* v575 — escalonamento do suporte para desenvolvedor */
+.coSupportChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px 4px;background:#fff}.coSupportChoice button{min-height:44px;border:1px solid #d8e3ef;border-radius:14px;background:#fff;color:#17304f;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.coSupportChoice button:first-child{background:#f4f8fd}.coSupportChoice button:last-child{background:#eef9f2;border-color:#bee0ca;color:#176b3a}.coSupportEscalate{align-self:flex-start;max-width:88%;border:1px solid #cfe4d6;background:#f6fff8;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}.coSupportEscalate span{font-size:10px;color:#587064;font-weight:700}.coSupportEscalate button{border:0;border-radius:11px;background:#1f9d55;color:#fff;padding:9px 11px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.coSupportEscalate button:hover{filter:brightness(.97)}@media(max-width:600px){.coSupportChoice{grid-template-columns:1fr}}
+
+/* v576 — legibilidade do assistente de estrutura + suporte flutuante */
+.coStructureTable thead tr{background:#0b2d74!important}
+.coStructureTable thead th{color:#ffffff!important;font-size:11px!important;font-weight:900!important;letter-spacing:.025em!important;text-transform:uppercase!important;padding:12px 12px!important;line-height:1.25!important;border:0!important;opacity:1!important;text-shadow:0 1px 0 rgba(0,0,0,.08)}
+.coStructureTable thead th:first-child{border-radius:12px 0 0 12px!important}
+.coStructureTable thead th:last-child{border-radius:0 12px 12px 0!important}
+.coStructureTable tbody td>b{font-size:13px!important;font-weight:900!important;color:#102342!important;line-height:1.3!important}
+.coStructureTable tbody td>small{font-size:10px!important;color:#64748b!important;line-height:1.35!important}
+.coStructureTable select{font-size:12px!important;font-weight:700!important;color:#17304f!important;background:#fff!important}
+.coMiniPlans label{color:#4b607a!important;font-weight:900!important}
+.coSwitchLine{color:#334b68!important;font-weight:900!important}
+
+.fsSupportFloating{position:fixed;right:24px;bottom:22px;z-index:2147482500;border:1px solid rgba(36,103,209,.18);background:rgba(255,255,255,.96);color:#17304f;border-radius:999px;padding:9px 13px 9px 10px;display:none;align-items:center;gap:7px;font:inherit;font-size:11px;font-weight:900;cursor:pointer;box-shadow:0 12px 28px rgba(15,31,61,.16);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.fsSupportFloating.show{display:inline-flex}
+.fsSupportFloating span{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#edf4ff;color:#2467d1;font-size:15px;font-weight:900}
+.fsSupportFloating:hover{transform:translateY(-2px);border-color:rgba(36,103,209,.42);box-shadow:0 16px 34px rgba(15,31,61,.2)}
+html.coOpen #fsSupportFloating{display:none!important}
+@media(max-width:700px){.fsSupportFloating{right:14px;bottom:14px;padding:8px 11px 8px 8px}.fsSupportFloating b{display:none}.fsSupportFloating span{width:34px;height:34px}}
+@media print{#fsSupportFloating{display:none!important}}
+
+/* v577 — hierarquia principal limpa e vínculos adicionais sob demanda */
+.coTreeLines .coAdditionalLine{stroke:#7b8fb1;stroke-width:1.45;opacity:.55;stroke-dasharray:5 5}
+.coLegendAdditional{display:inline-block;width:24px;height:0;border-top:2px dashed #7b8fb1}
+.coLinkSegment{margin-left:4px}
+.coMapPanel .coPanelTools{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.coMapPanel .coLegend{padding-left:4px}
+@media print{.coTreeLines .coAdditionalLine{display:none!important}.coLinkSegment{display:none!important}}
+
+/* v578 — continuidade clara e fluxo automático */
+.coStructureActions{display:none!important}
+.coStructureReady{margin:16px 18px 0;padding:16px 18px;border:1px solid #bfe3cc;background:#f5fff8;border-radius:18px;display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:0 8px 24px rgba(25,147,77,.08)}
+.coStructureReady>div{display:flex;flex-direction:column;gap:4px}.coStructureReady b{color:#167a3e;font-size:14px}.coStructureReady span{color:#5f7268;font-size:11px}
+.coContinuityBox{min-width:205px;display:flex;flex-direction:column;gap:9px;padding:10px;border:1px solid #dce6f0;border-radius:14px;background:#fbfdff}
+.coContinuityBox fieldset{border:0;padding:0;margin:0;display:flex;gap:7px;align-items:center;flex-wrap:wrap}.coContinuityBox legend{width:100%;font-size:10px;font-weight:900;color:#274467;margin-bottom:3px}
+.coRadioPill{position:relative;cursor:pointer}.coRadioPill input{position:absolute;opacity:0;pointer-events:none}.coRadioPill span{display:inline-flex;min-width:58px;justify-content:center;align-items:center;border:1px solid #cdd9e6;border-radius:999px;padding:7px 12px;background:#fff;color:#42546b;font-size:10px;font-weight:900;transition:.16s ease}
+.coRadioPill input:checked+span{background:#eaf3ff;border-color:#5b8fd8;color:#164f9c;box-shadow:0 0 0 2px rgba(36,103,209,.08)}
+.coCriticalToggle{display:flex;align-items:center;gap:7px;padding-top:7px;border-top:1px solid #e5ebf1;color:#42546b;font-size:10px;font-weight:900;cursor:pointer}.coCriticalToggle input{accent-color:#d59b00;width:16px;height:16px}.coCriticalToggle span{white-space:nowrap}
+.coContinuityBox>small{font-size:9px!important;color:#7a899b!important;line-height:1.35}
+.coStructureSaveFooter{position:sticky;bottom:0;z-index:3;margin:8px 18px 0;padding:14px 16px;border:1px solid #d7e2ef;border-radius:18px 18px 0 0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:0 -10px 28px rgba(15,31,61,.08)}
+.coStructureSaveFooter>div{display:flex;flex-direction:column;gap:3px}.coStructureSaveFooter b{font-size:12px;color:#102342}.coStructureSaveFooter span{font-size:10px;color:#64748b}.coStructureSaveFooter .coBtn{min-width:290px}
+.coStructureTable th:last-child{text-align:center}.coStructureTable td:last-child{vertical-align:middle}
+@media(max-width:900px){.coStructureReady,.coStructureSaveFooter{align-items:stretch;flex-direction:column}.coStructureSaveFooter .coBtn{min-width:0;width:100%}}
+
+/* v579 — suporte simplificado e ordenação de pessoas */
+.coMemberWrap{position:relative}.coMemberWrap .coMember{width:100%;cursor:pointer}.coMemberOrder{position:absolute;right:8px;bottom:8px;display:flex;gap:4px;z-index:2;opacity:0;pointer-events:none;transition:opacity .15s ease}.coMemberWrap:hover .coMemberOrder,.coMemberWrap:focus-within .coMemberOrder{opacity:1;pointer-events:auto}.coMemberWrap.compact .coMemberOrder{bottom:6px}.coMemberWrap.noOrder .coMemberOrder{display:none!important}.coOrderBtn{width:22px;height:22px;border:1px solid #d7e2ee;border-radius:8px;background:#fff;color:#284a76;font-size:11px;font-weight:900;line-height:1;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 10px rgba(15,31,61,.05)}.coOrderBtn:hover{background:#f5f9ff;border-color:#8fb0db}.coSupportHeaderActions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}.coSupportDevBtn{border:1px solid #cfe0d2;border-radius:12px;background:#eef9f2;color:#176b3a;padding:10px 14px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;min-width:max-content}.coSupportDevBtn:hover{filter:brightness(.98)}.coSupportQuickTop{border-top:0;border-bottom:1px solid #e7edf3;padding-top:12px;padding-bottom:12px;background:#fcfdff}.coSupportEscalateActions{display:flex;gap:8px;flex-wrap:wrap}.coSupportEscalateActions button:last-child{background:#fff;color:#46657f;border:1px solid #d5e1eb}.coSupportPanel .coSupportEscalateActions button:last-child{padding:9px 11px}.coSupportPanel>header button#coSupportClose{width:40px;height:40px;padding:0}.coSupportChoice{display:none!important}
+@media(max-width:700px){.coSupportHeaderActions{flex-wrap:wrap;justify-content:flex-end}.coSupportDevBtn{width:100%}}
+
+/* v580 — onboarding guiado, continuidade centralizada e prévia editável */
+.coGuidedSetupBack{position:fixed;inset:0;z-index:2147483950;background:rgba(8,24,41,.56);display:grid;place-items:center;padding:20px}.coGuidedSetupCard{width:min(620px,94vw);background:#fff;border:1px solid #dce5ef;border-radius:24px;padding:34px 32px;box-shadow:0 30px 80px rgba(0,17,34,.35);text-align:center}.coGuidedIcon{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;background:#eef5ff;color:#2467d1;font-size:26px}.coGuidedEyebrow{display:block;margin-bottom:8px;color:#3e68a2;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.coGuidedSetupCard h3{margin:0;color:#102342;font-size:32px;line-height:1.15}.coGuidedSetupCard p{margin:14px 0 24px;color:#617187;line-height:1.7;font-size:18px}.coGuidedSetupCard button{border:0;border-radius:16px;background:#2467d1;color:#fff;padding:15px 22px;font:inherit;font-size:18px;font-weight:800;cursor:pointer}
+.coStructureTable{min-width:1580px!important;table-layout:fixed}.coStructureTable th:nth-child(1),.coStructureTable td:nth-child(1){width:220px}.coStructureTable th:nth-child(2),.coStructureTable td:nth-child(2),.coStructureTable th:nth-child(3),.coStructureTable td:nth-child(3),.coStructureTable th:nth-child(4),.coStructureTable td:nth-child(4){width:210px}.coStructureTable th:nth-child(5),.coStructureTable td:nth-child(5){width:330px}.coStructureTable th:nth-child(6),.coStructureTable td:nth-child(6){width:250px}.coStructureTable td{vertical-align:middle!important;overflow:hidden}.coContinuityBox{min-width:0!important;width:210px;margin:0 auto;align-items:center;text-align:center;padding:14px 12px;box-sizing:border-box}.coContinuityBox>strong{font-size:11px;color:#274467;line-height:1.35}.coContinuityBox fieldset{justify-content:center;width:100%}.coContinuityBox legend{text-align:center}.coCriticalToggle{justify-content:center!important;width:100%}.coContinuityBox>small{text-align:center;max-width:180px}.coRadioPill{min-width:62px;justify-content:center}.coMiniPlans{min-width:0!important}.coMiniPlans label{grid-template-columns:82px minmax(0,1fr)}.coMiniPlans select{min-width:0!important;width:100%;max-width:100%}.coStructureSaveFooter{position:static!important;margin:12px 18px 0!important;border-radius:18px!important;box-shadow:0 8px 24px rgba(15,31,61,.06)!important}.coStructurePreview{margin:18px;border:1px solid #d7e2ef;border-radius:20px;background:#f8fbff;overflow:hidden;box-shadow:0 14px 34px rgba(15,31,61,.08)}.coStructurePreviewHead{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 18px;background:#fff;border-bottom:1px solid #e3eaf2}.coStructurePreviewHead>div{display:flex;flex-direction:column;gap:4px}.coStructurePreviewHead b{font-size:16px;color:#102342}.coStructurePreviewHead span{font-size:12px;color:#64748b}.coStructurePreviewCanvas{max-height:620px;overflow:auto;background:#fff;padding:10px}.coStructurePreviewCanvas .coMapViewport{background:#fff}.coStructurePreviewCanvas .coHint{display:none}.coStructurePreviewCanvas .coPanel{border:0;box-shadow:none}.coStructurePreviewCanvas .coPanelHead{display:none}.coStructurePreviewCanvas .coMemberOrder,.coStructurePreviewCanvas .coNode>header button,.coStructurePreviewCanvas .coMemberTop i{display:none!important}
+@media(max-width:1100px){.coStructureTable{min-width:1350px!important}.coStructurePreviewHead{align-items:stretch;flex-direction:column}.coStructurePreviewHead .coBtn{width:100%}}
+
+@media(max-width:800px){.coGuidedSetupCard h3{font-size:26px}.coGuidedSetupCard p{font-size:16px}.coSupportDevBtn{font-size:12px;padding:9px 12px}.coContinuityBox{width:100%}.coStructurePreviewCanvas{max-height:520px}}
+
+/* v582 — compactação final da configuração e suporte */
+.coSupportPanel{width:min(660px,94vw)!important;border-radius:20px!important}
+.coSupportPanel>header{padding:14px 16px!important;gap:10px!important}
+.coSupportTitle b{font-size:17px!important;line-height:1.15!important}
+.coSupportTitle small{font-size:11px!important}
+.coSupportHeaderActions{gap:6px!important;align-items:center!important}
+.coSupportDevBtn{font-size:10px!important;padding:7px 9px!important;border-radius:10px!important;min-width:auto!important;white-space:nowrap!important}
+.coSupportCloseText{width:auto!important;height:auto!important;padding:6px 8px!important;border:0!important;background:transparent!important;color:#718096!important;font-size:10px!important;font-weight:800!important}
+.coSupportQuick{padding:10px 14px!important;gap:6px!important}
+.coSupportQuick button{font-size:10px!important;padding:7px 9px!important}
+.coSupportChat{min-height:190px!important;max-height:300px!important;padding:14px!important}
+.coSupportMsg p{font-size:13px!important;line-height:1.45!important;padding:10px 12px!important}
+.coSupportPanel form{padding:11px 14px!important;gap:8px!important}
+.coSupportPanel input{font-size:13px!important;padding:11px 12px!important}
+.coSupportPanel form button{font-size:13px!important;padding:10px 15px!important}
+.coSupportPanel>footer{font-size:9px!important;padding:8px 12px 10px!important}
+
+.coStructureTableWrap{overflow-x:hidden!important;padding:10px 12px 14px!important}
+.coStructureTable{width:100%!important;min-width:0!important;table-layout:fixed!important;border-spacing:0 8px!important}
+.coStructureTable th{font-size:10px!important;padding:10px 7px!important}
+.coStructureTable th:nth-child(1),.coStructureTable td:nth-child(1){width:15%!important}
+.coStructureTable th:nth-child(2),.coStructureTable td:nth-child(2){width:15%!important}
+.coStructureTable th:nth-child(3),.coStructureTable td:nth-child(3){width:14%!important}
+.coStructureTable th:nth-child(4),.coStructureTable td:nth-child(4){width:14%!important}
+.coStructureTable th:nth-child(5),.coStructureTable td:nth-child(5){width:24%!important}
+.coStructureTable th:nth-child(6),.coStructureTable td:nth-child(6){width:18%!important}
+.coStructureTable td{padding:10px 7px!important;height:auto!important;min-height:0!important}
+.coStructureTable tbody td>b{font-size:12px!important;line-height:1.2!important}
+.coStructureTable tbody td>small{font-size:9px!important;margin-top:3px!important}
+.coStructureTable select{min-width:0!important;width:100%!important;max-width:100%!important;height:38px!important;padding:7px 9px!important;font-size:11px!important;border-radius:10px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.coMiniPlans{gap:5px!important;min-width:0!important}
+.coMiniPlans label{grid-template-columns:68px minmax(0,1fr)!important;gap:5px!important;font-size:9px!important}
+.coMiniPlans select{height:34px!important;font-size:10px!important;padding:5px 7px!important}
+.coContinuityBox{width:100%!important;max-width:180px!important;padding:10px 8px!important;margin:0 auto!important;border-radius:12px!important;gap:6px!important}
+.coContinuityBox>strong{font-size:10px!important}
+.coContinuityBox fieldset{gap:5px!important;margin:0!important;padding:0!important}
+.coContinuityBox legend{font-size:9px!important;margin-bottom:4px!important}
+.coRadioPill{min-width:52px!important;height:30px!important;font-size:10px!important}
+.coCriticalToggle{font-size:9px!important;padding-top:6px!important;margin-top:2px!important}
+.coContinuityBox>small{font-size:8px!important;line-height:1.25!important;max-width:150px!important}
+.coStructureNote{font-size:11px!important;line-height:1.45!important;padding:12px 14px!important;margin:12px 14px 6px!important}
+.coStructureFlow{padding:14px 12px 8px!important;gap:7px!important}
+.coFlowStep{min-width:0!important;padding:9px 12px!important;border-radius:14px!important}
+.coFlowStep span{font-size:11px!important}
+.coFlowStep strong{width:24px!important;height:24px!important;font-size:11px!important}
+.coStructureSaveFooter{margin:10px 12px 0!important;padding:12px 14px!important;gap:12px!important}
+.coStructureSaveFooter>div b{font-size:11px!important}
+.coStructureSaveFooter>div span{font-size:9px!important}
+.coStructureSaveFooter .coBtn{min-height:42px!important;padding:10px 14px!important;font-size:12px!important}
+.coStructurePreview{margin:14px 12px!important}
+.coStructurePreviewCanvas{max-height:540px!important;padding:8px!important}
+.coStructurePreviewHead{padding:12px 14px!important}
+.coStructurePreviewHead b{font-size:14px!important}
+.coStructurePreviewHead span{font-size:10px!important}
+.coStructurePreviewHead .coBtn{font-size:11px!important;padding:9px 12px!important}
+.coStructurePreview .coMemberOrder,.coStructurePreview .coNode>header button,.coStructurePreview .coMemberTop i{display:none!important}
+
+.coGuidedSetupCard{width:min(560px,92vw)!important;padding:28px 28px!important}
+.coGuidedSetupCard h3{font-size:27px!important}
+.coGuidedSetupCard p{font-size:15px!important;line-height:1.6!important}
+.coGuidedSetupCard button{font-size:15px!important;padding:12px 18px!important}
+
+@media(max-width:1200px){
+  .coStructureTable th:nth-child(1),.coStructureTable td:nth-child(1){width:14%!important}
+  .coStructureTable th:nth-child(2),.coStructureTable td:nth-child(2){width:15%!important}
+  .coStructureTable th:nth-child(3),.coStructureTable td:nth-child(3){width:14%!important}
+  .coStructureTable th:nth-child(4),.coStructureTable td:nth-child(4){width:14%!important}
+  .coStructureTable th:nth-child(5),.coStructureTable td:nth-child(5){width:25%!important}
+  .coStructureTable th:nth-child(6),.coStructureTable td:nth-child(6){width:18%!important}
+}
+
+/* v583 ajustes finais de suporte, fluxo e legibilidade */
+.coSupportPanel{width:min(760px,95vw)!important}
+.coSupportPanel>header{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;padding:14px 16px 12px!important;gap:12px!important}
+.coSupportTitle{min-width:0;display:flex;flex-direction:column;gap:3px}
+.coSupportHeaderActions{margin-left:auto;align-self:flex-start;display:flex;align-items:center;gap:8px;flex-wrap:nowrap!important}
+.coSupportDevBtn{width:34px!important;height:34px!important;min-width:34px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:11px!important;background:#eef9f2!important;border:1px solid #cfe6d6!important;color:#20a24b!important;font-size:18px!important;font-weight:900!important;line-height:1!important}
+.coSupportDevBtn span{line-height:1}
+.coSupportCloseText{width:34px!important;height:34px!important;min-width:34px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:11px!important;background:#20a24b!important;border:1px solid #17853b!important;color:#fff!important;font-size:16px!important;font-weight:900!important;line-height:1!important}
+.coSupportQuickTop{padding-top:10px!important;padding-bottom:10px!important}
+.coSupportPanel>footer{padding-top:8px!important}
+
+.coStructureSaveFooter{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.coStructureSaveFooter .coBtn{min-width:280px;justify-content:center}
+@media(max-width:900px){.coStructureSaveFooter{flex-direction:column;align-items:stretch}.coStructureSaveFooter .coBtn{min-width:0;width:100%}}
+
+.coTreeNodeWrap{width:340px!important}
+.coTreeNodeWrap .coNode,.coNode{width:340px!important}
+.coNode>header b{font-size:14px!important;line-height:1.2}
+.coNode>header small{line-height:1.25}
+.coMemberTop b{font-size:12px!important;line-height:1.22!important;white-space:normal!important;overflow-wrap:anywhere}
+.coMemberTop small{font-size:9px!important;line-height:1.2}
+.coSub b{font-size:8.5px!important;line-height:1.18!important;white-space:normal!important;overflow-wrap:anywhere}
+.coChain{gap:6px!important}
+.coMapViewport{padding:20px 14px 10px!important}
+.coTreeCanvas{padding:8px 32px 18px!important}
+
+@media(max-width:900px){.coTreeNodeWrap{width:300px!important}.coTreeNodeWrap .coNode,.coNode{width:300px!important}}
+
+
+/* v584 — suporte final, legibilidade do organograma e exportação executiva */
+.coSupportHeaderActions{margin-left:auto;align-self:flex-start;display:flex;align-items:center;gap:8px;flex-wrap:nowrap!important;justify-content:flex-end;min-width:auto!important}
+.coSupportDevBtn{overflow:hidden;text-indent:0;color:#20a24b!important;font-size:0!important}
+.coSupportDevBtn .coSupportWaIcon{width:18px;height:18px;display:block;line-height:0}
+.coSupportDevBtn .coSupportWaIcon svg{width:18px;height:18px;display:block;fill:currentColor}
+.coSupportCloseText{background:#20a24b!important;color:#fff!important;border:1px solid #17853b!important}
+
+.coTreeLines .coAdditionalLine{stroke:#7b8fb1;stroke-width:1.7;opacity:.78;stroke-dasharray:7 5}
+.coTreeLines .coDirectLine{stroke:#233247;stroke-width:2.4}
+.coTreeNodeWrap{width:352px!important}
+.coTreeNodeWrap .coNode,.coNode{width:352px!important}
+.coNode>header b{font-size:14px!important;line-height:1.24!important}
+.coNode>header small{font-size:11px!important;line-height:1.3!important}
+.coMemberTop{grid-template-columns:42px 1fr auto!important;gap:9px!important}
+.coAvatar{width:42px;height:42px}
+.coAvatar.tiny{width:28px;height:28px}
+.coMemberTop b{font-size:12.5px!important;line-height:1.24!important}
+.coMemberTop small{font-size:9.5px!important;line-height:1.2!important}
+.coChain{gap:7px!important;padding:9px!important}
+.coSub{min-width:116px!important}
+.coSub b{font-size:9px!important;line-height:1.18!important}
+.coSub small{font-size:8.2px!important}
+.coMapViewport{padding:20px 18px 10px!important}
+.coTreeCanvas{padding:8px 18px 18px!important}
+
+@media(max-width:900px){.coTreeNodeWrap{width:312px!important}.coTreeNodeWrap .coNode,.coNode{width:312px!important}}
+
+
+/* v585 - ajustes finais de suporte, legibilidade e organograma A4 */
+.coSupportPanel{width:min(760px,95vw)!important}
+.coSupportPanel>header{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}
+.coSupportTitle{min-width:0!important;padding-right:10px!important}
+.coSupportHeaderActions{margin-left:auto!important;align-self:flex-start!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:nowrap!important;min-width:auto!important}
+.coSupportPanel>header button{flex:0 0 auto!important}
+.coSupportDevBtn{width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;display:grid!important;place-items:center!important;font-size:0!important;border-radius:12px!important;background:#eef9f2!important;border:1px solid #cfe6d6!important;color:#20a24b!important}
+.coSupportDevBtn .coSupportWaIcon{width:20px!important;height:20px!important;display:block!important;line-height:0!important}
+.coSupportDevBtn .coSupportWaIcon svg{width:20px!important;height:20px!important;display:block!important;fill:currentColor!important}
+.coSupportCloseText{width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:12px!important;background:#16a34a!important;border:1px solid #15803d!important;color:#fff!important;font-size:18px!important;font-weight:900!important;line-height:1!important}
+.coTreeLines .coAdditionalLine{stroke:#5d789f!important;stroke-width:2.15!important;opacity:.92!important;stroke-dasharray:8 6!important}
+.coTreeLines .coDirectLine{stroke:#1f314f!important;stroke-width:2.6!important}
+.coMemberTop b{overflow-wrap:anywhere!important;word-break:break-word!important}
+.coSub b{line-height:1.22!important}
+
+/* v586 — organograma executivo: liderança lateral + exportação com cabeçalho nos cantos */
+.coTreeCanvas[data-layout="executive"]{min-height:620px!important}
+.coTreeCanvas[data-layout="executive"] .coLeadershipLine{stroke:#5d789f!important;stroke-width:2.2!important;stroke-dasharray:8 6!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coNode,
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_credito"] .coNode{box-shadow:0 7px 22px rgba(15,35,75,.08)!important}
+
+/* v587 — refinamento visual do organograma executivo */
+.coTreeCanvas[data-layout="executive"]{min-height:520px!important}
+.coTreeCanvas[data-layout="executive"] .coNode>header{
+  background:#071d68!important;
+  border-bottom-color:#071d68!important;
+  padding:11px 14px!important;
+}
+.coTreeCanvas[data-layout="executive"] .coNode>header b{color:#fff!important;font-size:14px!important;letter-spacing:.01em}
+.coTreeCanvas[data-layout="executive"] .coNode>header small{color:#cbd8ef!important;font-size:10px!important}
+.coTreeCanvas[data-layout="executive"] .coNode>header button{background:#ffffff20!important;color:#fff!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"]{width:430px!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coNode{width:430px!important;box-shadow:0 10px 28px rgba(15,35,75,.12)!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_credito"]{width:400px!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_credito"] .coNode{width:400px!important;box-shadow:0 9px 25px rgba(15,35,75,.10)!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coAvatar{width:52px;height:52px}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_credito"] .coAvatar{width:48px;height:48px}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coMemberTop{grid-template-columns:52px 1fr auto!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_credito"] .coMemberTop{grid-template-columns:48px 1fr auto!important}
+.coTreeCanvas[data-layout="executive"] .coDuties{display:block!important;margin:6px 0 0 2px!important}
+.coTreeCanvas[data-layout="executive"] .coDuties em{display:block!important;background:transparent!important;color:#334155!important;border-radius:0!important;padding:1px 0!important;font-size:8.6px!important;line-height:1.25!important}
+.coTreeCanvas[data-layout="executive"] .coDuties em::before{content:"• ";font-weight:900;color:#071d68}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key*="vendedor"] .coMembers{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key*="vendedor"] .coMemberTop{grid-template-columns:36px 1fr auto!important;gap:6px!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key*="vendedor"] .coAvatar{width:36px;height:36px}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key*="vendedor"] .coMember{padding:6px!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key*="vendedor"] .coDuties em{font-size:7.7px!important}
+.coTreeCanvas[data-layout="executive"] .coMembers{gap:6px!important;padding:8px!important}
+.coTreeCanvas[data-layout="executive"] .coChain{margin:0 8px 8px!important;padding:7px!important}
+.coTreeCanvas[data-layout="executive"] .coLeadershipLine{stroke:#5d789f!important;stroke-width:2.3!important;stroke-dasharray:8 6!important}
+
+/* v590 — cadeia completa sem barra interna e leitura executiva do mapa */
+.coTreeCanvas[data-layout="executive"] .coChain{overflow:hidden!important;gap:4px!important}
+.coTreeCanvas[data-layout="executive"] .coChainStart{flex:0 0 auto;font-size:8.4px!important}
+.coTreeCanvas[data-layout="executive"] .coSubStep{flex:1 1 0;min-width:0;gap:2px!important}
+.coTreeCanvas[data-layout="executive"] .coSubStep>i{flex:0 0 auto;font-size:11px}
+.coTreeCanvas[data-layout="executive"] .coSub{flex:1 1 0;min-width:0!important;gap:3px!important}
+.coTreeCanvas[data-layout="executive"] .coSub .coAvatar.tiny{width:25px;height:25px;flex:0 0 25px;font-size:8px}
+.coTreeCanvas[data-layout="executive"] .coSub>span:last-child{min-width:0;overflow:hidden}
+.coTreeCanvas[data-layout="executive"] .coSub small{font-size:7px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coTreeCanvas[data-layout="executive"] .coSub b{font-size:7.6px!important;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere!important}
+
+/* v592 — leitura aprimorada no detalhado e na exportação HD */
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coDuties{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px!important;row-gap:1px!important}
+.coTreeCanvas[data-layout="executive"] .coTreeNodeWrap[data-key="gerente_de_vendas"] .coDuties em{min-width:0;overflow-wrap:anywhere}
+.coTreeCanvas[data-layout="executive"] .coSub .coAvatar.tiny{width:27px;height:27px;flex-basis:27px;font-size:8.5px}
+.coTreeCanvas[data-layout="executive"] .coSub small{font-size:7.5px!important}
+.coTreeCanvas[data-layout="executive"] .coSub b{font-size:8.4px!important;line-height:1.2!important}
+
+/* v594 — apoios das lideranças e rodapé sem sobreposição */
+.coSimpleChain{justify-content:flex-start!important}
+.coHierarchyChain{position:relative!important;overflow:hidden!important;padding-top:44px!important;padding-bottom:8px!important;isolation:isolate;justify-content:center!important;align-items:flex-start!important;gap:7px!important}
+.coHierarchyChain[data-support-count="2"]{min-height:84px}.coHierarchyChain[data-support-count="3"]{min-height:98px}
+.coHierarchyChain>.coSupportStep{position:relative;z-index:2;align-items:flex-start!important}
+.coHierarchyChain>.coSupportLevel2{margin-top:10px}.coHierarchyChain>.coSupportLevel3{margin-top:20px}
+.coChainFromTeam{position:absolute;top:2px;z-index:3;color:#315b8c;font-size:20px;font-weight:900;line-height:22px}
+.coHierarchyChain[data-support-count="1"]>.coChainFromTeam{left:calc(54% - 8px)}
+.coHierarchyChain[data-support-count="2"]>.coChainFromTeam{left:calc(30% - 8px)}
+.coHierarchyChain[data-support-count="3"]>.coChainFromTeam{left:calc(20% - 8px)}
+.coChainNext{position:relative;z-index:3;display:block;margin-top:8px;color:#315b8c;font-size:21px;font-weight:900;line-height:24px;flex:0 0 22px;text-align:center}
+.coHierarchyChain[data-support-count="3"]>.coChainNext2{margin-top:18px}
+.coMapViewport{scroll-padding-top:34px}
+.coHierarchyChain .coSub{background:#f7f9fc;border-radius:8px;min-height:38px;padding:5px 7px}
+.coHierarchyChain>.coSupportLevel1 .coSub{background:#f3fbf6!important;border:1px solid #bfe8cc!important;box-shadow:inset 2px 0 0 #38ad69,0 1px 2px #18324f0a}
+.coHierarchyChain>.coSupportLevel2 .coSub,.coHierarchyChain>.coSupportLevel3 .coSub{background:#fffaf0!important;border:1px solid #f1dda0!important;box-shadow:inset 2px 0 0 #dfb321,0 1px 2px #18324f0a}
+.coLeadershipSupportChain .coSub small{color:#47617e!important;font-weight:700}
+
+/* v604 — html2canvas: preserva as cores suaves dos apoios na imagem HD */
+html.coExportCapture .coHierarchyChain>.coSupportLevel1 .coSub{background:#f5fbf7!important;border-color:#d1ead9!important;box-shadow:none!important}
+html.coExportCapture .coHierarchyChain>.coSupportLevel2 .coSub,
+html.coExportCapture .coHierarchyChain>.coSupportLevel3 .coSub{background:#fffbf3!important;border-color:#f1e5bd!important;box-shadow:none!important}

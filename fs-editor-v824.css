@@ -1,0 +1,16 @@
+/* V824 — editor individual consolidado */
+#pessoaModal .modalGrid.fsV824EditorGrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 14px!important;align-items:start!important}
+#pessoaModal .modalGrid.fsV824EditorGrid>div{display:grid!important;align-content:start!important;min-width:0!important}
+#pessoaModal .modalGrid.fsV824EditorGrid label{min-height:20px;margin-bottom:5px!important;color:#071d68!important;font-weight:950!important}
+#pessoaModal .modalGrid.fsV824EditorGrid select{width:100%!important;min-height:48px!important;box-sizing:border-box!important}
+#pessoaModal .fsV562EquipeSabado{grid-column:auto!important}
+#pessoaModal .fsV562EquipeSabado small{min-height:24px;margin-top:5px!important}
+#pessoaModal .fsAprendizCadastro.fsV824Aprendiz{grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(220px,.8fr) minmax(260px,1.2fr)!important;align-items:center!important;gap:12px!important;border:1px solid #8eb5e8!important;border-left:6px solid #1747b7!important;background:linear-gradient(135deg,#f4f8ff,#eaf2ff)!important;padding:12px 14px!important}
+#pessoaModal .fsV824Aprendiz .fsAprendizCheck{margin:0!important;min-height:44px!important}
+#pessoaModal .fsV824Aprendiz .fsAprendizMeta{display:block!important;border:0!important;background:transparent!important;padding:0!important}
+#pessoaModal .fsV824Aprendiz .fsAprendizMeta label{margin:0 0 3px!important;font-size:11px!important}
+#pessoaModal .fsV824Aprendiz #mCargaSemanalAprendiz{min-height:40px!important;background:#fff!important;color:#071d68!important;font-size:16px!important;font-weight:950!important}
+#pessoaModal .fsV824Aprendiz .fsV610Presets{display:none!important}
+#pessoaModal .fsV824Aprendiz .fsAprendizAjuda{grid-column:1/-1!important;margin:0!important;padding:8px 10px!important;background:#fff!important;border-left:4px solid #1747b7!important;color:#405171!important}
+#pessoaModal .fsV824Aprendiz .fsV610Confirm{grid-column:1/-1!important;margin:0!important}
+@media(max-width:760px){#pessoaModal .modalGrid.fsV824EditorGrid{grid-template-columns:1fr!important}#pessoaModal .fsAprendizCadastro.fsV824Aprendiz{grid-template-columns:1fr!important}}

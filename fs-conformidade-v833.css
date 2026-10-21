@@ -1,0 +1,9 @@
+#fsV806Rules .fsV832Legal{margin:16px 0 2px;border-left-color:#08783e;background:linear-gradient(135deg,#f7fbff,#f0fff7)}
+#fsV806Rules .fsV832LegalHead b{font-size:16px}
+#fsV806Rules .fsV832LegalGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#fsV806Rules .fsV832LegalItem{min-height:0;padding:11px 12px}
+#fsV806Rules .fsV832LegalItem b{font-size:10px}
+#fsV806Rules .fsV832LegalItem span{font-size:11px;line-height:1.45}
+#fsV806Rules .fsV832LegalItem span strong{color:#071d68;font-size:13px}
+#fsV806Rules .fsV832LegalFoot{border-top:1px solid #d7e2ef;padding-top:9px}
+@media(max-width:760px){#fsV806Rules .fsV832LegalGrid{grid-template-columns:1fr}}
