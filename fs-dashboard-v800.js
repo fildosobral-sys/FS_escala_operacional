@@ -9,8 +9,8 @@
     },
     MAIN_STATE_KEY = "fs_escala_limpa_v381",
     OPTIONAL_STATE_KEYS = ["fsDadosEmpresa", "fs_continuidade_operacional_v1", "fsDomingosMensaisV550", "fsDomMinimosV551"],
-    DASH_CACHE_KEY = "fs_management_dashboard_cache_v821",
-    BRANCH_CACHE_PREFIX = "fs_branch_payload_cache_v821_",
+    DASH_CACHE_KEY = "fs_management_dashboard_cache_v822",
+    BRANCH_CACHE_PREFIX = "fs_branch_payload_cache_v822_",
     ROLES = {
       developer: "Desenvolvedor",
       global_admin: "Desenvolvedor",
