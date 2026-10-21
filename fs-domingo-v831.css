@@ -1,0 +1,22 @@
+/* V831 — camada dominical única, compacta e estável. */
+#domingo .fsDomMensalRodape{display:none!important}
+#domingo .fsV831Footer{margin:16px 14px;padding:16px;border:1px solid #b9c9e4;border-radius:16px;background:linear-gradient(135deg,#f7faff,#edf4ff);display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:88px;box-sizing:border-box}
+#domingo .fsV831Footer b{display:block;color:#071d68;font-size:16px}
+#domingo .fsV831Footer small{display:block;margin-top:4px;color:#667085;font-weight:750}
+#domingo .fsV831Footer strong{color:#08783e}
+#domingo .fsV831Footer button{border:0;border-radius:12px;background:#071d68;color:#fff;padding:11px 16px;font-weight:950;cursor:pointer}
+#domingo .fsV831Footer button:disabled{background:#9ba7ba;cursor:not-allowed}
+#domingo .fsV831Footer button.confirmado{background:#08783e}
+#domingo .fsV831Toggle{border:1px solid rgba(255,255,255,.65);border-radius:999px;background:#fff;color:#07515c;padding:7px 12px;font-size:10px;font-weight:950;cursor:pointer;white-space:nowrap}
+#domingo .fsV831Toggle.aberto{background:#e9fff3;color:#08783e;border-color:#87d5aa}
+#domingo .fsV831Status{display:inline-flex;gap:5px;margin-left:auto}
+#domingo .fsV608SundayTitleBar>.fsV551Cont,#domingo .fsV608SundayTitleBar>.fsDomHeadAcoes{display:none!important}
+#domingo .fsV831Status i{font-style:normal;border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:4px 8px;background:#fff;color:#07515c;font-size:9px;font-weight:900}
+#domingo .fsV831Fechado .fsV561Config,#domingo .fsV831Fechado .fsDomDataTabela,#domingo .fsV831Fechado .fsV561ClosedNote{display:none!important}
+#domingo .fsV831Fechado .fsDomDataHead{padding:0!important;border-bottom:0!important}
+#domingo .fsV831Fechado.fsDomDataCard{margin-bottom:11px!important}
+#domingo .fsV831Aberto .fsV561Open{display:none!important}
+#domingo .fsV831Aberto .fsV561Config{grid-template-columns:150px 130px minmax(190px,1fr) auto!important}
+#domingo .fsV831Aberto .fsV561Times{display:none!important}
+#domingo .fsV831Aberto .fsV561Config:after{content:'Os horários seguem a regra dominical definida em Configurações.';grid-column:1/-1;color:#52677f;font-size:9px;font-weight:800}
+@media(max-width:760px){#domingo .fsV831Footer{align-items:stretch;flex-direction:column}#domingo .fsV831Footer button{width:100%}#domingo .fsV831Aberto .fsV561Config{grid-template-columns:1fr!important}.fsV831Status{display:none!important}}
