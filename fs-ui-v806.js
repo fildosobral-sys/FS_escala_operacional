@@ -46,8 +46,7 @@
   }
   function balanceTeams(people){
     const groups={};people.forEach(p=>{const k=String(p.funcao||'Sem função').trim().toLocaleLowerCase('pt-BR');(groups[k]||(groups[k]=[])).push(p)});
-    let global=0;Object.values(groups).forEach(list=>list.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR')).forEach((p,i)=>{p.__fsPlanTeam=(i+global)%2}));
-    Object.values(groups).forEach(list=>{global=(global+list.length)%2});
+    const totals=[0,0];Object.values(groups).sort((a,b)=>b.length-a.length).forEach(list=>{const own=[0,0];list.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR')).forEach(person=>{const team=own[0]!==own[1]?(own[0]<own[1]?0:1):(totals[0]<=totals[1]?0:1);person.__fsPlanTeam=team;own[team]++;totals[team]++})});
   }
   function syncActiveProfile(){
     const c=state.config||{},key=c.modo==='42h'?'42h':c.modo;c.perfisEscala=c.perfisEscala||{};
