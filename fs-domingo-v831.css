@@ -9,14 +9,21 @@
 #domingo .fsV831Footer button.confirmado{background:#08783e}
 #domingo .fsV831Toggle{border:1px solid rgba(255,255,255,.65);border-radius:999px;background:#fff;color:#07515c;padding:7px 12px;font-size:10px;font-weight:950;cursor:pointer;white-space:nowrap}
 #domingo .fsV831Toggle.aberto{background:#e9fff3;color:#08783e;border-color:#87d5aa}
-#domingo .fsV831Status{display:inline-flex;gap:5px;margin-left:auto}
+#domingo .fsV832HeadTools{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;margin-left:auto;min-width:0}
+#domingo .fsV831Status{display:inline-flex;gap:5px;margin-left:0}
+#domingo .fsV831Status[hidden]{display:none!important}
 #domingo .fsV608SundayTitleBar>.fsV551Cont,#domingo .fsV608SundayTitleBar>.fsDomHeadAcoes{display:none!important}
 #domingo .fsV831Status i{font-style:normal;border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:4px 8px;background:#fff;color:#07515c;font-size:9px;font-weight:900}
 #domingo .fsV831Fechado .fsV561Config,#domingo .fsV831Fechado .fsDomDataTabela,#domingo .fsV831Fechado .fsV561ClosedNote{display:none!important}
 #domingo .fsV831Fechado .fsDomDataHead{padding:0!important;border-bottom:0!important}
+#domingo .fsV831Fechado .fsV608SundayTitleBar>:not(b):not(.fsV832HeadTools){display:none!important}
 #domingo .fsV831Fechado.fsDomDataCard{margin-bottom:11px!important}
 #domingo .fsV831Aberto .fsV561Open{display:none!important}
+#domingo .fsV831Aberto .fsDomDataTabela{display:table!important}
+#domingo .fsV831Aberto .fsV561Config{display:grid!important}
+#domingo .fsV831Aberto .fsV561ClosedNote{display:none!important}
 #domingo .fsV831Aberto .fsV561Config{grid-template-columns:150px 130px minmax(190px,1fr) auto!important}
 #domingo .fsV831Aberto .fsV561Times{display:none!important}
 #domingo .fsV831Aberto .fsV561Config:after{content:'Os horários seguem a regra dominical definida em Configurações.';grid-column:1/-1;color:#52677f;font-size:9px;font-weight:800}
-@media(max-width:760px){#domingo .fsV831Footer{align-items:stretch;flex-direction:column}#domingo .fsV831Footer button{width:100%}#domingo .fsV831Aberto .fsV561Config{grid-template-columns:1fr!important}.fsV831Status{display:none!important}}
+body:has(#domingo.active) #fsCloudPendingSave{bottom:76px!important}
+@media(max-width:760px){#domingo .fsV831Footer{align-items:stretch;flex-direction:column}#domingo .fsV831Footer button{width:100%}#domingo .fsV831Aberto .fsV561Config{grid-template-columns:1fr!important}.fsV831Status{display:none!important}body:has(#domingo.active) #fsCloudPendingSave{bottom:70px!important}}
