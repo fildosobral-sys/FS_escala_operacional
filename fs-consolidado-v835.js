@@ -120,6 +120,7 @@
     const html=`<div><b>Conclusão da escala dominical</b><small class="${ds.length?'':'fsV835FooterZero'}"><strong>${feitos} de ${ds.length} domingo(s) aberto(s)</strong> totalmente classificados. Domingos fechados não geram pendência.</small></div><button class="${ok?'confirmado':''}" ${ds.length&&!falt.length?'':'disabled'} onclick="fsBaixarDomingosMes()">${ok?'✓ Competência confirmada':'✓ Confirmar conclusão da competência'}</button>`;if(box.innerHTML!==html)box.innerHTML=html;
   }
   function corrigirCabecalhos(){document.querySelectorAll('#domingo .fsDomDataCard').forEach(card=>{const txt=card.querySelector('.fsDomDataHead b')?.textContent||'',m=txt.match(/(\d{2})\/(\d{2})\/(\d{4})/);if(!m)return;const d=`${m[3]}-${m[2]}-${m[1]}`,c=cfg(d),aberto=c?.aberto===true&&c?.fsV831ManualOpen===true;card.classList.toggle('fsV831Aberto',aberto);card.classList.toggle('fsV831Fechado',!aberto);const regra=[...card.querySelectorAll('.fsV561Field')].find(x=>/regra aplicada/i.test(x.querySelector('span')?.textContent||''))?.querySelector('input');if(regra){const total=state.pessoas?.length||0,previsto=Math.round(total*Number(c?.percentual||0)/100);regra.value=aberto?`${c?.percentual||0}% • ${previsto} de ${total}`:'Unidade fechada'}})}
+  function corrigirExpansores(){document.querySelectorAll('#configContent .dayScheduleCard').forEach(card=>{const head=card.querySelector('.dayScheduleHead');if(!head)return;let btn=head.querySelector('.fsV812DayToggle');if(!btn){btn=document.createElement('button');btn.type='button';btn.className='fsV812DayToggle';head.appendChild(btn)}const paint=()=>{const open=card.classList.contains('fsV806Open');btn.setAttribute('aria-expanded',String(open));btn.innerHTML=`<span>${open?'⌃':'⌄'}</span>`};if(btn.dataset.fsV848!=='1'){btn.dataset.fsV848='1';btn.onclick=e=>{e.preventDefault();e.stopPropagation();const open=!card.classList.contains('fsV806Open');document.querySelectorAll('#configContent .dayScheduleCard.fsV806Open').forEach(x=>x.classList.remove('fsV806Open'));card.classList.toggle('fsV806Open',open);paint()}}paint()})}
 
   function instalarCronograma(){
     const ant=window.cronogramaExecutivoHtml;if(typeof ant!=='function'||ant.__fsV835)return;
@@ -131,7 +132,7 @@
       const jornada=[...model.querySelectorAll('.compCard')].find(x=>/jornada semanal/i.test(x.textContent||''));if(jornada){const sm=jornada.querySelector('small');if(sm)sm.innerHTML=ds.length?`Meta: ${state.cargaMeta}h por colaborador<br>Domingos abertos: ${ds.length} • escala calculada por data`:`Meta: ${state.cargaMeta}h por colaborador<br>Domingo: folga geral`}
       return tmp.innerHTML};fn.__fsV835=true;window.cronogramaExecutivoHtml=fn;try{cronogramaExecutivoHtml=fn}catch(_){ }
   }
-  function atualizar(){compactarSalvar();acoesMes();sincronizarTudo();corrigirCabecalhos();corrigirRodape();instalarCronograma()}
+  function atualizar(){compactarSalvar();acoesMes();sincronizarTudo();corrigirCabecalhos();corrigirRodape();corrigirExpansores();instalarCronograma()}
   function iniciar(){migrarFechados();sincronizarTudo();instalarCronograma();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }setTimeout(prepararControleNuvem,500)}
   let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(atualizar,60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
   document.addEventListener('change',e=>{if(e.target?.matches?.('#fsAbreDomingo,#fsHorarioDomingoEntrada,#fsHorarioDomingoSaida,#fsHorarioDomingoIntervaloMinutos'))setTimeout(()=>{sincronizarTudo();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }},120)},true);
@@ -140,8 +141,8 @@
 
 /* V837 — finalização do organograma e parâmetros inteligentes de jornada. */
 (function(){
-  if(!document.querySelector('link[data-fs-v837]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-finalizacao-v837.css?v=847';l.dataset.fsV837='1';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-fs-v837]')){const s=document.createElement('script');s.src='./fs-finalizacao-v837.js?v=847';s.dataset.fsV837='1';document.head.appendChild(s)}
+  if(!document.querySelector('link[data-fs-v837]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-finalizacao-v837.css?v=848';l.dataset.fsV837='1';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-fs-v837]')){const s=document.createElement('script');s.src='./fs-finalizacao-v837.js?v=848';s.dataset.fsV837='1';document.head.appendChild(s)}
 })();
 
 /* V842 — módulo isolado de gestão do banco de horas, exclusivo da Visão Geral. */

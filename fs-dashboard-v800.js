@@ -486,12 +486,13 @@
     );
   }
   function regionalCards() {
+    const canRename = data.context?.globalAdmin || ["developer", "regional_admin"].includes(data.context?.role);
     return (
       (data.regions || [])
         .map((r) => {
           const rb = (data.branches || []).filter((b) => b.regionId === r.id),
             t = totals(rb);
-          return `<button class="fsDashRegion ${region === r.id ? "active" : ""}" data-region-card="${esc(r.id)}"><span>${esc(r.name)}</span><strong>${rb.length}</strong><small>${t.employees} colaboradores</small><em>${t.online} online • ${t.divergences} divergência(s)</em></button>`;
+          return `<article class="fsDashRegion ${region === r.id ? "active" : ""}" data-region-card="${esc(r.id)}" role="button" tabindex="0"><span>${esc(r.name)}</span>${canRename ? `<button type="button" class="fsDashRegionEdit" data-edit-region="${esc(r.id)}" title="Editar nome da regional">✎ Editar</button>` : ""}<strong>${rb.length}</strong><small>${t.employees} colaboradores</small><em>${t.online} online • ${t.divergences} divergência(s)</em></article>`;
         })
         .join("") ||
       '<div class="fsDashEmpty">Nenhuma regional cadastrada.</div>'
@@ -1119,6 +1120,9 @@
           render();
         }),
     );
+    root.querySelectorAll("[data-edit-region]").forEach((x) => (x.onclick = (e) => {
+      e.preventDefault();e.stopPropagation();renameRegion(x.dataset.editRegion);
+    }));
     root
       .querySelectorAll("[data-open-branch]")
       .forEach((x) => (x.onclick = () => openBranch(x.dataset.openBranch)));
@@ -1142,6 +1146,14 @@
       busy = false;
       stopLoading();
     }
+  }
+  async function renameRegion(regionId) {
+    if (busy) return;
+    const item=(data?.regions||[]).find(x=>x.id===regionId);if(!item)return;
+    const name=prompt('Novo nome da regional:',item.name||'');if(name==null)return;
+    const clean=name.trim();if(!clean||clean===item.name)return;
+    busy=true;loading('Atualizando o nome da regional…');
+    try{const r=await jsonp('saveRegion',{regionId,name:clean,order:String(item.order||'')});if(!r.ok)throw new Error(r.message||'Não foi possível alterar a regional.');busy=false;await load(true)}catch(e){error(e.message)}finally{busy=false;stopLoading()}
   }
   async function openBranch(id) {
     if (busy) return;

@@ -627,9 +627,7 @@
     panel.id = "fsCloudPanel";
     panel.hidden = true;
     panel.innerHTML =
-      '<div class="fsCloudCard"><div class="fsCloudHead"><div><b>FS Nuvem por filial</b><small id="fsCloudSub">Configuração e sincronização • v716</small></div><div class="fsCloudHeadActions">' +
-      modeButtons() +
-      '<button data-close aria-label="Fechar">×</button></div></div><div id="fsCloudBody"></div></div>';
+      '<div class="fsCloudCard"><div class="fsCloudHead"><div><b>Carregar dados da filial</b><small id="fsCloudSub">Última versão salva na nuvem</small></div><div class="fsCloudHeadActions"><button data-close aria-label="Fechar">×</button></div></div><div id="fsCloudBody"></div></div>';
     panel
       .querySelectorAll("[data-view]")
       .forEach((x) => (x.onclick = () => setViewMode(x.dataset.view)));
@@ -685,11 +683,10 @@
     }
     b.innerHTML =
       '<div class="fsCloudInfo"><b id="fsCloudBranch">' +
-      esc(cfg.branch || "Filial") +
+      esc(cfg.branchName || cfg.branch || "Filial") +
       "</b><span>Versão online: " +
       cfg.version +
-      `</span></div><div class="fsCloudNotice fsCloudSafeNotice">Os dados deste aparelho são preservados. <b>Carregar da nuvem</b> só acontece quando você pedir.</div><div class="fsCloudActions"><button class="primary" id="fsCloudSave">Salvar edição</button><button id="fsCloudLoad">Carregar da nuvem</button>${developerTools}<button class="danger" id="fsCloudDisconnect">Sair do acesso online</button></div><div id="fsCloudManageBox"></div>`;
-    b.querySelector("#fsCloudSave").onclick = saveNow;
+      '</span></div><div class="fsCloudNotice fsCloudSafeNotice">Escolha se deseja substituir os dados deste aparelho pela última versão salva desta filial.</div><div class="fsCloudActions"><button class="primary" id="fsCloudLoad">Carregar da nuvem</button><button id="fsCloudCancel">Cancelar</button></div>';
     b.querySelector("#fsCloudLoad").onclick = () => {
       if (
         confirm(
@@ -698,21 +695,8 @@
       )
         loadAdmin(true);
     };
-    const manageButton = b.querySelector("#fsCloudManage");
-    if (manageButton) manageButton.onclick = manage;
-    b.querySelector("#fsCloudDisconnect").onclick = () => {
-      /* No ambiente online, sair encerra a pessoa, não transforma a filial
-         silenciosamente em uma planilha local. */
-      localStorage.setItem("fs_central_portal_v812", "1");
-      [K.token, K.branch, K.branchName, K.version, K.mode, K.last].forEach((k) =>
-        localStorage.removeItem(k),
-      );
-      localStorage.removeItem("fs_access_token");
-      localStorage.removeItem("fs_access_data_v1");
-      sessionStorage.removeItem("fs_cloud_admin_loaded");
-      sessionStorage.removeItem("fs_dashboard_branch_mode");
-      sessionStorage.removeItem("fs_dashboard_open_cloud");
-      location.reload();
+    b.querySelector("#fsCloudCancel").onclick = () => {
+      document.getElementById("fsCloudPanel").hidden = true;
     };
   }
   function renderPanelInfo(r) {
