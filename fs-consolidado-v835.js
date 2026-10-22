@@ -48,6 +48,8 @@
     return s.itens?.[d]?.[id]||{};
   }
   function folgaPreferida(data){const[a,m,d]=data.split('-').map(Number),x=new Date(a,m-1,d+2,12);return`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`}
+  function folgasData(data){const[a,m,d]=data.split('-').map(Number);return Array.from({length:5},(_,i)=>{const x=new Date(a,m-1,d+1+i,12);return`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`})}
+  function br(data){return String(data||'').split('-').reverse().join('/')}
   function persistir(){
     try{save()}catch(_){ }
     try{localStorage.setItem('fsDomingosMensaisV550',JSON.stringify({competencia:store().competencia,itens:store().itens,concluidos:store().concluidos,at:Date.now()}))}catch(_){ }
@@ -84,16 +86,18 @@
   }
   window.fsBaixarDomingosMes=confirmarCompetencia;
 
+  function linhaDomingo(data,id){return[...document.querySelectorAll('#domingo .fsV830StatusBtn')].find(b=>b.dataset.data===data&&b.dataset.id===id)?.closest('tr')||null}
+  function atualizarLinhaDomingo(data,id){const row=linhaDomingo(data,id),r=reg(data,id),c=cfg(data);if(!row)return;row.classList.remove('fsDomSim','fsDomNao','fsDomPendente');row.classList.add(r.status==='trabalha'?'fsDomSim':r.status==='nao'?'fsDomNao':'fsDomPendente');const original=row.querySelector('.fsV830StatusOriginal'),btn=row.querySelector('.fsV830StatusBtn');if(original)original.value=r.status;if(btn)btn.textContent=r.status==='trabalha'?'✅ Trabalha':r.status==='nao'?'— Não trabalha':'⚠ Pendente';const td=row.lastElementChild;if(!td)return;if(r.status!=='trabalha'){td.innerHTML=r.status==='nao'?'<span class="fsDom541Nao">Não trabalha neste domingo</span>':'<span class="fsDom541Nao">Aguardando definição</span>';return}const q=Math.max(1,Number(c?.equipes)||1),eq=Math.max(0,Math.min(q-1,Number(r.equipe)||0)),hs=c?.horarios||[],eqs=Array.from({length:q},(_,i)=>`<option value="${i}" ${eq===i?'selected':''}>Equipe ${pad(i+1)} • ${esc(hs[i]?.entrada||'--:--')} às ${esc(hs[i]?.saida||'--:--')}</option>`).join(''),opts=folgasData(data).map(x=>`<option value="${x}" ${r.folgaData===x?'selected':''}>${br(x)}</option>`).join('');td.innerHTML=`<div class="fsDom541Def"><label>Equipe / horário</label><select onchange="fsDom541Equipe('${esc(data)}','${esc(id)}',this.value)">${eqs}</select><label>Folga compensatória</label><select onchange="fsDom541Folga('${esc(data)}','${esc(id)}',this.value)"><option value="">Definir folga</option>${opts}</select></div>`}
   window.fsDom541Status=function(data,id,v){
     if(!['pendente','trabalha','nao'].includes(v))return;const r=reg(data,id,true),c=cfg(data);r.status=v;r.trabalha=v==='trabalha';
     if(v==='trabalha'){
       r.equipe=Math.max(0,Math.min(Math.max(1,Number(c?.equipes)||1)-1,Number(r.equipe)||0));
       r.folgaData=r.folgaData||folgaPreferida(data);r.horario=clone(c?.horarios?.[r.equipe]||c?.horarios?.[0]||{});
     }else if(v==='nao'){r.folgaData='';delete r.equipe;delete r.horario}else{r.folgaData='';delete r.equipe;delete r.horario}
-    invalidar();persistir();window.fsDom541Mes?.(store().competencia);setTimeout(atualizar,60);
+    invalidar();persistir();atualizarLinhaDomingo(data,id);setTimeout(atualizar,35);
   };
-  window.fsDom541Equipe=function(data,id,v){const r=reg(data,id,true),c=cfg(data),n=Math.max(0,Math.min(Math.max(1,Number(c?.equipes)||1)-1,Number(v)||0));r.equipe=n;r.horario=clone(c?.horarios?.[n]||c?.horarios?.[0]||{});invalidar();persistir();window.fsDom541Mes?.(store().competencia);setTimeout(atualizar,60)};
-  window.fsDom541Folga=function(data,id,v){const r=reg(data,id,true);r.folgaData=v;invalidar();persistir();window.fsDom541Mes?.(store().competencia);setTimeout(atualizar,60)};
+  window.fsDom541Equipe=function(data,id,v){const r=reg(data,id,true),c=cfg(data),n=Math.max(0,Math.min(Math.max(1,Number(c?.equipes)||1)-1,Number(v)||0));r.equipe=n;r.horario=clone(c?.horarios?.[n]||c?.horarios?.[0]||{});invalidar();persistir();setTimeout(atualizar,35)};
+  window.fsDom541Folga=function(data,id,v){const r=reg(data,id,true);r.folgaData=v;invalidar();persistir();setTimeout(atualizar,35)};
 
   window.fsV835LimparDomingos=function(){
     const comp=store().competencia;if(!comp)return;if(!confirm(`Limpar e refazer toda a escala dominical de ${comp}? As escolhas desta competência serão removidas.`))return;
@@ -121,6 +125,11 @@
   }
   function corrigirCabecalhos(){document.querySelectorAll('#domingo .fsDomDataCard').forEach(card=>{const txt=card.querySelector('.fsDomDataHead b')?.textContent||'',m=txt.match(/(\d{2})\/(\d{2})\/(\d{4})/);if(!m)return;const d=`${m[3]}-${m[2]}-${m[1]}`,c=cfg(d),aberto=c?.aberto===true&&c?.fsV831ManualOpen===true;card.classList.toggle('fsV831Aberto',aberto);card.classList.toggle('fsV831Fechado',!aberto);const regra=[...card.querySelectorAll('.fsV561Field')].find(x=>/regra aplicada/i.test(x.querySelector('span')?.textContent||''))?.querySelector('input');if(regra){const total=state.pessoas?.length||0,previsto=Math.round(total*Number(c?.percentual||0)/100);regra.value=aberto?`${c?.percentual||0}% • ${previsto} de ${total}`:'Unidade fechada'}})}
   function corrigirExpansores(){document.querySelectorAll('#configContent .dayScheduleCard').forEach(card=>{const head=card.querySelector('.dayScheduleHead');if(!head)return;let btn=head.querySelector('.fsV812DayToggle');if(!btn){btn=document.createElement('button');btn.type='button';btn.className='fsV812DayToggle';head.appendChild(btn)}const paint=()=>{const open=card.classList.contains('fsV806Open');btn.setAttribute('aria-expanded',String(open));btn.innerHTML=`<span>${open?'⌃':'⌄'}</span>`};if(btn.dataset.fsV848!=='1'){btn.dataset.fsV848='1';btn.onclick=e=>{e.preventDefault();e.stopPropagation();const open=!card.classList.contains('fsV806Open');document.querySelectorAll('#configContent .dayScheduleCard.fsV806Open').forEach(x=>x.classList.remove('fsV806Open'));card.classList.toggle('fsV806Open',open);paint()}}paint()})}
+
+  function fecharPortalStatus(){document.querySelector('.fsV852StatusPortal')?.remove()}
+  function abrirPortalStatus(btn){const atual=document.querySelector('.fsV852StatusPortal');if(atual?.dataset.data===btn.dataset.data&&atual?.dataset.id===btn.dataset.id){atual.remove();return}fecharPortalStatus();const r=btn.getBoundingClientRect(),w=176,h=118,top=r.bottom+6+h<=innerHeight?r.bottom+6:Math.max(8,r.top-h-6),left=Math.max(8,Math.min(innerWidth-w-8,r.left)),p=document.createElement('div');p.className='fsV852StatusPortal';p.dataset.data=btn.dataset.data;p.dataset.id=btn.dataset.id;p.style.left=`${left}px`;p.style.top=`${top}px`;p.innerHTML='<button type="button" data-value="pendente">⚠ Pendente</button><button type="button" data-value="trabalha">✅ Trabalha</button><button type="button" data-value="nao">— Não trabalha</button>';document.body.appendChild(p)}
+  document.addEventListener('click',e=>{const btn=e.target.closest?.('.fsV830StatusBtn');if(btn){const ja=document.querySelector('.fsV852StatusPortal')?.dataset;const mesmo=ja?.data===btn.dataset.data&&ja?.id===btn.dataset.id;queueMicrotask(()=>{document.querySelectorAll('.fsV830StatusPop').forEach(x=>x.hidden=true);if(mesmo)fecharPortalStatus();else abrirPortalStatus(btn)});return}const op=e.target.closest?.('.fsV852StatusPortal button');if(op){e.preventDefault();e.stopImmediatePropagation();const p=op.closest('.fsV852StatusPortal'),row=linhaDomingo(p.dataset.data,p.dataset.id);row?.classList.add('fsV852RowUpdating');window.fsDom541Status?.(p.dataset.data,p.dataset.id,op.dataset.value);fecharPortalStatus();setTimeout(()=>row?.classList.remove('fsV852RowUpdating'),260);return}if(!e.target.closest?.('.fsV852StatusPortal'))fecharPortalStatus()},true);
+  addEventListener('scroll',fecharPortalStatus,true);addEventListener('resize',fecharPortalStatus);
 
   function instalarCronograma(){
     const ant=window.cronogramaExecutivoHtml;if(typeof ant!=='function'||ant.__fsV835)return;

@@ -23,6 +23,12 @@ body:not(.fsV835CloudDirty) #fsCloudPendingSave{display:none!important}
 #domingo .fsV831Aberto .fsV830StatusBtn{pointer-events:auto!important;opacity:1!important}
 #domingo .fsV831Aberto .fsDomDataTabela{overflow:visible!important}
 #domingo .fsV831Aberto .fsDomDataTabela td{overflow:visible!important}
+#domingo .fsDomDataCard.fsV831Expandido{overflow:visible!important;position:relative!important;z-index:1}
+#domingo .fsDomDataCard.fsV831Expandido:has(.fsV830StatusBtn:focus){z-index:30}
+.fsV852StatusPortal{position:fixed;z-index:2147483600;width:176px;padding:6px;border:1px solid #bccbe0;border-radius:12px;background:#fff;box-shadow:0 18px 48px rgba(7,29,104,.3);box-sizing:border-box}
+.fsV852StatusPortal button{display:block;width:100%;border:0;border-radius:8px;background:#fff;color:#172554;padding:9px;text-align:left;font-size:11px;font-weight:900;cursor:pointer}
+.fsV852StatusPortal button:hover{background:#eef4ff}.fsV852StatusPortal button[data-value="trabalha"]{color:#08783e}.fsV852StatusPortal button[data-value="nao"]{color:#667085}
+.fsV852RowUpdating{position:relative}.fsV852RowUpdating:after{content:'Atualizando…';position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:3;border-radius:999px;background:#eef5ff;color:#1747b7;padding:5px 9px;font-size:9px;font-weight:900;box-shadow:0 3px 12px rgba(7,29,104,.14)}
 #domingo .fsV835FooterZero{color:#52677f!important}
 
 .fsV835CronoDomingos{margin:0 8px 12px;border:1px solid #dbe5f4;border-radius:13px;background:#fff;overflow:hidden}
