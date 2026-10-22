@@ -140,12 +140,12 @@
 
 /* V837 — finalização do organograma e parâmetros inteligentes de jornada. */
 (function(){
-  if(!document.querySelector('link[data-fs-v837]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-finalizacao-v837.css?v=845';l.dataset.fsV837='1';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-fs-v837]')){const s=document.createElement('script');s.src='./fs-finalizacao-v837.js?v=846';s.dataset.fsV837='1';document.head.appendChild(s)}
+  if(!document.querySelector('link[data-fs-v837]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-finalizacao-v837.css?v=847';l.dataset.fsV837='1';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-fs-v837]')){const s=document.createElement('script');s.src='./fs-finalizacao-v837.js?v=847';s.dataset.fsV837='1';document.head.appendChild(s)}
 })();
 
 /* V842 — módulo isolado de gestão do banco de horas, exclusivo da Visão Geral. */
 (function(){
-  if(!document.querySelector('link[data-fs-bh-v842]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-banco-horas-v842.css?v=844';l.dataset.fsBhV842='1';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-fs-bh-v842]')){const s=document.createElement('script');s.src='./fs-banco-horas-v842.js?v=844';s.dataset.fsBhV842='1';document.head.appendChild(s)}
+  if(!document.querySelector('link[data-fs-bh-v842]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-banco-horas-v842.css?v=847';l.dataset.fsBhV842='1';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-fs-bh-v842]')){const s=document.createElement('script');s.src='./fs-banco-horas-v842.js?v=847';s.dataset.fsBhV842='1';document.head.appendChild(s)}
 })();

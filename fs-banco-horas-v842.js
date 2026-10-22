@@ -120,4 +120,5 @@
   window.fsBHOpen=open;window.fsBHClose=close;window.fsBHImport=importPdf;window.fsBHFilter=filter;window.fsBHPlan=plan;window.fsBHSavePlan=savePlan;window.fsBHCopy=copy;window.fsBHMarkCommunicated=mark;window.fsBHPlanView=planView;window.fsBHPlanResult=planResult;window.fsBHRemoveRow=removeRow;window.fsBHClear=clearAll;
   let timer;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(renderHomeCard,80)}).observe(document.body,{childList:true,subtree:true});
   setTimeout(()=>{cfg();renderHomeCard()},900);
+  setInterval(renderHomeCard,750);
 })();
