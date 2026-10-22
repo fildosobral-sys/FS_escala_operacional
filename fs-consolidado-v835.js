@@ -42,7 +42,7 @@
     state.config.fsDomingoPorDataConfig=state.config.fsDomingoPorDataConfig||{};
     return state.config.fsDomingoPorDataConfig[d]||window.fsV561ConfigData?.(d)||null;
   }
-  function abertas(){return datas().filter(d=>{const c=cfg(d);return c?.aberto===true&&c?.fsV831ManualOpen===true})}
+  function abertas(){if(empresa().abreDomingo!==true)return[];return datas().filter(d=>{const c=cfg(d);return c?.aberto===true&&c?.fsV831ManualOpen===true})}
   function reg(d,id,criar=false){
     const s=store();if(criar){s.itens[d]=s.itens[d]||{};s.itens[d][id]=s.itens[d][id]||{status:'pendente',trabalha:false,folgaData:''}}
     return s.itens?.[d]?.[id]||{};
@@ -129,7 +129,6 @@
       const visao=[...model.querySelectorAll('.cronoWeekTitle')].find(x=>/visão geral/i.test(x.textContent||'')),ds=abertas();
       if(visao&&ds.length){const sec=document.createElement('section');sec.dataset.fsV835Domingos='1';sec.className='fsV835CronoDomingos';sec.innerHTML=`<div class="cronoWeekTitle">DOMINGOS PROGRAMADOS NA COMPETÊNCIA</div><div class="fsV835CronoDomingo">${ds.map(d=>{const c=cfg(d),ps=(state.pessoas||[]).filter(p=>reg(d,p.id).status==='trabalha'),f=faixa();return`<section class="fsV835CronoData"><h4>Domingo, ${d.split('-').reverse().join('/')}</h4><div class="fsV835CronoResumo"><div><b>Escalados no dia</b><span>${ps.length}</span></div><div><b>Carga do domingo</b><span>${esc(f.entrada)} às ${esc(f.saida)}</span></div><div><b>Equipes</b><span>${Math.max(1,Number(c?.equipes)||1)}</span></div><div><b>Intervalo</b><span>${f.intervalo?`${f.intervalo} min`:'Não obrigatório'}</span></div></div></section>`}).join('')}</div>`;model.insertBefore(sec,visao)}
       const jornada=[...model.querySelectorAll('.compCard')].find(x=>/jornada semanal/i.test(x.textContent||''));if(jornada){const sm=jornada.querySelector('small');if(sm)sm.innerHTML=ds.length?`Meta: ${state.cargaMeta}h por colaborador<br>Domingos abertos: ${ds.length} • escala calculada por data`:`Meta: ${state.cargaMeta}h por colaborador<br>Domingo: folga geral`}
-      const tabela=model.querySelector('.cronoOverviewTable'),linhas=tabela?.querySelectorAll('tr');if(linhas?.length>=3){if(ds.length){const quantidades=ds.map(d=>(state.pessoas||[]).filter(p=>reg(d,p.id).status==='trabalha').length),valor=Math.min(...quantidades)===Math.max(...quantidades)?String(quantidades[0]):`${Math.min(...quantidades)}–${Math.max(...quantidades)}`,celulaQtd=linhas[1].querySelector('td:last-child'),celulaOp=linhas[2].querySelector('td:last-child');if(celulaQtd)celulaQtd.innerHTML=`<div class="peopleCell orange">👤 ${valor}</div>`;if(celulaOp)celulaOp.innerHTML='<span class="opPill orange">Por data</span>'}else linhas.forEach(l=>l.lastElementChild?.remove())}
       return tmp.innerHTML};fn.__fsV835=true;window.cronogramaExecutivoHtml=fn;try{cronogramaExecutivoHtml=fn}catch(_){ }
   }
   function atualizar(){compactarSalvar();acoesMes();sincronizarTudo();corrigirCabecalhos();corrigirRodape();instalarCronograma()}
@@ -141,6 +140,6 @@
 
 /* V837 — finalização do organograma e parâmetros inteligentes de jornada. */
 (function(){
-  if(!document.querySelector('link[data-fs-v837]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-finalizacao-v837.css?v=839';l.dataset.fsV837='1';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-fs-v837]')){const s=document.createElement('script');s.src='./fs-finalizacao-v837.js?v=839';s.dataset.fsV837='1';document.head.appendChild(s)}
+  if(!document.querySelector('link[data-fs-v837]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-finalizacao-v837.css?v=840';l.dataset.fsV837='1';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-fs-v837]')){const s=document.createElement('script');s.src='./fs-finalizacao-v837.js?v=840';s.dataset.fsV837='1';document.head.appendChild(s)}
 })();
