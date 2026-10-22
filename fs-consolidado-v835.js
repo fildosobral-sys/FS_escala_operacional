@@ -140,7 +140,7 @@
 
 /* V837 — finalização do organograma e parâmetros inteligentes de jornada. */
 (function(){
-  if(!document.querySelector('link[data-fs-v837]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-finalizacao-v837.css?v=841';l.dataset.fsV837='1';document.head.appendChild(l)}
+  if(!document.querySelector('link[data-fs-v837]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-finalizacao-v837.css?v=843';l.dataset.fsV837='1';document.head.appendChild(l)}
   if(!document.querySelector('script[data-fs-v837]')){const s=document.createElement('script');s.src='./fs-finalizacao-v837.js?v=841';s.dataset.fsV837='1';document.head.appendChild(s)}
 })();
 
