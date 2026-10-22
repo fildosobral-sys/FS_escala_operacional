@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-central-v835';
+const CACHE_NAME = 'fs-escala-central-v837';
 const CORE_FILES = [
   './',
   './index.html',
@@ -36,6 +36,8 @@ const CORE_FILES = [
   './fs-conformidade-v833.css',
   './fs-consolidado-v835.js',
   './fs-consolidado-v835.css',
+  './fs-finalizacao-v837.js',
+  './fs-finalizacao-v837.css',
   './fs-pdf-import-v717.js',
   './pdf.min.mjs',
   './pdf.worker.min.mjs',
@@ -83,7 +85,7 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  if (/fs-(?:cloud-v716|dashboard-v800|central-v812|ui-v806|equilibrio-v807|refino-v808|fotos-relatorios-v809|final-v810|consolidacao-v811|editor-v824|domingo-v831|conformidade-v832|conformidade-v833|consolidado-v835)\.(?:js|css)$/.test(url.pathname) || /fs-42h\.js$/.test(url.pathname)) {
+  if (/fs-(?:cloud-v716|dashboard-v800|central-v812|ui-v806|equilibrio-v807|refino-v808|fotos-relatorios-v809|final-v810|finalizacao-v837|consolidacao-v811|editor-v824|domingo-v831|conformidade-v832|conformidade-v833|consolidado-v835)\.(?:js|css)$/.test(url.pathname) || /fs-42h\.js$/.test(url.pathname)) {
     event.respondWith(
       fetch(event.request).then(function (response) {
         if (response.ok) {
