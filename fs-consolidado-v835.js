@@ -146,6 +146,6 @@
 
 /* V842 — módulo isolado de gestão do banco de horas, exclusivo da Visão Geral. */
 (function(){
-  if(!document.querySelector('link[data-fs-bh-v842]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-banco-horas-v842.css?v=842';l.dataset.fsBhV842='1';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-fs-bh-v842]')){const s=document.createElement('script');s.src='./fs-banco-horas-v842.js?v=842';s.dataset.fsBhV842='1';document.head.appendChild(s)}
+  if(!document.querySelector('link[data-fs-bh-v842]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-banco-horas-v842.css?v=844';l.dataset.fsBhV842='1';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-fs-bh-v842]')){const s=document.createElement('script');s.src='./fs-banco-horas-v842.js?v=844';s.dataset.fsBhV842='1';document.head.appendChild(s)}
 })();

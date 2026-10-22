@@ -1,14 +1,15 @@
 /* V842 — Gestão isolada de banco de horas. Não altera escalas ou horários. */
 (function(){
   'use strict';
-  const VERSION=1, CFG='fsBancoHoras', STATUS={normal:'Dentro do padrão',atencao:'Atenção',critico:'Prioridade'};
+  const VERSION=2, CFG='fsBancoHoras', STATUS={normal:'Dentro do padrão',atencao:'Atenção',critico:'Crítico'};
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   const uid=()=>`bh_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
   const cfg=()=>{
     state.config=state.config||{};
-    const base={version:VERSION,settings:{normalMax:840,attentionMax:1440,maxExtraDay:120,minLunch:60},imports:[],plans:[]};
+    const base={version:VERSION,settings:{creditNormalMax:240,creditAttentionMax:720,debitAttentionMax:240,maxExtraDay:120,minLunch:60},imports:[],plans:[]};
     state.config[CFG]=state.config[CFG]||base;
+    state.config[CFG].version=VERSION;
     state.config[CFG].settings={...base.settings,...(state.config[CFG].settings||{})};
     state.config[CFG].imports=Array.isArray(state.config[CFG].imports)?state.config[CFG].imports:[];
     state.config[CFG].plans=Array.isArray(state.config[CFG].plans)?state.config[CFG].plans:[];
@@ -18,16 +19,18 @@
   const latest=()=>cfg().imports.slice().sort((a,b)=>String(b.periodEnd||b.importedAt).localeCompare(String(a.periodEnd||a.importedAt)))[0]||null;
   const hm=m=>`${m<0?'-':''}${String(Math.floor(Math.abs(m)/60)).padStart(2,'0')}:${String(Math.abs(m)%60).padStart(2,'0')}`;
   const parseHM=v=>{const m=String(v||'').match(/(\d+):(\d{2})\s*([CD])?/i);if(!m)return 0;const n=Number(m[1])*60+Number(m[2]);return m[3]?.toUpperCase()==='D'?-n:n};
-  const level=m=>{const a=Math.abs(m),s=cfg().settings;return a<=s.normalMax?'normal':a<=s.attentionMax?'atencao':'critico'};
+  const level=m=>{const a=Math.abs(m),s=cfg().settings;if(m<0)return a<=s.debitAttentionMax?'atencao':'critico';return a<=s.creditNormalMax?'normal':a<=s.creditAttentionMax?'atencao':'critico'};
   const activePeople=()=>Array.isArray(state.pessoas)?state.pessoas:[];
+  const personName=s=>norm(s).split(' ').map(w=>w==='FCO'?'FRANCISCO':w).join(' ');
+  const edit=(a,b)=>{a=String(a);b=String(b);const d=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const old=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old}}return d[b.length]};
   function personMatch(code,name){
-    const nn=norm(name),codeN=String(code||'').replace(/\D/g,'');
+    const nn=personName(name),codeN=String(code||'').replace(/\D/g,'');
     let p=activePeople().find(x=>[x.codigo,x.matricula,x.chapa].some(v=>String(v||'').replace(/\D/g,'')===codeN&&codeN));
     if(p)return p;
-    p=activePeople().find(x=>norm(x.nome)===nn); if(p)return p;
-    let best=null,score=0; const words=new Set(nn.split(' ').filter(x=>x.length>2));
-    activePeople().forEach(x=>{const w=new Set(norm(x.nome).split(' ').filter(y=>y.length>2)),hit=[...words].filter(y=>w.has(y)).length,sc=hit/Math.max(words.size,w.size,1);if(sc>score){score=sc;best=x}});
-    return score>=.8?best:null;
+    p=activePeople().find(x=>personName(x.nome)===nn); if(p)return p;
+    let best=null,score=0;const words=nn.split(' ').filter(x=>x.length>2);
+    activePeople().forEach(x=>{const other=personName(x.nome),w=other.split(' ').filter(y=>y.length>2),hit=words.filter(y=>w.some(z=>y===z||(y.length>4&&z.length>4&&edit(y,z)<=1))).length,token=hit/Math.max(words.length,w.length,1),full=1-edit(nn,other)/Math.max(nn.length,other.length,1),sc=Math.max(token,full);if(sc>score){score=sc;best=x}});
+    return score>=.74?best:null;
   }
   function parseReport(text){
     const flat=String(text||'').replace(/\s+/g,' ').trim();
@@ -63,33 +66,34 @@
       if(!confirm(msg))return;
       const signature=norm([data.establishment,data.periodStart,data.periodEnd,...data.rows.map(x=>`${x.code}:${x.balance}`)].join('|'));
       if(cfg().imports.some(x=>x.signature===signature))return alert('Este mesmo resumo já foi importado.');
-      cfg().imports.push({id:uid(),fileName:file.name,importedAt:new Date().toISOString(),signature,...data});persist();renderPanel();
-      alert(`Resumo importado: ${data.rows.length} colaborador(es), ${unmatched} pendente(s) de conciliação.`);
+      cfg().imports.push({id:uid(),fileName:file.name,importedAt:new Date().toISOString(),signature,excludedCodes:[],...data});persist();renderPanel();
+      alert(`Resumo importado: ${data.rows.length-unmatched} colaborador(es) reconhecido(s). ${unmatched} registro(s) sem correspondência foram ignorados.`);
     }catch(e){alert(`Não foi possível importar o PDF. ${e.message||e}`)}finally{input.disabled=false;input.value=''}
   }
-  function totals(snap){const r=snap?.rows||[],credit=r.filter(x=>x.balance>0),debit=r.filter(x=>x.balance<0);return{all:r.length,credit:credit.length,debit:debit.length,creditMin:credit.reduce((a,x)=>a+x.balance,0),debitMin:debit.reduce((a,x)=>a+Math.abs(x.balance),0),priority:r.filter(x=>level(x.balance)==='critico').length,unmatched:r.filter(x=>!x.personId).length}}
+  function reportRows(snap){if(!snap)return[];const excluded=new Set(snap.excludedCodes||[]);return(snap.rows||[]).map(x=>{let p=activePeople().find(y=>y.id===x.personId);if(!p)p=personMatch(x.code,x.name);if(p){x.personId=p.id;x.matchedName=p.nome;x.role=p.funcao||''}else{x.personId='';x.matchedName='';x.role=''}return x}).filter(x=>x.personId&&!excluded.has(x.code))}
+  function totals(snap){const r=reportRows(snap),credit=r.filter(x=>x.balance>0),debit=r.filter(x=>x.balance<0);return{all:r.length,credit:credit.length,debit:debit.length,creditMin:credit.reduce((a,x)=>a+x.balance,0),debitMin:debit.reduce((a,x)=>a+Math.abs(x.balance),0),priority:r.filter(x=>level(x.balance)==='critico').length,ignored:(snap?.rows||[]).length-r.length}}
   function renderHomeCard(){
     const root=document.getElementById('visaoContent');if(!root)return;
     let el=root.querySelector('.fsBHHome');if(!el){el=document.createElement('section');el.className='overviewBlock fsBHHome noPrint';root.prepend(el)}
-    const snap=latest(),t=totals(snap);el.innerHTML=`<button type="button" class="fsBHCard" onclick="fsBHOpen()"><span class="fsBHIcon">🗓️</span><span><strong>Gestão do banco de horas</strong><small>${snap?`Atualizado até ${esc(snap.periodEnd||'data não identificada')} • ${t.all} colaborador(es)`:'Importe o resumo do ponto para iniciar a análise'}</small></span><span class="fsBHStats">${snap?`<b>${t.credit} crédito</b><b>${t.debit} débito</b><b class="${t.priority?'hot':''}">${t.priority} prioridade(s)</b>`:'Abrir painel →'}</span></button>`;
+    const snap=latest(),t=totals(snap);el.innerHTML=`<button type="button" class="fsBHCard" onclick="fsBHOpen()"><span class="fsBHIcon">🗓️</span><span><strong>Gestão do banco de horas</strong><small>${snap?`Atualizado até ${esc(snap.periodEnd||'data não identificada')} • ${t.all} colaborador(es)`:'Importe o resumo do ponto para iniciar a análise'}</small></span><span class="fsBHStats">${snap?`<b>${t.credit} crédito</b><b>${t.debit} débito</b><b class="${t.priority?'hot':''}">${t.priority} crítico(s)</b>`:'Abrir painel →'}</span></button>`;
   }
   function shell(){
     let m=document.getElementById('fsBHModal');if(m)return m;
     m=document.createElement('div');m.id='fsBHModal';m.className='fsBHModal';m.innerHTML=`<div class="fsBHDialog"><header><div><h2>🗓️ Gestão do banco de horas</h2><p>Análise isolada do ponto. Nenhuma sugestão altera a escala.</p></div><button onclick="fsBHClose()" aria-label="Fechar">×</button></header><main id="fsBHBody"></main></div>`;document.body.appendChild(m);return m;
   }
-  function rowHtml(x){const lv=level(x.balance),p=activePeople().find(y=>y.id===x.personId),plan=cfg().plans.filter(y=>y.importId===latest()?.id&&y.rowCode===x.code).slice(-1)[0];return `<tr><td><strong>${esc(x.matchedName||x.name)}</strong><small>${esc(p?.funcao||x.role||'Não conciliado')}</small></td><td>${x.balance>=0?'Crédito':'Débito'}</td><td class="fsBHAmt ${x.balance<0?'neg':'pos'}">${hm(x.balance)}</td><td><span class="fsBHLevel ${lv}">${STATUS[lv]}</span></td><td>${x.personId?'✓ Conciliado':'⚠ Revisar nome'}</td><td>${plan?esc(plan.status):'Sem plano'}</td><td>${plan?`<button onclick="fsBHPlanView('${plan.id}')">Acompanhar</button>`:`<button onclick="fsBHPlan('${esc(x.code)}')">Planejar</button>`}</td></tr>`}
+  function rowHtml(x){const lv=level(x.balance),p=activePeople().find(y=>y.id===x.personId),plan=cfg().plans.filter(y=>y.importId===latest()?.id&&y.rowCode===x.code).slice(-1)[0];return `<tr data-code="${esc(x.code)}"><td><strong>${esc(x.matchedName||x.name)}</strong><small>${esc(p?.funcao||x.role)}</small></td><td>${x.balance>=0?'Crédito':'Débito'}</td><td class="fsBHAmt ${x.balance<0?'neg':'pos'}">${hm(x.balance)}</td><td><span class="fsBHLevel ${lv}">${STATUS[lv]}</span></td><td>✓ Cadastro ativo</td><td>${plan?esc(plan.status):'Sem plano'}</td><td><div class="fsBHRowActions">${plan?`<button onclick="fsBHPlanView('${plan.id}')">Acompanhar</button>`:`<button onclick="fsBHPlan('${esc(x.code)}')">Planejar</button>`}<button class="remove" title="Remover somente deste relatório" onclick="fsBHRemoveRow('${esc(x.code)}')">Excluir</button></div></td></tr>`}
   function renderPanel(){
     const b=document.getElementById('fsBHBody');if(!b)return;const snap=latest(),t=totals(snap),hist=cfg().imports.slice().sort((a,b)=>String(b.importedAt).localeCompare(a.importedAt));
     if(!snap){b.innerHTML=`<section class="fsBHEmpty"><div>📄</div><h3>Importe o Resumo do Banco de Horas</h3><p>O arquivo será lido como uma fotografia do saldo. Uma atualização futura substitui a referência de cálculo, sem somar saldos novamente.</p><label class="fsBHUpload">Selecionar PDF<input type="file" accept="application/pdf,.pdf" onchange="fsBHImport(this)"></label></section>`;return}
     b.innerHTML=`<div class="fsBHToolbar"><div><strong>Referência vigente</strong><span>${esc(snap.periodStart||'?')} a ${esc(snap.periodEnd||'?')} • ${esc(snap.fileName)}</span></div><label class="fsBHUpload">Atualizar PDF<input type="file" accept="application/pdf,.pdf" onchange="fsBHImport(this)"></label></div>
-    <section class="fsBHKpis"><div><small>Colaboradores</small><b>${t.all}</b></div><div><small>Saldo credor</small><b>${hm(t.creditMin)}</b></div><div><small>Saldo devedor</small><b>${hm(-t.debitMin)}</b></div><div><small>Prioridades</small><b>${t.priority}</b></div></section>
-    ${t.unmatched?`<div class="fsBHWarn">⚠ ${t.unmatched} nome(s) não foram conciliados automaticamente com o cadastro. Eles continuam visíveis, mas exigem revisão antes do planejamento.</div>`:''}
-    <section class="fsBHFilters"><input id="fsBHSearch" placeholder="Buscar colaborador ou função" oninput="fsBHFilter()"><select id="fsBHLevelFilter" onchange="fsBHFilter()"><option value="">Todos os níveis</option><option value="normal">Dentro do padrão</option><option value="atencao">Atenção</option><option value="critico">Prioridade</option></select></section>
-    <div class="fsBHTable"><table><thead><tr><th>Colaborador / função</th><th>Tipo</th><th>Saldo</th><th>Nível</th><th>Cadastro</th><th>Plano</th><th>Ação</th></tr></thead><tbody>${snap.rows.map(rowHtml).join('')}</tbody></table></div>
+    <section class="fsBHKpis"><div><small>Colaboradores</small><b>${t.all}</b></div><div><small>Saldo credor</small><b>${hm(t.creditMin)}</b></div><div><small>Saldo devedor</small><b>${hm(-t.debitMin)}</b></div><div><small>Casos críticos</small><b>${t.priority}</b></div></section>
+    ${t.ignored?`<div class="fsBHWarn">ℹ ${t.ignored} registro(s) do PDF não aparecem porque não existem no cadastro ativo ou foram removidos deste relatório.</div>`:''}
+    <section class="fsBHFilters"><input id="fsBHSearch" placeholder="Buscar colaborador ou função" oninput="fsBHFilter()"><select id="fsBHLevelFilter" onchange="fsBHFilter()"><option value="">Todos os níveis</option><option value="normal">Dentro do padrão</option><option value="atencao">Atenção</option><option value="critico">Crítico</option></select></section>
+    <div class="fsBHTable"><table><thead><tr><th>Colaborador / função</th><th>Tipo</th><th>Saldo</th><th>Nível</th><th>Cadastro</th><th>Plano</th><th>Ação</th></tr></thead><tbody>${reportRows(snap).map(rowHtml).join('')}</tbody></table></div>
     <details class="fsBHHistory"><summary>Histórico de importações (${hist.length})</summary>${hist.map((x,i)=>`<div><span>${esc(x.periodStart||'?')} a ${esc(x.periodEnd||'?')} • ${esc(x.fileName)}</span><b>${i?'Histórico':'Vigente'}</b></div>`).join('')}</details>
     <div class="fsBHDanger"><button onclick="fsBHClear()">Limpar somente o módulo de banco de horas</button></div>`;
   }
-  function filter(){const q=norm(document.getElementById('fsBHSearch')?.value),lv=document.getElementById('fsBHLevelFilter')?.value;document.querySelectorAll('#fsBHBody tbody tr').forEach((tr,i)=>{const x=latest()?.rows[i];tr.hidden=!!(x&&(q&&!norm(`${x.name} ${x.matchedName} ${x.role}`).includes(q)||lv&&level(x.balance)!==lv))})}
+  function filter(){const q=norm(document.getElementById('fsBHSearch')?.value),lv=document.getElementById('fsBHLevelFilter')?.value,snap=latest();document.querySelectorAll('#fsBHBody tbody tr[data-code]').forEach(tr=>{const x=snap?.rows.find(r=>r.code===tr.dataset.code);tr.hidden=!!(x&&(q&&!norm(`${x.name} ${x.matchedName} ${x.role}`).includes(q)||lv&&level(x.balance)!==lv))})}
   function suggestions(x){const n=Math.abs(x.balance),credit=x.balance>0;let per=n>=480?120:n>=180?60:30;per=Math.min(per,cfg().settings.maxExtraDay);return{mode:credit?(n>=480?'folga':'saida_antecipada'):'compensar',per,days:Math.max(1,Math.ceil(n/per))}}
   function addDays(date,count){const d=new Date(`${date}T12:00:00`),out=[];while(out.length<count){d.setDate(d.getDate()+1);if(d.getDay()!==0)out.push(d.toISOString().slice(0,10))}return out}
   function plan(code){
@@ -109,10 +113,11 @@
   function mark(id){const p=cfg().plans.find(x=>x.id===id);if(p){p.status='Comunicado — aguardando conferência';p.communicatedAt=new Date().toISOString();persist()}document.getElementById('fsBHNotice')?.remove();renderPanel()}
   function planView(id){const p=cfg().plans.find(x=>x.id===id);if(!p)return;showNotice(p);const foot=document.querySelector('#fsBHNotice footer');if(foot)foot.insertAdjacentHTML('afterbegin',`<button class="secondary" onclick="fsBHPlanResult('${p.id}',false)">Não cumprido</button><button class="primary" onclick="fsBHPlanResult('${p.id}',true)">Confirmar cumprido</button>`)}
   function planResult(id,ok){const p=cfg().plans.find(x=>x.id===id);if(!p)return;if(!confirm(ok?'Confirmar que a execução foi conferida no ponto oficial?':'Registrar que o plano não foi cumprido?'))return;p.status=ok?'Cumprido — conferido no ponto':'Não cumprido — revisar';p.checkedAt=new Date().toISOString();persist();document.getElementById('fsBHNotice')?.remove();renderPanel()}
+  function removeRow(code){const snap=latest(),x=snap?.rows.find(r=>r.code===code);if(!snap||!x)return;if(!confirm(`Remover ${x.matchedName||x.name} somente deste relatório de banco de horas?\n\nO cadastro do colaborador e as escalas não serão alterados.`))return;snap.excludedCodes=Array.isArray(snap.excludedCodes)?snap.excludedCodes:[];if(!snap.excludedCodes.includes(code))snap.excludedCodes.push(code);persist();renderPanel()}
   function clearAll(){if(!confirm('Limpar somente importações e planos do Banco de Horas? Escalas, colaboradores e demais módulos não serão alterados.'))return;delete state.config[CFG];persist();renderPanel()}
   function open(){shell().classList.add('open');renderPanel()}
   function close(){document.getElementById('fsBHModal')?.classList.remove('open')}
-  window.fsBHOpen=open;window.fsBHClose=close;window.fsBHImport=importPdf;window.fsBHFilter=filter;window.fsBHPlan=plan;window.fsBHSavePlan=savePlan;window.fsBHCopy=copy;window.fsBHMarkCommunicated=mark;window.fsBHPlanView=planView;window.fsBHPlanResult=planResult;window.fsBHClear=clearAll;
+  window.fsBHOpen=open;window.fsBHClose=close;window.fsBHImport=importPdf;window.fsBHFilter=filter;window.fsBHPlan=plan;window.fsBHSavePlan=savePlan;window.fsBHCopy=copy;window.fsBHMarkCommunicated=mark;window.fsBHPlanView=planView;window.fsBHPlanResult=planResult;window.fsBHRemoveRow=removeRow;window.fsBHClear=clearAll;
   let timer;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(renderHomeCard,80)}).observe(document.body,{childList:true,subtree:true});
   setTimeout(()=>{cfg();renderHomeCard()},900);
 })();
