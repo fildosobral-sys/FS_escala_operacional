@@ -11,8 +11,8 @@
 .fsV832LegalCompact{margin-top:10px!important;padding:10px 12px!important;border-left-width:4px!important}.fsV832LegalCompact .fsV832LegalHead{margin-bottom:7px!important}.fsV832LegalCompact .fsV832LegalHead b{font-size:13px!important}.fsV832LegalCompact .fsV832LegalGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.fsV832LegalCompact .fsV832LegalItem{min-height:0!important;padding:7px 9px!important}.fsV832LegalCompact .fsV832LegalFoot{margin-top:6px!important}
 @media(max-width:800px){.fsV832LegalCompact .fsV832LegalGrid{grid-template-columns:1fr!important}}
 
-/* V843 — leitura ampliada e modelos empilhados no painel de regras. */
-#fsV806Rules .fsV806RulesModels{grid-template-columns:1fr!important;gap:9px!important}
+/* V845 — leitura ampliada, modelos em grade 2x2 e horários sem quebra. */
+#fsV806Rules .fsV806RulesModels{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
 #fsV806Rules .fsV806RulesModels button{width:100%;min-height:54px!important;padding:12px 16px!important;font-size:13px!important;line-height:1.35!important;text-align:left!important}
 #fsV806Rules .fsV806RulesDetail{padding:18px!important}
 #fsV806Rules .fsV819RuleTitle>span{font-size:10px!important}
@@ -31,6 +31,12 @@
 #fsV806Rules .fsV821Plan th,#fsV806Rules .fsV821Plan td{font-size:12px!important;line-height:1.45!important;padding:11px!important}
 #fsV806Rules .fsV821Plan thead th{font-size:10px!important}
 #fsV806Rules .fsV821Plan tbody td:nth-child(3),#fsV806Rules .fsV821Plan tbody td:nth-child(4){font-size:12px!important}
+#fsV806Rules .fsV821Plan table{min-width:1000px!important}
+#fsV806Rules .fsV821Plan th:nth-child(1){width:16%!important}
+#fsV806Rules .fsV821Plan th:nth-child(2){width:14%!important}
+#fsV806Rules .fsV821Plan th:nth-child(3),#fsV806Rules .fsV821Plan th:nth-child(4){width:25%!important}
+#fsV806Rules .fsV821Plan th:nth-child(5){width:20%!important}
+#fsV806Rules .fsV821Plan tbody td:nth-child(3),#fsV806Rules .fsV821Plan tbody td:nth-child(4){white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}
 #fsV806Rules .fsV821Math,#fsV806Rules .fsV821Alert{padding:12px 13px!important}
 #fsV806Rules .fsV821Math b,#fsV806Rules .fsV821Alert b{font-size:12px!important}
 #fsV806Rules .fsV821Math span,#fsV806Rules .fsV821Alert span{font-size:11.5px!important;line-height:1.5!important}
@@ -46,4 +52,4 @@
 #fsV806Rules .fsV832LegalCompact .fsV832LegalItem strong{font-size:13px!important}
 #fsV806Rules .fsV832LegalCompact .fsV832LegalFoot{font-size:10.5px!important}
 #fsV806Rules .fsV806RulesNote{font-size:12px!important;padding:11px 13px!important}
-@media(max-width:700px){#fsV806Rules .fsV806RulesDetail{padding:12px!important}#fsV806Rules .fsV820Sketch article{grid-template-columns:78px 88px 1fr!important}#fsV806Rules .fsV821Plan th,#fsV806Rules .fsV821Plan td{font-size:11.5px!important}}
+@media(max-width:700px){#fsV806Rules .fsV806RulesModels{grid-template-columns:1fr!important}#fsV806Rules .fsV806RulesDetail{padding:12px!important}#fsV806Rules .fsV820Sketch article{grid-template-columns:78px 88px 1fr!important}#fsV806Rules .fsV821Plan table{min-width:0!important}#fsV806Rules .fsV821Plan tbody td:nth-child(3),#fsV806Rules .fsV821Plan tbody td:nth-child(4){white-space:normal!important}#fsV806Rules .fsV821Plan th,#fsV806Rules .fsV821Plan td{font-size:11.5px!important}}
