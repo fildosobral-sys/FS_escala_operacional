@@ -1,10 +1,10 @@
 /* V831 — camada dominical única, compacta e estável. */
 #domingo .fsDomMensalRodape{display:none!important}
-#domingo .fsV831Footer{margin:16px 14px;padding:16px;border:1px solid #b9c9e4;border-radius:16px;background:linear-gradient(135deg,#f7faff,#edf4ff);display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:88px;box-sizing:border-box}
+#domingo .fsV831Footer{margin:16px 14px;padding:16px;border:1px solid #b9c9e4;border-radius:16px;background:linear-gradient(135deg,#f7faff,#edf4ff);display:flex;align-items:center;justify-content:space-between;gap:16px;height:104px;min-height:104px;box-sizing:border-box;overflow:hidden}
 #domingo .fsV831Footer b{display:block;color:#071d68;font-size:16px}
 #domingo .fsV831Footer small{display:block;margin-top:4px;color:#667085;font-weight:750}
 #domingo .fsV831Footer strong{color:#08783e}
-#domingo .fsV831Footer button{border:0;border-radius:12px;background:#071d68;color:#fff;padding:11px 16px;font-weight:950;cursor:pointer}
+#domingo .fsV831Footer button{border:0;border-radius:12px;background:#071d68;color:#fff;padding:0 16px;width:330px;min-width:330px;height:48px;min-height:48px;font-weight:950;cursor:pointer;white-space:nowrap}
 #domingo .fsV831Footer button:disabled{background:#9ba7ba;cursor:not-allowed}
 #domingo .fsV831Footer button.confirmado{background:#08783e}
 #domingo .fsV831Toggle{border:1px solid rgba(255,255,255,.65);border-radius:999px;background:#fff;color:#07515c;padding:7px 12px;font-size:10px;font-weight:950;cursor:pointer;white-space:nowrap}
@@ -28,4 +28,4 @@
 #domingo .fsV831Expandido .fsV561Times{display:none!important}
 #domingo .fsV831Expandido .fsV561Config:after{content:'Visualizar detalhes não abre a filial. Confirme acima se esta data terá operação.';grid-column:1/-1;color:#52677f;font-size:9px;font-weight:800}
 body:has(#domingo.active) #fsCloudPendingSave{bottom:76px!important}
-@media(max-width:760px){#domingo .fsV831Footer{align-items:stretch;flex-direction:column}#domingo .fsV831Footer button{width:100%}#domingo .fsV831Expandido .fsV561Config{grid-template-columns:1fr!important}.fsV831Status{display:none!important}#domingo .fsV832HeadTools{gap:5px;flex-wrap:wrap}#domingo .fsV851Operational,#domingo .fsV831Toggle{font-size:9px;padding:6px 9px}body:has(#domingo.active) #fsCloudPendingSave{bottom:70px!important}}
+@media(max-width:760px){#domingo .fsV831Footer{height:auto;min-height:138px;align-items:stretch;flex-direction:column}#domingo .fsV831Footer button{width:100%;min-width:0}#domingo .fsV831Expandido .fsV561Config{grid-template-columns:1fr!important}.fsV831Status{display:none!important}#domingo .fsV832HeadTools{gap:5px;flex-wrap:wrap}#domingo .fsV851Operational,#domingo .fsV831Toggle{font-size:9px;padding:6px 9px}}
