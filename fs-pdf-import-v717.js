@@ -127,10 +127,16 @@
   }
 
   const leituraAnterior=window.lerArquivoAssistido;
+  function iniciarConferenciaPdf(){
+    window.fsPdfImportacaoConcluida=null;
+    const pos=document.getElementById('fsV858PosImportacao');if(pos)pos.hidden=true;
+    const regras=document.getElementById('fsV806Rules');if(regras)regras.hidden=true;
+  }
   async function processarArquivosPdf(files){
     const area=document.getElementById('importText');
     if(!files.length)return alert('Selecione um ou mais PDFs.');
     if(!files.some(f=>/\.pdf$/i.test(f.name)||f.type==='application/pdf'))return leituraAnterior?.apply(this,arguments);
+    iniciarConferenciaPdf();
     const botao=[...(document.getElementById('configContent')||document).querySelectorAll('button')].find(b=>/ler arquivos selecionados/i.test(b.textContent||''));
     const rotulo=botao?.textContent;if(botao){botao.disabled=true;botao.textContent='Lendo PDFs...';}
     try{
@@ -160,6 +166,7 @@
   };
 
   window.fsSelecionarELerPdf=function(){
+    iniciarConferenciaPdf();
     const seletor=document.createElement('input');
     seletor.type='file';seletor.accept='application/pdf,.pdf';seletor.multiple=true;
     seletor.style.position='fixed';seletor.style.left='-9999px';seletor.style.opacity='0';

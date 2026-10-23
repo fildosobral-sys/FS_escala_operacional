@@ -15,4 +15,11 @@ body{letter-spacing:0!important}
 #fsV806Rules .fsV806RulesBody{padding:12px!important;gap:10px!important}
 #fsV806Rules .fsV862ForaJanela{border-color:#e5a000!important;background:#fffaf0!important}
 #fsV806Rules .fsV862ForaJanela header span{color:#a15c00!important;font-weight:900!important}
+#fsV806Rules .fsV863SketchNote{margin:0;padding:8px 12px;background:#fff3cd;color:#73510b;font-size:12px;font-weight:700;border-bottom:1px solid #ecd38b}
+#fsV806Rules .fsV863Legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 14px;background:#f7f9fc;border-bottom:1px solid #dfe7f2}
+#fsV806Rules .fsV863Legend span{padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+#fsV806Rules .fsV863Legend .ok{color:#12623a;background:#e8f7ee}
+#fsV806Rules .fsV863Legend .warn{color:#805600;background:#fff2cc}
+#fsV806Rules .fsV863Legend .info{color:#174a82;background:#eaf2ff}
+#fsV806Rules .fsV863Legend small{color:#526276;font-size:12px;font-weight:700}
 @media(max-width:760px){#pessoaModal .fsV858DiaCab.fsV859Cab{grid-template-columns:16px minmax(96px,1fr) 68px 112px!important}#pessoaModal .fsV858DiaCab.fsV859Cab small{display:none!important}#pessoaModal .fsV859DiaAcao{padding:6px 5px;font-size:8.5px}#fsV806Rules .fsV806RulesModels{grid-template-columns:1fr!important}}
