@@ -6,11 +6,13 @@ body{letter-spacing:0!important}
 #pessoaModal .fsAprendizAjuda{display:none!important}
 #pessoaModal .fsV859Sabado>label{font-size:0!important;min-height:16px;display:block}
 #pessoaModal .fsV859Sabado>label:after{content:'Trabalha no sábado?';font-size:12px!important;font-weight:900;color:#071d68;white-space:nowrap}
-#pessoaModal .fsV858DiaCab.fsV859Cab{grid-template-columns:18px minmax(115px,1fr) 72px 105px 112px!important}
+#pessoaModal .fsV858DiaCab.fsV859Cab{grid-template-columns:18px minmax(150px,1fr) 84px minmax(120px,auto) 124px!important;min-height:54px!important;overflow:visible!important}
 #pessoaModal .fsV859DiaAcao{display:inline-flex;align-items:center;justify-content:center;border:1px solid #c8d5e7;border-radius:8px;background:#fff;color:#08783e;padding:6px 7px;font-size:9px;font-weight:900;white-space:nowrap;cursor:pointer}
 #pessoaModal .fsV859DiaAcao.ativo{color:#b42318;background:#fff7f7;border-color:#efc2bd}
 #pessoaModal .fsV859DiaAcao[aria-disabled="true"]{opacity:.5;cursor:not-allowed}
 #fsV806Rules .fsV806RulesModels{grid-template-columns:1fr 1fr!important;gap:8px!important}
 #fsV806Rules .fsV806RulesModels button{min-height:54px!important;padding:10px 14px!important}
 #fsV806Rules .fsV806RulesBody{padding:12px!important;gap:10px!important}
-@media(max-width:760px){#pessoaModal .fsV858DiaCab.fsV859Cab{grid-template-columns:16px minmax(100px,1fr) 65px 100px!important}#pessoaModal .fsV858DiaCab.fsV859Cab small{display:none!important}#fsV806Rules .fsV806RulesModels{grid-template-columns:1fr!important}}
+#fsV806Rules .fsV862ForaJanela{border-color:#e5a000!important;background:#fffaf0!important}
+#fsV806Rules .fsV862ForaJanela header span{color:#a15c00!important;font-weight:900!important}
+@media(max-width:760px){#pessoaModal .fsV858DiaCab.fsV859Cab{grid-template-columns:16px minmax(96px,1fr) 68px 112px!important}#pessoaModal .fsV858DiaCab.fsV859Cab small{display:none!important}#pessoaModal .fsV859DiaAcao{padding:6px 5px;font-size:8.5px}#fsV806Rules .fsV806RulesModels{grid-template-columns:1fr!important}}

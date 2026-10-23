@@ -221,26 +221,9 @@
           try{window.fsAplicarDadosEmpresa?.(document)}catch(e){console.warn('[FS PDF] atualização do cabeçalho',e)}
 
         }}}
-    // Proposta de funcionamento independente da aceitação dos dados cadastrais.
-    // Os turnos individuais não provam o horário oficial; o gestor confirma antes de aplicar.
-    {
-      let atualizados={};try{atualizados=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{}}catch(_){}
-          // Os horários individuais do PDF não são necessariamente o funcionamento
-          // oficial. Oferecer uma proposta separada, explicitamente confirmada.
-          const faixa=ds=>{const hs=revisados.flatMap(p=>ds.map(d=>p.horariosIndividuais?.[d]).filter(Boolean));
-            const valid=hs.filter(h=>/^\d\d:\d\d$/.test(h.entrada||'')&&/^\d\d:\d\d$/.test(h.saida||''));
-            if(!valid.length)return null;return [valid.map(h=>h.entrada).sort()[0],valid.map(h=>h.saida).sort().at(-1)];};
-          const sem=faixa(DIAS_UTEIS),sab=faixa(['sabado']);const propostas={};
-          if(sem){propostas.horarioSemanaEntrada=sem[0];propostas.horarioSemanaSaida=sem[1]}
-          if(sab){propostas.horarioSabadoEntrada=sab[0];propostas.horarioSabadoSaida=sab[1]}
-          if(Object.keys(propostas).length){const texto='O PDF contém turnos individuais. Como sugestão, os limites observados são:\n'+(sem?'Segunda a sexta: '+sem.join(' às ')+'\n':'')+(sab?'Sábado: '+sab.join(' às ')+'\n':'')+'\nEsses horários podem não representar a abertura e o fechamento oficiais da filial. Deseja aplicá-los como padrão?';
-            if(confirm(texto)){Object.assign(atualizados,propostas);localStorage.setItem('fsDadosEmpresa',JSON.stringify(atualizados));
-              state.config.funcionamentoUnidade={...(state.config.funcionamentoUnidade||{}),...propostas};
-              const hids={horarioSemanaEntrada:'fsHorarioSemanaEntrada',horarioSemanaSaida:'fsHorarioSemanaSaida',horarioSabadoEntrada:'fsHorarioSabadoEntrada',horarioSabadoSaida:'fsHorarioSabadoSaida'};
-              Object.entries(propostas).forEach(([k,v])=>{const el=document.getElementById(hids[k]);if(el)el.value=v});
-            }
-          }
-    }
+    // Turnos individuais encontrados no PDF nunca redefinem o funcionamento
+    // oficial da filial. Abertura e fechamento são alterados somente pela
+    // gestão em Dados da unidade / Editar parâmetros.
     window.fsImportacaoPdfPendente=null;
     window.fsPdfImportacaoConcluida={quantidade:revisados.length,metadados:novos,at:Date.now()};
     if(typeof save==='function')save();

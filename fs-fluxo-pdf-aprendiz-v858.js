@@ -16,7 +16,7 @@
   function resumoLinha(row){
     const ck=row.querySelector('input[type="checkbox"]'),id=ck?.id||'',dia=id.replace('mIndAtivo_',''),ativo=!!ck?.checked;
     let head=row.querySelector('.fsV858DiaCab');
-    if(!head){head=document.createElement('button');head.type='button';head.className='fsV858DiaCab';row.prepend(head);head.onclick=e=>{if(e.target.closest('.fsV859DiaAcao'))return;row.classList.toggle('fsV858Aberto');atualizarDias()}}
+    if(!head){head=document.createElement('button');head.type='button';head.className='fsV858DiaCab fsV859Cab';row.prepend(head);head.onclick=e=>{if(e.target.closest('.fsV859DiaAcao'))return;row.classList.toggle('fsV858Aberto');atualizarDias()}}else head.classList.add('fsV859Cab');
     const ent=document.getElementById('mIndEntrada_'+dia)?.value||'--:--',sai=document.getElementById('mIndSaida_'+dia)?.value||'--:--';
     const aprendiz=!!document.getElementById('mJovemAprendiz')?.checked,bloqueado=aprendiz&&dia==='sabado';
     const markup=`<span class="fsV858Seta">›</span><b>${NOMES[dia]||dia}</b><em class="${ativo?'on':'off'}">${ativo?'Trabalha':'Folga'}</em><small>${ativo?ent+' às '+sai:'Dia não incluído'}</small><span class="fsV859DiaAcao ${ativo?'ativo':''}" role="button" tabindex="${bloqueado?'-1':'0'}" aria-disabled="${bloqueado}">${ativo?'Marcar folga':'Marcar trabalho'}</span>`;
