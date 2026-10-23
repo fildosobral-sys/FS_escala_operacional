@@ -142,7 +142,9 @@
       }
       const itens=extrairPessoas(paginas),metadados=extrairMetadados(paginas.map(p=>p.texto).join('\n'));
       if(!itens.length)throw new Error('o PDF abriu, mas nenhuma linha de colaborador foi reconhecida');
+      window.fsPdfImportacaoConcluida=null;
       window.fsImportacaoPdfPendente={itens,metadados,arquivos:files.length};
+      const modalRegras=document.getElementById('fsV806Rules');if(modalRegras)modalRegras.hidden=true;
       const previa=itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n');
       if(area){area.value=previa;area.dispatchEvent(new Event('input',{bubbles:true}));}
       window.fsPdfUltimaPrevia=previa;

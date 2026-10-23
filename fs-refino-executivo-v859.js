@@ -19,9 +19,9 @@
     acao.textContent=ck.checked?'Marcar folga':'Marcar trabalho';acao.classList.toggle('ativo',ck.checked);acao.setAttribute('aria-disabled',String(!!document.getElementById('mJovemAprendiz')?.checked&&dia==='sabado'));
   }
   function prepararDias(){document.querySelectorAll('#mHorarioIndividualBox .individualDayRow').forEach(botaoDia)}
-  function compactarResumo(){const r=document.querySelector('#pessoaModal .fsModoColaboradorResumo');if(r){r.innerHTML=state.config?.modo==='42h'?'<b>5×2 • Jornada semanal de 42h</b>':'<b>'+String(r.textContent||'').replace(/Modalidade ativa:\s*/i,'').replace(/\s+/g,' ').trim()+'</b>';r.classList.add('fsV859Resumo')}}
-  function atualizar(){instalarBloqueioPdf();fecharRegraPrematura();somente42h5x2();estabilizarSabado();compactarResumo();prepararDias()}
+  function compactarResumo(){const r=document.querySelector('#pessoaModal .fsModoColaboradorResumo');if(r){const html=state.config?.modo==='42h'?'<b>5×2 • Jornada semanal de 42h</b>':'<b>'+String(r.textContent||'').replace(/Modalidade ativa:\s*/i,'').replace(/\s+/g,' ').trim()+'</b>';if(r.innerHTML!==html)r.innerHTML=html;r.classList.add('fsV859Resumo')}}
+  function atualizar(){instalarBloqueioPdf();fecharRegraPrematura();somente42h5x2();estabilizarSabado();compactarResumo()}
   document.addEventListener('change',e=>{if(e.target?.matches?.('input[name="fs42type"]'))setTimeout(somente42h5x2,0)},true);
-  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizar,25)}).observe(document.body,{childList:true,subtree:true,characterData:true});
-  setInterval(atualizar,250);setTimeout(atualizar,120);
+  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizar,80)}).observe(document.body,{childList:true,subtree:true});
+  setInterval(atualizar,900);setTimeout(atualizar,120);
 })();

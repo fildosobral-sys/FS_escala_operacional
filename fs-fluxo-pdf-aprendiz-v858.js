@@ -18,7 +18,10 @@
     let head=row.querySelector('.fsV858DiaCab');
     if(!head){head=document.createElement('button');head.type='button';head.className='fsV858DiaCab';row.prepend(head);head.onclick=e=>{if(e.target.closest('.fsV859DiaAcao'))return;row.classList.toggle('fsV858Aberto');atualizarDias()}}
     const ent=document.getElementById('mIndEntrada_'+dia)?.value||'--:--',sai=document.getElementById('mIndSaida_'+dia)?.value||'--:--';
-    head.innerHTML=`<span class="fsV858Seta">›</span><b>${NOMES[dia]||dia}</b><em class="${ativo?'on':'off'}">${ativo?'Trabalha':'Folga'}</em><small>${ativo?ent+' às '+sai:'Dia não incluído'}</small>`;
+    const aprendiz=!!document.getElementById('mJovemAprendiz')?.checked,bloqueado=aprendiz&&dia==='sabado';
+    const markup=`<span class="fsV858Seta">›</span><b>${NOMES[dia]||dia}</b><em class="${ativo?'on':'off'}">${ativo?'Trabalha':'Folga'}</em><small>${ativo?ent+' às '+sai:'Dia não incluído'}</small><span class="fsV859DiaAcao ${ativo?'ativo':''}" role="button" tabindex="${bloqueado?'-1':'0'}" aria-disabled="${bloqueado}">${ativo?'Marcar folga':'Marcar trabalho'}</span>`;
+    if(head.dataset.fsMarkup!==markup){head.innerHTML=markup;head.dataset.fsMarkup=markup}
+    const acao=head.querySelector('.fsV859DiaAcao');if(acao&&!acao.__fsAcao){acao.__fsAcao=true;const alternar=e=>{e.preventDefault();e.stopPropagation();if(acao.getAttribute('aria-disabled')==='true')return;ck.checked=!ck.checked;ck.dispatchEvent(new Event('change',{bubbles:true}));atualizarDias()};acao.onclick=alternar;acao.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')alternar(e)}}
     row.classList.toggle('fsV858Folga',!ativo);
   }
   function atualizarDias(){document.querySelectorAll('#mHorarioIndividualBox .individualDayRow').forEach(resumoLinha)}

@@ -18,7 +18,7 @@ function change(mode){if(mode!=='42h'){if(active()){snapshot();const before=stat
 c.fs42Anterior=previous;c.fs42BeforeProfile={horarios:copy(state.horarios),equipesDia:copy(c.equipesDia),pessoas:Object.fromEntries((state.pessoas||[]).map(p=>[p.id,{horariosIndividuais:copy(p.horariosIndividuais||{}),diasAtivosIndividuais:copy(p.diasAtivosIndividuais||[]),usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim,equipeBase:p.equipeBase,slots:copy(p.slots||{})}]))};if(existing){state.horarios=copy(existing.horarios||state.horarios);c.equipesDia=copy(existing.equipesDia||c.equipesDia);c.fs42Tipo='5x2';(state.pessoas||[]).forEach(p=>{if(existing.pessoas?.[p.id])Object.assign(p,copy(existing.pessoas[p.id]))})}
 c.modo='42h';c.fs42Tipo='5x2';state.cargaMeta=42;snapshot();save();renderConfig();configUI();integrar42();document.getElementById('tituloCarga')&&(document.getElementById('tituloCarga').textContent='42H')}
 window.fs42Activate=()=>change('42h');
-function limits(d){const e=Object.assign({},window.fsGetDadosEmpresa?.()||{},state.config.funcionamentoUnidade||{});const sat=d==='sabado';return{open:mins(sat?e.horarioSabadoEntrada||'08:00':e.horarioSemanaEntrada||'08:00'),close:mins(sat?e.horarioSabadoSaida||'14:00':e.horarioSemanaSaida||'18:00')}}
+function limits(d){const e=Object.assign({},state.config.funcionamentoUnidade||{},window.fsGetDadosEmpresa?.()||{});const sat=d==='sabado';return{open:mins(sat?e.horarioSabadoEntrada||'08:00':e.horarioSemanaEntrada||'08:00'),close:mins(sat?e.horarioSabadoSaida||'14:00':e.horarioSemanaSaida||'18:00')}}
 function target(p,d,minutes){
  const lim=limits(d),width=lim.close-lim.open;
  if(width<minutes)return null;
