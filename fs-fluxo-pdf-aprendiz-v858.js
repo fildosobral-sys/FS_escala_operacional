@@ -16,7 +16,7 @@
   function resumoLinha(row){
     const ck=row.querySelector('input[type="checkbox"]'),id=ck?.id||'',dia=id.replace('mIndAtivo_',''),ativo=!!ck?.checked;
     let head=row.querySelector('.fsV858DiaCab');
-    if(!head){head=document.createElement('div');head.className='fsV858DiaCab';head.tabIndex=0;head.setAttribute('role','button');row.prepend(head);head.onclick=e=>{if(e.target.closest('button,input'))return;row.classList.toggle('fsV858Aberto');atualizarDias()};head.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();row.classList.toggle('fsV858Aberto');atualizarDias()}}}
+    if(!head){head=document.createElement('button');head.type='button';head.className='fsV858DiaCab';row.prepend(head);head.onclick=e=>{if(e.target.closest('.fsV859DiaAcao'))return;row.classList.toggle('fsV858Aberto');atualizarDias()}}
     const ent=document.getElementById('mIndEntrada_'+dia)?.value||'--:--',sai=document.getElementById('mIndSaida_'+dia)?.value||'--:--';
     head.innerHTML=`<span class="fsV858Seta">›</span><b>${NOMES[dia]||dia}</b><em class="${ativo?'on':'off'}">${ativo?'Trabalha':'Folga'}</em><small>${ativo?ent+' às '+sai:'Dia não incluído'}</small>`;
     row.classList.toggle('fsV858Folga',!ativo);
