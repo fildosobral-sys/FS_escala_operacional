@@ -571,6 +571,17 @@
     return "Filial: " + branchName(s.targetId);
   }
   let accessData = null;
+  async function loadAccessData() {
+    try {
+      return await jsonp("dashboard", { accessClient: "864" }, 28000);
+    } catch (firstError) {
+      const message = String(firstError?.message || "");
+      if (!/demorou|tempo|consultar|nuvem/i.test(message)) throw firstError;
+      loading("A nuvem demorou. Fazendo uma nova tentativa segura…");
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      return jsonp("dashboard", { accessClient: "864", retry: "1" }, 38000);
+    }
+  }
   function accessKpis() {
     return `<section class="fsAccessKpis"><article><span>Usuários ativos</span><b>${(accessData.members || []).filter((x) => x.active).length}</b></article><article><span>Convites pendentes</span><b>${(accessData.invites || []).filter((x) => x.active && !x.usedAt).length}</b></article><article><span>Links ativos</span><b>${(accessData.viewLinks || []).filter((x) => x.active).length}</b></article><article><span>Registros recentes</span><b>${(accessData.recent || []).length}</b></article></section>`;
   }
@@ -596,13 +607,20 @@
     busy = true;
     loading("Abrindo a Central de Acessos…");
     try {
-      const r = await jsonp("dashboard");
+      const r = await loadAccessData();
       if (!r.ok)
         throw new Error(r.message || "Central de Acessos indisponível.");
       accessData = r;
       renderAccess();
     } catch (e) {
-      error(e.message);
+      const message = String(e?.message || "");
+      if (/desativado|sess[aã]o|acesso inv[aá]lido/i.test(message))
+        error("Sua sessão de acesso não está mais válida. Saia e entre novamente com o seu acesso.");
+      else if (/permiss[aã]o/i.test(message))
+        error("Este perfil não possui permissão para administrar a Central de Acessos.");
+      else if (/demorou|tempo|consultar|nuvem/i.test(message))
+        error("A nuvem não respondeu após duas tentativas. Aguarde alguns instantes e tente novamente; sua sessão e os dados permanecem preservados.");
+      else error(message || "Não foi possível abrir a Central de Acessos.");
     } finally {
       busy = false;
       stopLoading();
