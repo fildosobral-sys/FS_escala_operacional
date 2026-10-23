@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-central-v857';
+const CACHE_NAME = 'fs-escala-central-v858';
 const CORE_FILES = [
   './',
   './index.html',
@@ -15,6 +15,8 @@ const CORE_FILES = [
   './fs-central-v812.css',
   './fs-ui-v806.js',
   './fs-ui-v806.css',
+  './fs-fluxo-pdf-aprendiz-v858.js',
+  './fs-fluxo-pdf-aprendiz-v858.css',
   './fs-equilibrio-v807.js',
   './fs-equilibrio-v807.css',
   './fs-refino-v808.js',

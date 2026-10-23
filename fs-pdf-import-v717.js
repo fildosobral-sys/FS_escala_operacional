@@ -78,13 +78,19 @@
         const papel=papelNaLinha(linha);if(!papel)continue;
         const nome=limparNome(linha.slice(0,papel.indice));if(!nomeValido(nome))continue;
         const depois=linha.slice(papel.indice+papel.m[0].length),ts=tempos(depois);
-        const pessoa={nome,funcao:papel.nome,horariosIndividuais:{},diasTrabalho:[]};
+        const aprendiz=/aprendiz/i.test(papel.nome+' '+linha);
+        const pessoa={nome,funcao:aprendiz?'Jovem Aprendiz':papel.nome,jovemAprendiz:aprendiz,cargaSemanalAprendiz:aprendiz?12:undefined,horariosIndividuais:{},diasTrabalho:[]};
         const h=horario(ts.slice(0,4));
-        if(h)DIAS_UTEIS.forEach(d=>{pessoa.horariosIndividuais[d]={ativo:true,...h};pessoa.diasTrabalho.push(d);});
+        if(h){
+          if(aprendiz){
+            const contexto=[linha,linhas[i+1]||'',linhas[i+2]||''].join(' '),mapaDias=[['segunda',/\bseg(?:unda)?\b/i],['terca',/\bter(?:ça|ca)?\b/i],['quarta',/\bqua(?:rta)?\b/i],['quinta',/\bqui(?:nta)?\b/i],['sexta',/\bsex(?:ta)?\b/i]];
+            mapaDias.filter(([,re])=>re.test(contexto)).slice(0,3).forEach(([d])=>{pessoa.horariosIndividuais[d]={ativo:true,...h};pessoa.diasTrabalho.push(d);});
+          }else DIAS_UTEIS.forEach(d=>{pessoa.horariosIndividuais[d]={ativo:true,...h};pessoa.diasTrabalho.push(d);});
+        }
         if(fortes){
           const proxima=linhas[i+1]||'';
           if(!/^\s*\d{1,3}\s+[A-Za-zÀ-ÿ]/.test(proxima)){
-            const hs=horario(tempos(proxima).slice(0,4));if(hs){pessoa.horariosIndividuais.sabado={ativo:true,...hs};pessoa.diasTrabalho.push('sabado');}
+            const hs=horario(tempos(proxima).slice(0,4));if(hs&&!aprendiz){pessoa.horariosIndividuais.sabado={ativo:true,...hs};pessoa.diasTrabalho.push('sabado');}
           }
         }
         saida.push(pessoa);
@@ -186,7 +192,8 @@
       const k=chave(nome);if(vistos.has(k))return alert('Nome repetido: '+nome);
       vistos.add(k);
       const original=pend.itens.find(x=>chave(x.nome)===k);
-      revisados.push({...original,nome,funcao,horariosIndividuais:original?.horariosIndividuais||{},diasTrabalho:original?.diasTrabalho||[]});
+      const aprendiz=!!original?.jovemAprendiz||/jovem\s+aprendiz|\baprendiz\b/i.test(funcao);
+      revisados.push({...original,nome,funcao:aprendiz?'Jovem Aprendiz':funcao,jovemAprendiz:aprendiz,cargaSemanalAprendiz:aprendiz?12:original?.cargaSemanalAprendiz,horariosIndividuais:original?.horariosIndividuais||{},diasTrabalho:(original?.diasTrabalho||[]).filter(d=>!aprendiz||d!=='sabado')});
     }
     if(!revisados.length)return alert('Nenhum colaborador válido para importar.');
     if(!window.state||!Array.isArray(state.pessoas))return alert('Base local indisponível. Nenhum dado foi alterado.');
@@ -196,8 +203,9 @@
     revisados.forEach((it,i)=>{
       let p=mapa.get(chave(it.nome));
       if(!p){p={id:'p'+Date.now()+'_'+i,nome:it.nome,funcao:it.funcao,especialSlot:null,sabadoSim:false,folgaDistribuida:['terca','quarta','quinta'][i%3],equipeBase:0,slots:{}};copia.push(p);}
-      p.nome=it.nome;p.funcao=it.funcao;p.fsPdfImportado=true;
+      p.nome=it.nome;p.funcao=it.funcao;p.fsPdfImportado=true;p.jovemAprendiz=!!it.jovemAprendiz;p.fsMetaIndividualAtiva=!!it.jovemAprendiz;
       p.horariosIndividuais={...(p.horariosIndividuais||{}),...it.horariosIndividuais};
+      if(it.jovemAprendiz){p.cargaSemanalAprendiz=12;p.sabadoSim=false;p.usarDiasIndividuais=true;p.diasAtivosIndividuais=it.diasTrabalho.filter(d=>d!=='sabado').slice(0,3);delete p.horariosIndividuais.sabado;}
       if(it.diasTrabalho.includes('sabado'))p.sabadoSim=true;
       mapa.set(chave(it.nome),p);
     });
@@ -232,11 +240,11 @@
           }
     }
     window.fsImportacaoPdfPendente=null;
+    window.fsPdfImportacaoConcluida={quantidade:revisados.length,metadados:novos,at:Date.now()};
     if(typeof save==='function')save();
-    if(typeof fsForcarRedistribuicaoIgualitaria==='function')fsForcarRedistribuicaoIgualitaria();else if(typeof aplicarDistribuicao==='function')aplicarDistribuicao();
     if(typeof render==='function')render();
-    status(`${revisados.length} colaborador(es) importado(s). Confira a aba Colaboradores.`);
-    alert(`${revisados.length} colaborador(es) importado(s). Confira a aba Colaboradores.`);
+    status(`${revisados.length} colaborador(es) importado(s). Agora escolha e confirme a regra da escala antes de aplicar a distribuição.`);
+    document.dispatchEvent(new CustomEvent('fs:pdf-importado',{detail:window.fsPdfImportacaoConcluida}));
   };
   // O HTML também utiliza uma função global declarada lexicalmente.
   // Atualizar essa referência impede que o clique invoque o importador antigo.
@@ -251,27 +259,6 @@
     input.dataset.fsPdfChange='1';
     input.addEventListener('change',()=>{
       const files=[...(input.files||[])];
-      // Proposta de funcionamento independente da aceitação dos dados cadastrais.
-    // Os turnos individuais não provam o horário oficial; o gestor confirma antes de aplicar.
-    {
-      let atualizados={};try{atualizados=JSON.parse(localStorage.getItem('fsDadosEmpresa')||'{}')||{}}catch(_){}
-          // Os horários individuais do PDF não são necessariamente o funcionamento
-          // oficial. Oferecer uma proposta separada, explicitamente confirmada.
-          const faixa=ds=>{const hs=revisados.flatMap(p=>ds.map(d=>p.horariosIndividuais?.[d]).filter(Boolean));
-            const valid=hs.filter(h=>/^\d\d:\d\d$/.test(h.entrada||'')&&/^\d\d:\d\d$/.test(h.saida||''));
-            if(!valid.length)return null;return [valid.map(h=>h.entrada).sort()[0],valid.map(h=>h.saida).sort().at(-1)];};
-          const sem=faixa(DIAS_UTEIS),sab=faixa(['sabado']);const propostas={};
-          if(sem){propostas.horarioSemanaEntrada=sem[0];propostas.horarioSemanaSaida=sem[1]}
-          if(sab){propostas.horarioSabadoEntrada=sab[0];propostas.horarioSabadoSaida=sab[1]}
-          if(Object.keys(propostas).length){const texto='O PDF contém turnos individuais. Como sugestão, os limites observados são:\n'+(sem?'Segunda a sexta: '+sem.join(' às ')+'\n':'')+(sab?'Sábado: '+sab.join(' às ')+'\n':'')+'\nEsses horários podem não representar a abertura e o fechamento oficiais da filial. Deseja aplicá-los como padrão?';
-            if(confirm(texto)){Object.assign(atualizados,propostas);localStorage.setItem('fsDadosEmpresa',JSON.stringify(atualizados));
-              state.config.funcionamentoUnidade={...(state.config.funcionamentoUnidade||{}),...propostas};
-              const hids={horarioSemanaEntrada:'fsHorarioSemanaEntrada',horarioSemanaSaida:'fsHorarioSemanaSaida',horarioSabadoEntrada:'fsHorarioSabadoEntrada',horarioSabadoSaida:'fsHorarioSabadoSaida'};
-              Object.entries(propostas).forEach(([k,v])=>{const el=document.getElementById(hids[k]);if(el)el.value=v});
-            }
-          }
-    }
-    window.fsImportacaoPdfPendente=null;
       status(files.length?`PDF recebido: ${files.map(f=>f.name).join(', ')}. Iniciando leitura...`:'Nenhum PDF selecionado.');
       if(files.length)processarArquivosPdf(files);
     });
