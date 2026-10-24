@@ -51,4 +51,19 @@
 .fsMapExporting{display:block}.fsMapExporting .fsMapRows{overflow:visible;max-height:none}
 @media(max-width:1250px){.fsMapDialog>main{overflow-x:auto}.fsMapMonthMode{overflow-x:auto}.fsMapRows{overflow-y:auto}}
 
+/* V872 — guia em quadrante, cor semântica, hoje e separação semanal */
+.fsMapWeeks,.fsMapDays,.fsMapRow,.fsMapWeeks>div,.fsMapDays>div,.fsMapPerson,.fsMapRole,.fsMapCell,.fsMapCoverageCell,.fsMapTotals{box-sizing:border-box}
+.fsMapRow.fsMapHoverRow>.fsMapCell,.fsMapRow.fsMapHoverRow>.fsMapCoverageCell,.fsMapHoverCol,.fsMapRow.fsMapHoverRow>.fsMapHoverCol{background-color:inherit!important;box-shadow:none!important}
+.fsMapGuideRow{box-shadow:inset 0 1px 0 rgba(72,178,233,.62),inset 0 -1px 0 rgba(72,178,233,.62)!important}
+.fsMapPerson.fsMapGuideRow,.fsMapRole.fsMapGuideRow{background:#eaf6ff!important;color:#0b5790;box-shadow:inset 4px 0 0 #4eafe4,inset 0 1px 0 rgba(72,178,233,.62),inset 0 -1px 0 rgba(72,178,233,.62)!important}
+.fsMapGuideCol{box-shadow:inset 1px 0 0 rgba(72,178,233,.68),inset -1px 0 0 rgba(72,178,233,.68)!important}
+.fsMapDays>.fsMapGuideCol{background:#eaf6ff!important;color:#0b5790}
+.fsMapCell.fsMapGuideFocus,.fsMapCoverageCell.fsMapGuideFocus{z-index:5;filter:saturate(1.12) brightness(.985)}
+.fsMapCell.work.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #4c9fe0!important;background:#edf7ff!important}.fsMapCell.off.fsMapGuideFocus,.fsMapCoverageCell.closed.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #8c98a9!important;background:#eef0f3!important}.fsMapCell.comp.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #d6a21b!important}.fsMapCell.sunday.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #2a9aba!important}.fsMapCell.adjust.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #8565cf!important}.fsMapCoverageCell.good.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #20a56b!important}.fsMapCoverageCell.low.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #d5a21b!important}.fsMapCoverageCell.zero.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #df4a50!important}
+.fsMapCoverageCell small{display:none!important}.fsMapCoverageCell{grid-template-rows:1fr}.fsMapCoverageCell b{font-size:8px}.fsMapCoverageMode .fsMapRole small{margin-top:2px}
+.fsMapCell.work{background:rgba(247,250,253,.72)}.fsMapRow:nth-child(even) .fsMapCell.work{background:#fbfdff}
+.fsMapWeekStart{border-left:4px solid #edf2f7!important}.fsMapDays>.fsMapWeekStart{border-left-color:#fff!important}.fsMapTodayCol{border-left:1.5px solid #38a6dd!important;border-right:1.5px solid #38a6dd!important}.fsMapDays>.fsMapTodayCol{background:#edf8ff!important;color:#0b5790}.fsMapTodayCol.fsMapWeekStart{border-left-color:#38a6dd!important}
+.fsMapWeekMode .fsMapWeeks,.fsMapWeekMode .fsMapDays,.fsMapWeekMode .fsMapRow{width:100%;grid-auto-flow:row}.fsMapWeekMode .fsMapDays>div,.fsMapWeekMode .fsMapCell{justify-self:stretch;width:100%}
+@media(max-width:900px){.fsMapPerson.fsMapGuideRow,.fsMapRole.fsMapGuideRow{box-shadow:inset 3px 0 0 #4eafe4,inset 0 1px 0 rgba(72,178,233,.62),inset 0 -1px 0 rgba(72,178,233,.62)!important}}
+
 
