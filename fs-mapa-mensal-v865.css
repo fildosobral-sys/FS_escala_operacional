@@ -26,4 +26,29 @@
 @media(max-width:1250px){.fsMapReportsGrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){.fsMapReportsGrid{grid-template-columns:1fr}}
 
+/* V871 — acabamento iOS executivo e rolagem consolidada */
+.fsMapModal{background:rgba(2,8,23,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.fsMapDialog{border:1px solid rgba(255,255,255,.42);border-radius:24px;box-shadow:0 34px 90px rgba(2,8,23,.38);background:#f4f7fb}
+.fsMapDialog>header{min-height:78px;padding:14px 18px;background:radial-gradient(circle at 88% 0,rgba(67,142,255,.38),transparent 32%),linear-gradient(118deg,#071d68 0%,#0d3ca8 55%,#1264da 100%);box-shadow:inset 0 -1px rgba(255,255,255,.13)}
+.fsMapDialog h2{font-size:22px;letter-spacing:-.35px}.fsMapDialog header p{margin-top:2px;font-size:11px;opacity:.78}
+.fsMapMonthNav{gap:6px}.fsMapMonthNav button,.fsMapMonthNav b{min-height:38px;border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.12);border-radius:12px;box-shadow:inset 0 1px rgba(255,255,255,.11);transition:background .16s ease,transform .16s ease}.fsMapMonthNav button:hover{background:rgba(255,255,255,.2)}.fsMapMonthNav button:active{transform:scale(.96)}
+.fsMapDialog>main{display:grid;grid-template-rows:auto minmax(0,1fr);gap:9px;min-height:0;overflow:hidden;padding:10px;background:linear-gradient(180deg,#f7f9fc,#eef3f9)}
+.fsMapToolbar{margin:0;border-color:#dfe7f2;border-radius:18px;background:rgba(255,255,255,.94);box-shadow:0 8px 24px rgba(30,64,175,.055),inset 0 1px #fff;padding:9px 11px}
+.fsMapViews{gap:5px;padding:3px;border:1px solid #e2e8f2;border-radius:13px;background:#f3f6fa;width:max-content}.fsMapViews button{border:0!important;border-radius:10px!important;background:transparent!important;padding:8px 12px!important;color:#334b73!important;box-shadow:none!important;transition:all .16s ease}.fsMapViews button:hover{background:#fff!important}.fsMapViews button.active{background:#fff!important;color:#0d4fc4!important;box-shadow:0 3px 10px rgba(15,51,114,.12),inset 0 0 0 1px #d8e4f4!important}
+.fsMapDownload{min-height:36px;border-radius:11px;background:linear-gradient(180deg,#123889,#071d68);box-shadow:0 5px 13px rgba(7,29,104,.18)}
+.fsMapSummary{gap:6px}.fsMapSummary span{border:1px solid transparent;padding:6px 9px;font-size:9px;box-shadow:inset 0 1px rgba(255,255,255,.55)}.fsMapSummary span b{font-size:12px}.fsMapSummary .ok{border-color:#cfeede}.fsMapSummary .warn{border-color:#f5e4aa}.fsMapSummary .risk{border-color:#f6caca;background:#fff0f0}
+.fsMapFilters{gap:7px}.fsMapFilters label{font-size:8px;font-weight:800;letter-spacing:.15px}.fsMapFilters select,.fsMapFilters input{min-height:35px;border-color:#dbe3ef;border-radius:11px;background:#f9fbfd;padding:8px 10px;box-shadow:inset 0 1px 2px rgba(15,23,42,.025)}.fsMapFilters select:focus,.fsMapFilters input:focus{outline:0;border-color:#72a7ef;box-shadow:0 0 0 3px rgba(21,87,214,.10);background:#fff}#fsMapClear{min-height:35px;border-radius:11px;background:#f8fafc}
+.fsMapWeekPicker{gap:6px}.fsMapWeekPicker button{min-width:90px;border-radius:12px;padding:7px 11px}.fsMapWeekPicker button.active{background:linear-gradient(180deg,#2d74e7,#1557d6);box-shadow:0 5px 13px rgba(21,87,214,.2)}
+.fsMapMatrix{min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;border-color:#dce5f1;border-radius:18px;box-shadow:0 8px 24px rgba(30,64,175,.055);background:#fff}
+.fsMapRows{min-height:0;max-height:none;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#aeb9c8 transparent}.fsMapRows::-webkit-scrollbar{width:7px}.fsMapRows::-webkit-scrollbar-track{background:transparent}.fsMapRows::-webkit-scrollbar-thumb{background:#b4bfce;border:2px solid transparent;border-radius:999px;background-clip:padding-box}
+.fsMapWeeks{background:#edf3fa}.fsMapDays{background:#f8fafc}.fsMapWeeks .sticky,.fsMapDays .sticky,.fsMapWeeks .end,.fsMapDays .end{background:inherit}.fsMapWeeks>div{color:#17468e;letter-spacing:.05px}.fsMapDays>div{color:#40516e}
+.fsMapRow{transition:background-color .12s ease}.fsMapRow:nth-child(even){background:#fbfcfe}.fsMapPerson,.fsMapRole{background:inherit}.fsMapPerson:hover{background:#f0f6ff}.fsMapAvatar{border:1px solid rgba(21,87,214,.12);box-shadow:0 2px 5px rgba(15,23,42,.08)}
+.fsMapCell,.fsMapCoverageCell{transition:background-color .1s ease,box-shadow .1s ease;color:#41516c}.fsMapCell.off,.fsMapCoverageCell.closed{background:#f4f5f7;color:#778295}.fsMapCell.comp{background:#fff7e3;color:#8a6200}.fsMapCell.sunday{background:#eaf7fc;color:#176b89}.fsMapCell.adjust{background:#f0ebff;color:#6346a8}
+.fsMapCell.coverage-risk{box-shadow:inset 0 0 0 1px rgba(220,38,38,.24)}.fsMapCell i{right:3px;top:3px;width:6px;height:6px;background:#e5484d;color:transparent;box-shadow:0 0 0 2px #fff;font-size:0}
+.fsMapRow.fsMapHoverRow>.fsMapCell,.fsMapRow.fsMapHoverRow>.fsMapCoverageCell{background-color:rgba(223,242,255,.26);box-shadow:inset 0 1px 0 rgba(93,189,242,.55),inset 0 -1px 0 rgba(93,189,242,.55)}.fsMapHoverCol{background-color:rgba(219,241,255,.28)!important;box-shadow:inset 1px 0 0 rgba(76,179,237,.65),inset -1px 0 0 rgba(76,179,237,.65)!important}.fsMapRow.fsMapHoverRow>.fsMapHoverCol{background-color:rgba(200,232,255,.48)!important;box-shadow:inset 0 0 0 1.5px #56afe2!important}.fsMapDays>.fsMapHoverCol{background:#e8f6ff!important;color:#0e568a}
+.fsMapTotals{background:inherit}.fsMapTotals b{letter-spacing:-.1px}.fsMapMatrix>footer{min-height:38px;padding:8px 12px;background:#f8fafc}
+.fsMapPopover>div{border-radius:20px;box-shadow:0 30px 90px rgba(2,8,23,.3)}.fsMapPopover header{padding:13px 16px}.fsMapPopover section{background:#f7f9fc}.fsMapPopoverCols article{background:#fff;box-shadow:0 4px 12px rgba(30,64,175,.04)}
+.fsMapExporting{display:block}.fsMapExporting .fsMapRows{overflow:visible;max-height:none}
+@media(max-width:1250px){.fsMapDialog>main{overflow-x:auto}.fsMapMonthMode{overflow-x:auto}.fsMapRows{overflow-y:auto}}
+
 
