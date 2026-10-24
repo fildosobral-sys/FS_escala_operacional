@@ -62,8 +62,15 @@
 .fsMapCell.work.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #4c9fe0!important;background:#edf7ff!important}.fsMapCell.off.fsMapGuideFocus,.fsMapCoverageCell.closed.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #8c98a9!important;background:#eef0f3!important}.fsMapCell.comp.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #d6a21b!important}.fsMapCell.sunday.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #2a9aba!important}.fsMapCell.adjust.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #8565cf!important}.fsMapCoverageCell.good.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #20a56b!important}.fsMapCoverageCell.low.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #d5a21b!important}.fsMapCoverageCell.zero.fsMapGuideFocus{box-shadow:inset 0 0 0 2px #df4a50!important}
 .fsMapCoverageCell small{display:none!important}.fsMapCoverageCell{grid-template-rows:1fr}.fsMapCoverageCell b{font-size:8px}.fsMapCoverageMode .fsMapRole small{margin-top:2px}
 .fsMapCell.work{background:rgba(247,250,253,.72)}.fsMapRow:nth-child(even) .fsMapCell.work{background:#fbfdff}
-.fsMapWeekStart{border-left:4px solid #edf2f7!important}.fsMapDays>.fsMapWeekStart{border-left-color:#fff!important}.fsMapTodayCol{border-left:1.5px solid #38a6dd!important;border-right:1.5px solid #38a6dd!important}.fsMapDays>.fsMapTodayCol{background:#edf8ff!important;color:#0b5790}.fsMapTodayCol.fsMapWeekStart{border-left-color:#38a6dd!important}
+.fsMapWeekStart{border-left:3px solid #e8edf3!important}.fsMapDays>.fsMapWeekStart{border-left-color:#f7f9fc!important}.fsMapTodayCol{border-left:2px solid #1593d1!important;border-right:2px solid #1593d1!important}.fsMapDays>.fsMapTodayCol{background:#edf8ff!important;color:#0b5790}.fsMapTodayCol.fsMapWeekStart{border-left-color:#1593d1!important}.fsMapTodayCol+.fsMapWeekStart{border-left-color:#fff!important}
 .fsMapWeekMode .fsMapWeeks,.fsMapWeekMode .fsMapDays,.fsMapWeekMode .fsMapRow{width:100%;grid-auto-flow:row}.fsMapWeekMode .fsMapDays>div,.fsMapWeekMode .fsMapCell{justify-self:stretch;width:100%}
 @media(max-width:900px){.fsMapPerson.fsMapGuideRow,.fsMapRole.fsMapGuideRow{box-shadow:inset 3px 0 0 #4eafe4,inset 0 1px 0 rgba(72,178,233,.62),inset 0 -1px 0 rgba(72,178,233,.62)!important}}
+
+/* V874 — hoje discreto em amarelo e alinhamento milimétrico do cabeçalho */
+.fsMapWeeks,.fsMapDays{padding-right:var(--fs-map-scrollbar,0px)}
+.fsMapExporting .fsMapWeeks,.fsMapExporting .fsMapDays{padding-right:0}
+.fsMapTodayCol{border-left:1px solid #d7aa00!important;border-right:1px solid #d7aa00!important;background-image:linear-gradient(rgba(255,218,64,.10),rgba(255,218,64,.10))!important}
+.fsMapDays>.fsMapTodayCol{background:#fff6c7!important;color:#725400!important;box-shadow:inset 0 -2px 0 #dfb400!important}
+.fsMapTodayCol.fsMapWeekStart{border-left-color:#d7aa00!important}.fsMapTodayCol+.fsMapWeekStart{border-left-color:#fff!important}
 
 
