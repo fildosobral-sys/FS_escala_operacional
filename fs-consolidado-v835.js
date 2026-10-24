@@ -161,6 +161,6 @@
   if(!document.querySelector('link[data-fs-bh-v842]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-banco-horas-v842.css?v=869';l.dataset.fsBhV842='1';document.head.appendChild(l)}
   if(!document.querySelector('script[data-fs-bh-v842]')){const s=document.createElement('script');s.src='./fs-banco-horas-v842.js?v=869';s.dataset.fsBhV842='1';document.head.appendChild(s)}
   /* V865 — mapa mensal executivo, carregado depois do banco de horas. */
-  if(!document.querySelector('link[data-fs-map-v865]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-mapa-mensal-v865.css?v=874';l.dataset.fsMapV865='1';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-fs-map-v865]')){const s=document.createElement('script');s.src='./fs-mapa-mensal-v865.js?v=874';s.dataset.fsMapV865='1';document.head.appendChild(s)}
+  if(!document.querySelector('link[data-fs-map-v865]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./fs-mapa-mensal-v865.css?v=875';l.dataset.fsMapV865='1';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-fs-map-v865]')){const s=document.createElement('script');s.src='./fs-mapa-mensal-v865.js?v=875';s.dataset.fsMapV865='1';document.head.appendChild(s)}
 })();

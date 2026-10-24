@@ -73,4 +73,13 @@
 .fsMapDays>.fsMapTodayCol{background:#fff6c7!important;color:#725400!important;box-shadow:inset 0 -2px 0 #dfb400!important}
 .fsMapTodayCol.fsMapWeekStart{border-left-color:#d7aa00!important}.fsMapTodayCol+.fsMapWeekStart{border-left-color:#fff!important}
 
+/* V875 — identificação cromática apenas nos cards semanais */
+.fsMapWeeks>.fsMapWeekCard{align-self:stretch;margin:3px 2px;border:1px solid transparent!important;border-radius:9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.75);line-height:1.05}
+.fsMapWeeks>.fsMapWeekCard1{background:#e8f2ff;color:#174f9c;border-color:#cfe1f7!important}
+.fsMapWeeks>.fsMapWeekCard2{background:#e7f7f0;color:#176a50;border-color:#ccebdd!important}
+.fsMapWeeks>.fsMapWeekCard3{background:#f0ebff;color:#60469a;border-color:#ded4fa!important}
+.fsMapWeeks>.fsMapWeekCard4{background:#fff0e4;color:#92572f;border-color:#f4dac8!important}
+.fsMapWeeks>.fsMapWeekCard5{background:#fcecf2;color:#914965;border-color:#f1d4df!important}
+.fsMapWeeks>.fsMapWeekCard small{color:inherit;opacity:.78}
+
 
