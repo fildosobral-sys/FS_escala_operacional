@@ -82,4 +82,12 @@
 .fsMapWeeks>.fsMapWeekCard5{background:#fcecf2;color:#914965;border-color:#f1d4df!important}
 .fsMapWeeks>.fsMapWeekCard small{color:inherit;opacity:.78}
 
+/* V876 — semanas dinâmicas e domingos fechados em segundo plano */
+.fsMapWeeks>.fsMapWeekCard{background:hsl(var(--fs-week-hue) 68% 90%);color:hsl(var(--fs-week-hue) 48% 31%);border-color:hsl(var(--fs-week-hue) 52% 75%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 2px 5px hsla(var(--fs-week-hue),45%,35%,.10)}
+.fsMapDays>.fsMapSundayInactive{background:#fafbfc!important;color:#b4bbc5!important;opacity:.62}
+.fsMapCell.fsMapSundayInactive,.fsMapCoverageCell.fsMapSundayInactive{background:#fbfcfd!important;background-image:none!important;color:#bcc3cc!important;opacity:.42;box-shadow:none!important}
+.fsMapDays>.fsMapSundayActive{background:#eaf7fc!important;color:#176b89!important;opacity:1}
+.fsMapCell.fsMapSundayActive,.fsMapCoverageCell.fsMapSundayActive{opacity:1}
+.fsMapSundayInactive.fsMapGuideFocus{opacity:.68}
+
 
