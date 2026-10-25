@@ -208,6 +208,17 @@
         JSON.parse(localStorage.getItem("fsDadosEmpresa") || "{}") ||
         {};
     } catch (_) {}
+    let bankCredit=0,bankDebit=0,bankReference='',bankImportedAt='',bankPeople=0,plansActive=0,plansOverdue=0;
+    try{
+      const bh=s.config?.fsBancoHoras||{},snap=(bh.imports||[]).slice().sort((a,b)=>String(b.periodEnd||b.importedAt||'').localeCompare(String(a.periodEnd||a.importedAt||'')))[0];
+      if(snap){
+        const activeIds=new Set(ps.map(p=>String(p.id))),excluded=new Set(snap.excludedCodes||[]),rows=(snap.rows||[]).filter(r=>!excluded.has(r.code)&&(!r.personId||activeIds.has(String(r.personId))));
+        bankPeople=rows.length;rows.forEach(r=>{const value=Number(r.balance||0);if(value>0)bankCredit+=value;else bankDebit+=Math.abs(value)});
+        bankReference=String(snap.periodEnd||snap.periodStart||'');bankImportedAt=String(snap.importedAt||'');
+        const now=Date.now();(bh.plans||[]).filter(p=>p.importId===snap.id&&!/cancelado|nao cumprido/i.test(p.status||'')).forEach(p=>{plansActive++;if(p.expiry&&Date.parse(p.expiry)<now&&!/cumprido/i.test(p.status||''))plansOverdue++});
+      }
+    }catch(_){}
+    const scaleCompletion=ps.length?Math.max(0,Math.min(100,Math.round(((ps.length-divergences-pending)*100)/ps.length))):0;
     return {
       branchId: localStorage.getItem(K.branch) || "",
       branchName: company.filial || localStorage.getItem(K.branchName) || "",
@@ -223,6 +234,17 @@
         : 0,
       divergences,
       pending,
+      scaleCompletion,
+      bankCredit,
+      bankDebit,
+      bankNet:bankCredit-bankDebit,
+      bankPeople,
+      bankReference,
+      bankImportedAt,
+      plansActive,
+      plansOverdue,
+      absenceRate:null,
+      source:{scale:'published',bank:bankReference?'imported':'unavailable'},
       functionCounts: fc,
     };
   }
@@ -1086,7 +1108,7 @@
     const root = document.createElement("div");
     root.id = "fsDashRoot";
     root.className = "fsDashShell";
-    root.innerHTML = `<header class="fsDashTop"><div class="fsDashBrand"><i>FS</i><div><b>Central Gerencial</b><small>FS Escala • ${esc(role(data.context?.role))}</small></div></div><nav class="fsDashNav"><button class="active">Visão geral</button>${data.context?.canShare || data.context?.globalAdmin || ["developer", "regional_admin", "branch_admin"].includes(data.context?.role) ? '<button id="fsDashAccess">Central de Acessos</button>' : ""}</nav><div class="fsDashTopActions"><button class="fsDashUser" id="fsDashUser"><b>${esc(data.context?.name || "Administrador")}</b><small>${esc(role(data.context?.role))} ▾</small></button><span class="fsDashLive"><i></i> Monitoramento ativo</span><button class="fsDashGhost" id="fsDashRefresh">↻ Atualizar</button></div></header><main class="fsDashMain"><section class="fsDashWelcome"><div><span class="fsDashEyebrow">VISÃO CONSOLIDADA</span><h1>Olá, ${esc(data.context?.name || "Administrador")}</h1><p>Acompanhe regionais, filiais e indicadores operacionais em um só lugar.</p></div><span class="fsDashStamp">Última consulta<br><b>${new Date(data.generatedAt).toLocaleString("pt-BR")}</b></span></section><section class="fsDashToolbar"><div class="fsDashSearch"><span>⌕</span><input id="fsDashSearch" value="${esc(query)}" placeholder="Buscar filial, cidade, gestor ou regional"></div><div class="fsDashFilters"><button data-region="all" class="${region === "all" ? "active" : ""}">Todas</button>${(data.regions || []).map((r) => `<button data-region="${esc(r.id)}" class="${region === r.id ? "active" : ""}">${esc(r.name)}</button>`).join("")}</div></section><section class="fsDashKpis">${kpis(
+    root.innerHTML = `<header class="fsDashTop"><div class="fsDashBrand"><i>FS</i><div><b>Central Gerencial</b><small>FS Escala • ${esc(role(data.context?.role))}</small></div></div><nav class="fsDashNav"><button class="active">Visão geral</button><button id="fsDashRegional">Visão Regional</button>${data.context?.canShare || data.context?.globalAdmin || ["developer", "regional_admin", "branch_admin"].includes(data.context?.role) ? '<button id="fsDashAccess">Central de Acessos</button>' : ""}</nav><div class="fsDashTopActions"><button class="fsDashUser" id="fsDashUser"><b>${esc(data.context?.name || "Administrador")}</b><small>${esc(role(data.context?.role))} ▾</small></button><span class="fsDashLive"><i></i> Monitoramento ativo</span><button class="fsDashGhost" id="fsDashRefresh">↻ Atualizar</button></div></header><main class="fsDashMain"><section class="fsDashWelcome"><div><span class="fsDashEyebrow">VISÃO CONSOLIDADA</span><h1>Olá, ${esc(data.context?.name || "Administrador")}</h1><p>Acompanhe regionais, filiais e indicadores operacionais em um só lugar.</p></div><div class="fsDashWelcomeActions"><button id="fsDashRegionalHero">Abrir Inteligência Regional →</button><span class="fsDashStamp">Última consulta<br><b>${new Date(data.generatedAt).toLocaleString("pt-BR")}</b></span></div></section><section class="fsDashToolbar"><div class="fsDashSearch"><span>⌕</span><input id="fsDashSearch" value="${esc(query)}" placeholder="Buscar filial, cidade, gestor ou regional"></div><div class="fsDashFilters"><button data-region="all" class="${region === "all" ? "active" : ""}">Todas</button>${(data.regions || []).map((r) => `<button data-region="${esc(r.id)}" class="${region === r.id ? "active" : ""}">${esc(r.name)}</button>`).join("")}</div></section><section class="fsDashKpis">${kpis(
       bs,
     )
       .map(
@@ -1104,6 +1126,9 @@
     root.querySelector("#fsDashRefresh").onclick = () => load(true);
     const access = root.querySelector("#fsDashAccess");
     if (access) access.onclick = openAccess;
+    const openRegional=()=>window.fsRegionalOpen?.(data);
+    root.querySelector("#fsDashRegional").onclick=openRegional;
+    root.querySelector("#fsDashRegionalHero").onclick=openRegional;
     root.querySelector("#fsDashUser").onclick = (e) => {
       e.stopPropagation();
       toggleUserMenu(e.currentTarget);
@@ -1294,6 +1319,10 @@
       }
     }
   }
+  window.fsDashGetData=()=>data;
+  window.fsDashJsonp=jsonp;
+  window.fsDashOpenBranch=openBranch;
+  window.fsDashRender=render;
   async function start() {
     if (await activateInvite()) return;
     const c = cfg();
