@@ -27,3 +27,22 @@
 .fsR884DetailGrid h3{font-size:11px}
 .fsR884DetailGrid p{font-size:8.5px}
 .fsR884DetailHistory .fsR884Empty{padding:16px}
+
+/* v889 — contenção responsiva: nenhum rótulo ou valor invade a coluna vizinha. */
+.fsR884Hero>*,.fsR884Kpi>span,.fsR884BranchPanel>header>*,.fsR884DetailGrid>article{min-width:0}
+.fsR884Kpi b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fsR884Kpi em{overflow-wrap:anywhere;line-height:1.2}
+.fsR884Ranking>button{grid-template-columns:25px minmax(120px,1.15fr) minmax(64px,1fr) minmax(68px,78px) minmax(82px,94px)}
+.fsR884Ranking>button>*{min-width:0;box-sizing:border-box}
+.fsR884Ranking strong{white-space:normal;overflow-wrap:anywhere;line-height:1.12}
+.fsR884Ranking mark{width:100%;padding-inline:5px;overflow:hidden;text-overflow:ellipsis}
+.fsR884Table table{min-width:1420px;table-layout:fixed}
+.fsR884Table th,.fsR884Table td{box-sizing:border-box;min-width:0;overflow:hidden;overflow-wrap:anywhere}
+.fsR884Table th:nth-child(1){width:42px}.fsR884Table th:nth-child(2){width:165px}.fsR884Table th:nth-child(3){width:110px}.fsR884Table th:nth-child(4){width:62px}.fsR884Table th:nth-child(5){width:68px}.fsR884Table th:nth-child(6){width:165px}.fsR884Table th:nth-child(7){width:92px}.fsR884Table th:nth-child(8){width:72px}.fsR884Table th:nth-child(9){width:96px}.fsR884Table th:nth-child(10){width:92px}.fsR884Table th:nth-child(11){width:96px}.fsR884Table th:nth-child(12){width:126px}.fsR884Table th:nth-child(13){width:112px}.fsR884Table th:nth-child(14){width:108px}
+.fsR884Table td>mark{max-width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}
+.fsR884Bank{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;align-items:center}
+.fsR884Bank>*{min-width:0;white-space:nowrap;text-align:center;overflow:hidden;text-overflow:ellipsis}
+.fsR884Actions{min-width:0;flex-wrap:nowrap}
+.fsR884Actions button{flex:0 0 auto}
+.fsR884Detail header h2,.fsR884Detail header p,.fsR884DetailGrid p>span,.fsR884DetailGrid p>b,.fsR884DetailGrid p>small{min-width:0;overflow-wrap:anywhere}
+@media(max-width:560px){.fsR884Ranking>button{grid-template-columns:23px minmax(105px,1fr) 54px minmax(60px,70px)}.fsR884Ranking>button>em{display:none}.fsR884Ranking mark{font-size:7px}}

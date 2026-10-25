@@ -1,4 +1,4 @@
-/* FS Regional v888 — refinamento executivo, leitura parcial e composição compacta. */
+/* FS Regional v889 — refinamento executivo, composição compacta e contenção responsiva. */
 (function(){
   'use strict';
   let source=null,region='all',query='',tab='consolidado',selectedBranch='',statusFilter='all',journeyFilter='all',sortMode='priority',period=new Date().toISOString().slice(0,7);
