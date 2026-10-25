@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-central-v887';
+const CACHE_NAME = 'fs-escala-central-v888';
 const CORE_FILES = [
   './',
   './index.html',

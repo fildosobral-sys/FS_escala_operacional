@@ -9,3 +9,21 @@
 @media(max-width:800px){.fsR884Kpis{grid-template-columns:repeat(2,1fr)}.fsR884Insights,.fsR884ModuleKpis{grid-template-columns:1fr}.fsR884Executive{grid-column:auto}.fsR884BranchPanel>header{grid-template-columns:1fr}.fsR884ReportOptions{grid-template-columns:1fr}.fsR884ReportOptions p{grid-column:auto}.fsR884Module>header{align-items:start;flex-direction:column;gap:4px}}
 @media print{.fsR884ReportOptions button{display:none}.fsR884ReportOptions{display:block;border:0;padding:0}.fsR884Module{border:0;padding:0;background:#fff}}
 .fsR884Root mark.parcial{background:#e8f0fb;color:#355b88}.fsR884Kpi small{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.15;min-height:18px}.fsR884Insights,.fsR884Overview{align-items:start}.fsR884MiniRows .fsR884Empty{padding:14px}.fsR884MiniRows:has(.fsR884Empty){min-height:44px}.fsR884Bars p:has(u[style="width:0%"]){opacity:.62}
+
+/* v888 — mantém os três painéis executivos compactos, sem criar vazio antes da tabela. */
+.fsR884Overview{align-items:stretch}
+.fsR884Overview>.fsR884Panel{height:252px}
+.fsR884Overview .fsR884Ranking{height:198px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#c8d7ea transparent}
+.fsR884Overview .fsR884Ranking::-webkit-scrollbar{width:6px}
+.fsR884Overview .fsR884Ranking::-webkit-scrollbar-thumb{border-radius:999px;background:#c8d7ea}
+.fsR884Overview .fsR884Status{min-height:198px;box-sizing:border-box}
+@media(max-width:900px){.fsR884Overview>.fsR884Panel{height:auto}.fsR884Overview .fsR884Ranking{height:auto;max-height:none;overflow:visible}.fsR884Overview .fsR884Status{min-height:0}}
+
+/* v888 — leitura executiva: melhora a legibilidade sem aumentar a área ocupada. */
+.fsR884Table th{font-size:8px;line-height:1.2}
+.fsR884Table td{font-size:9.5px;line-height:1.25}
+.fsR884Detail{height:auto!important;min-height:0!important}
+.fsR884DetailKpis small{font-size:8px}
+.fsR884DetailGrid h3{font-size:11px}
+.fsR884DetailGrid p{font-size:8.5px}
+.fsR884DetailHistory .fsR884Empty{padding:16px}
