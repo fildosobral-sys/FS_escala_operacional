@@ -9,7 +9,7 @@
     },
     MAIN_STATE_KEY = "fs_escala_limpa_v381",
     OPTIONAL_STATE_KEYS = ["fsDadosEmpresa", "fs_continuidade_operacional_v1", "fsDomingosMensaisV550", "fsDomMinimosV551"],
-    DASH_CACHE_KEY = "fs_management_dashboard_cache_v890",
+    DASH_CACHE_KEY = "fs_management_dashboard_cache_v891",
     BRANCH_CACHE_PREFIX = "fs_branch_payload_cache_v822_",
     ROLES = {
       developer: "Desenvolvedor",
@@ -539,6 +539,7 @@
     const m=modal('Responsáveis da filial',`<p class="fsInviteNote">Esses contatos serão usados nas orientações regionais e nas futuras notificações do aplicativo.</p>${fields('manager','Gerente da filial')}${fields('credit_manager','Gerente de crédito')}${fields('acting','Responsável temporário')}`,'Salvar responsáveis',async(f,w)=>{try{for(const type of ['manager','credit_manager','acting']){const name=String(f.get(type+'_name')||'').trim(),memberId=String(f.get(type+'_member')||''),old=current(type);if(!name&&!memberId){if(old.id&&!String(old.id).startsWith('MEMBER-')&&!String(old.id).startsWith('SUMMARY-'))await jsonp('deactivateBranchContact',{targetBranchId:branchId,contactId:old.id});continue}const r=await jsonp('saveBranchContact',{targetBranchId:branchId,contactType:type,memberId,name,phone:f.get(type+'_phone')||'',startDate:type==='acting'?f.get('acting_start')||'':'',endDate:type==='acting'?f.get('acting_end')||'':''});if(!r.ok)throw new Error(r.message||'Não foi possível salvar o responsável.')}w.remove();await load(true)}catch(e){error(e.message)}});
     m.querySelectorAll('select[name$="_member"]').forEach(s=>s.onchange=()=>{const prefix=s.name.replace('_member',''),member=members.find(x=>x.id===s.value);if(member){m.querySelector(`[name="${prefix}_name"]`).value=member.name||'';m.querySelector(`[name="${prefix}_phone"]`).value=member.phone||'';}});
   }
+  window.fsDashEditContacts=contactEditor;
   function alerts(bs) {
     const a = bs
       .filter(
@@ -861,7 +862,7 @@
   function newBranch() {
     modal(
       "Cadastrar nova filial",
-      `<label>Nome da filial<input name="name" required placeholder="Ex.: Filial 32 - Centro"></label><label>Setor ou identificação<input name="sector" placeholder="Opcional"></label><label>Usar como modelo<select name="copyFrom">${branchOptions()}</select></label><p class="fsInviteNote">A nova filial será independente. Para Administrador Regional, ela será vinculada automaticamente à sua regional.</p>`,
+      `<label>Nome da filial<input name="name" required placeholder="Ex.: Filial 32 - Centro"></label><label>Setor ou identificação<input name="sector" placeholder="Opcional"></label><label>Usar como modelo<select name="copyFrom">${branchOptions()}</select></label><fieldset class="fsContactGroup"><legend>Responsáveis iniciais</legend><div class="fsContactManual"><label>Gerente da filial<input name="managerName" placeholder="Nome completo"></label><label>WhatsApp do gerente<input name="managerPhone" inputmode="tel" placeholder="DDD + número"></label></div><div class="fsContactManual"><label>Gerente de crédito<input name="creditName" placeholder="Nome completo"></label><label>WhatsApp da gerente de crédito<input name="creditPhone" inputmode="tel" placeholder="DDD + número"></label></div></fieldset><p class="fsInviteNote">Esses dados podem ser alterados depois em “Editar responsáveis”. A nova filial será independente e, para Administrador Regional, vinculada automaticamente à sua regional.</p>`,
       "Criar filial",
       async (f, w) => {
         try {
@@ -871,6 +872,8 @@
             copyFrom: f.get("copyFrom"),
           });
           if (!r.ok) throw new Error(r.message);
+          const initialContacts=[['manager',f.get('managerName'),f.get('managerPhone')],['credit_manager',f.get('creditName'),f.get('creditPhone')]];
+          for(const c of initialContacts){if(String(c[1]||'').trim()){const saved=await jsonp('saveBranchContact',{targetBranchId:r.branchId,contactType:c[0],name:c[1],phone:c[2]||''});if(!saved.ok)throw new Error(saved.message||'A filial foi criada, mas não foi possível salvar os responsáveis.')}}
           w.remove();
           await load(true);
           await openAccess();
