@@ -74,6 +74,31 @@
     datas().forEach(d=>{const c=cfg(d);if(c)c.equipes=q});
     sincronizarTudo();return q;
   }
+  let fsV901BusyTimer=0,fsV901BloquearRender=false;
+  function domingoOcupado(texto='Organizando escala dominical…'){
+    let box=document.querySelector('.fsV901SundayBusy');
+    if(!box){
+      box=document.createElement('div');box.className='fsV901SundayBusy';box.setAttribute('role','status');box.setAttribute('aria-live','polite');
+      box.innerHTML='<div class="fsV901BusyCard"><div class="fsV901LogoRing"><img src="./LOGO%20ATUAL.png" alt="Zenir"></div><strong></strong><small>Aguarde um instante. Seus dados estão sendo preservados.</small></div>';
+      document.body.appendChild(box);
+    }
+    box.querySelector('strong').textContent=texto;box.classList.remove('saindo');document.body.classList.add('fsV901SundayUpdating');clearTimeout(fsV901BusyTimer);return box;
+  }
+  function domingoPronto(atraso=420){clearTimeout(fsV901BusyTimer);fsV901BusyTimer=setTimeout(()=>{const box=document.querySelector('.fsV901SundayBusy');box?.classList.add('saindo');document.body.classList.remove('fsV901SundayUpdating');setTimeout(()=>box?.remove(),180)},atraso)}
+  function atualizarLinhasData(data){(state.pessoas||[]).forEach(p=>atualizarLinhaDomingo(data,p.id));corrigirCabecalhos();corrigirRodape()}
+  function instalarProtecaoRender(){
+    const atual=window.fsDom541Mes;if(typeof atual!=='function'||atual.__fsV901Protegido)return;
+    const fn=function(){if(fsV901BloquearRender)return null;return atual.apply(this,arguments)};fn.__fsV901Protegido=true;fn.__fsV901Original=atual;window.fsDom541Mes=fn;try{fsDom541Mes=fn}catch(_){ }
+  }
+  function instalarCabecalhoEstavel(){
+    instalarProtecaoRender();const atual=window.fsV561Set;if(typeof atual!=='function'||atual.__fsV901Estavel)return;
+    const fn=function(data,chave){
+      domingoOcupado(chave==='equipes'?'Ajustando equipes e intervalos…':chave==='percentual'?'Recalculando o quadro do domingo…':'Atualizando o domingo…');
+      fsV901BloquearRender=true;let retorno;try{retorno=atual.apply(this,arguments)}finally{fsV901BloquearRender=false}
+      setTimeout(()=>{limparFolgasAutomaticas(data);sincronizarData(data);atualizarLinhasData(data);persistir();domingoPronto()},70);return retorno;
+    };
+    fn.__fsV901Estavel=true;fn.__fsV901Original=atual;window.fsV561Set=fn;try{fsV561Set=fn}catch(_){ }
+  }
   function limparFolgasAutomaticas(data){
     const alvo=data?[data]:datas();let mudou=false;
     alvo.forEach(d=>Object.values(store().itens?.[d]||{}).forEach(r=>{if((r.status==='trabalha'||r.trabalha)&&r.folgaData){r.folgaData='';mudou=true}}));
@@ -87,7 +112,7 @@
   function instalarGeradoresSemFolgaCravada(){
     [['fsV561GerarDomingo',true],['fsV551Sugerir',false]].forEach(([nome,porData])=>{
       const atual=window[nome];if(typeof atual!=='function'||atual.__fsV899SemFolga)return;
-      const fn=function(){const data=porData?arguments[0]:'';const retorno=atual.apply(this,arguments);setTimeout(()=>{limparFolgasAutomaticas(data);try{window.fsDom541Mes?.(store().competencia)}catch(_){ }setTimeout(atualizar,40)},100);return retorno};
+      const fn=function(){const data=porData?arguments[0]:'';if(porData)domingoOcupado('Aplicando a sugestão do domingo…');if(porData)fsV901BloquearRender=true;let retorno;try{retorno=atual.apply(this,arguments)}finally{if(porData)fsV901BloquearRender=false}setTimeout(()=>{limparFolgasAutomaticas(data);if(porData)atualizarLinhasData(data);else try{window.fsDom541Mes?.(store().competencia)}catch(_){ }setTimeout(atualizar,80);if(porData)domingoPronto()},100);return retorno};
       fn.__fsV899SemFolga=true;fn.__fsV899Original=atual;window[nome]=fn;try{if(nome==='fsV561GerarDomingo')fsV561GerarDomingo=fn;else fsV551Sugerir=fn}catch(_){ }
     });
   }
@@ -120,7 +145,7 @@
     invalidar();persistir();atualizarLinhaDomingo(data,id);setTimeout(atualizar,35);
   };
   window.fsDom541Equipe=function(data,id,v){const r=reg(data,id,true),c=cfg(data),n=Math.max(0,Math.min(Math.max(1,Number(c?.equipes)||1)-1,Number(v)||0));r.equipe=n;r.horario=clone(c?.horarios?.[n]||c?.horarios?.[0]||{});invalidar();persistir();setTimeout(atualizar,35)};
-  window.fsDom541Folga=function(data,id,v){const r=reg(data,id,true);r.folgaData=v;invalidar();persistir();setTimeout(atualizar,35)};
+  window.fsDom541Folga=function(data,id,v){const r=reg(data,id,true);r.folgaData=v;invalidar();persistir();const row=linhaDomingo(data,id);row?.classList.add('fsV901DaySaved');clearTimeout(row?._fsV901Saved);if(row)row._fsV901Saved=setTimeout(()=>row.classList.remove('fsV901DaySaved'),520);setTimeout(()=>{corrigirRodape();corrigirCabecalhos()},90)};
 
   window.fsV835LimparDomingos=function(){
     const comp=store().competencia;if(!comp)return;if(!confirm(`Limpar e refazer toda a escala dominical de ${comp}? As escolhas desta competência serão removidas.`))return;
@@ -170,15 +195,16 @@
       const jornada=[...model.querySelectorAll('.compCard')].find(x=>/jornada semanal/i.test(x.textContent||''));if(jornada){const sm=jornada.querySelector('small');if(sm)sm.innerHTML=ds.length?`Meta: ${state.cargaMeta}h por colaborador<br>Domingos abertos: ${ds.length} • escala calculada por data`:`Meta: ${state.cargaMeta}h por colaborador<br>Domingo: folga geral`}
       return tmp.innerHTML};fn.__fsV835=true;window.cronogramaExecutivoHtml=fn;try{cronogramaExecutivoHtml=fn}catch(_){ }
   }
-  function atualizar(){compactarSalvar();acoesMes();sincronizarTudo();instalarGeradoresSemFolgaCravada();corrigirCabecalhos();corrigirRodape();corrigirExpansores();instalarCronograma()}
-  function iniciar(){migrarFechados();migrarFolgaAutomaticaLegada();sincronizarTudo();instalarGeradoresSemFolgaCravada();instalarCronograma();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }setTimeout(prepararControleNuvem,500)}
-  let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(atualizar,60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+  function atualizar(){compactarSalvar();acoesMes();sincronizarTudo();instalarCabecalhoEstavel();instalarGeradoresSemFolgaCravada();corrigirCabecalhos();corrigirRodape();corrigirExpansores();instalarCronograma()}
+  function iniciar(){migrarFechados();migrarFolgaAutomaticaLegada();sincronizarTudo();instalarCabecalhoEstavel();instalarGeradoresSemFolgaCravada();instalarCronograma();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }setTimeout(prepararControleNuvem,500)}
+  let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(atualizar,150)}).observe(document.body,{childList:true,subtree:true});
   document.addEventListener('change',e=>{
     const equipes=e.target?.closest?.('.fsV561Field')?.querySelector?.('span')?.textContent||'';
-    if(e.target?.matches?.('select')&&/equipes\s*\/\s*intervalos/i.test(equipes))setTimeout(()=>{aplicarEquipesPadrao(e.target.value);try{window.fsDom541Mes?.(store().competencia);renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }setTimeout(atualizar,50)},40);
+    if(e.target?.matches?.('select')&&/equipes\s*\/\s*intervalos/i.test(equipes))setTimeout(()=>{const card=e.target.closest('.fsDomDataCard'),data=card?.dataset.fsDomData;if(data){sincronizarData(data);atualizarLinhasData(data);persistir()}},80);
     if(e.target?.matches?.('#fsAbreDomingo,#fsHorarioDomingoEntrada,#fsHorarioDomingoSaida,#fsHorarioDomingoIntervaloMinutos'))setTimeout(()=>{sincronizarTudo();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }},120)
   },true);
-  setInterval(atualizar,700);setTimeout(iniciar,850);
+  document.addEventListener('click',e=>{if(e.target?.closest?.('#domingo .fsV561Apply'))domingoOcupado('Aplicando a sugestão do domingo…')},true);
+  setInterval(atualizar,2600);setTimeout(iniciar,850);
 })();
 
 /* V837 — finalização do organograma e parâmetros inteligentes de jornada. */
