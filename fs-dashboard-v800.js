@@ -624,7 +624,11 @@
       (i) => i.active && !i.usedAt,
     );
     const links = (accessData.viewLinks || []).filter((l) => l.active);
-    return `<div class="fsAccessGrid"><section class="fsAccessCard fsAccessWide"><header><div><h2>Usuários ativos</h2><p>Quem pode acessar a plataforma e qual é o alcance.</p></div><div class="fsAccessHeaderActions">${["developer", "regional_admin"].includes(data.context?.role) || data.context?.globalAdmin ? '<button class="fsAccessSoft" id="fsAccessNewBranch">+ Nova filial</button>' : ""}<button class="fsAccessPrimary" id="fsAccessNew">+ Novo acesso</button></div></header><div class="fsAccessTable">${members.map((m) => `<article><div class="fsAccessAvatar">${esc((m.name || "U").slice(0, 1))}</div><div><b>${esc(m.name)}</b><small>${esc(role(m.role))} • ${esc(scopeName(m.id))}</small><em>${m.lastAccess ? "Último acesso " + when(m.lastAccess) : "Ainda não acessou"}</em></div><span class="fsAccessTag ${m.canShare ? "share" : ""}">${m.canShare ? "Pode compartilhar" : "Acesso padrão"}</span>${m.id !== data.context?.memberId ? `<button class="fsAccessMore" data-reissue-member="${esc(m.id)}">Novo link</button><button class="fsAccessMore" data-end-session="${esc(m.id)}">Encerrar sessão</button>${accessData.globalAdmin ? `<button class="fsAccessMore" data-scope-member="${esc(m.id)}" title="Alterar alcance">Alcance</button>` : ""}<button class="fsAccessDanger" data-revoke-member="${esc(m.id)}">Bloquear</button>` : ""}</article>`).join("") || '<div class="fsDashEmpty">Nenhum usuário cadastrado.</div>'}</div></section><section class="fsAccessCard"><header><div><h2>Convites pendentes</h2><p>Aguardando ativação pelo destinatário.</p></div></header><div class="fsAccessList">${invites.map((i) => `<article><div><b>${esc(i.name)}</b><small>${esc(role(i.role))} • ${esc(branchName(i.branchId || i.originBranchId))}</small><em>Expira ${when(i.expiresAt)}</em></div><button class="fsAccessDanger" data-revoke-invite="${esc(i.id)}">Cancelar</button></article>`).join("") || '<div class="fsDashEmpty">Nenhum convite pendente.</div>'}</div></section><section class="fsAccessCard"><header><div><h2>Links de visualização</h2><p>Consulta sem permissão de edição.</p></div><button class="fsAccessSoft" id="fsAccessNewLink">+ Gerar link</button></header><div class="fsAccessList">${links.map((l) => `<article><div><b>${esc(l.description || "Visualização")}</b><small>${esc(branchName(l.branchId))}</small><em>${l.lastAccess ? "Acessado " + when(l.lastAccess) : "Nunca acessado"}</em></div><button class="fsAccessDanger" data-revoke-link="${esc(l.id)}">Desativar</button></article>`).join("") || '<div class="fsDashEmpty">Nenhum link ativo.</div>'}</div></section><section class="fsAccessCard fsAccessWide"><header><div><h2>Atividade recente</h2><p>Auditoria dos acessos e alterações administrativas.</p></div></header><div class="fsAccessHistory">${
+    const branches = accessData.branches || [];
+    const branchAdmin = accessData.globalAdmin
+      ? `<section class="fsAccessCard fsAccessWide fsAccessBranches"><header><div><h2>Filiais cadastradas</h2><p>Consulte os vínculos e exclua somente cadastros duplicados ou incorretos.</p></div><span class="fsAccessSafeLabel">Exclusão protegida</span></header><div class="fsAccessBranchGrid">${branches.map((b) => { const users=members.filter(m=>m.branchId===b.id).length, pending=invites.filter(i=>(i.branchId||i.originBranchId)===b.id).length, views=links.filter(l=>l.branchId===b.id).length, principal=b.id===accessData.defaultBranchId; return `<article><div class="fsAccessBranchIcon">🏢</div><div class="fsAccessBranchInfo"><b>${esc(b.name)}${principal?' <span class="fsAccessInlineMain">principal</span>':''}</b><small>${esc(b.sector||'Sem identificação complementar')}</small><em>${esc(b.id)} • versão ${Number(b.version||0)}</em></div><div class="fsAccessBranchStats"><span><b>${users}</b> usuário(s)</span><span><b>${pending}</b> convite(s)</span><span><b>${views}</b> link(s)</span></div><button class="fsAccessDanger" data-delete-branch="${esc(b.id)}">Excluir filial</button></article>`; }).join('')||'<div class="fsDashEmpty">Nenhuma filial cadastrada.</div>'}</div></section>`
+      : '';
+    return `<div class="fsAccessGrid"><section class="fsAccessCard fsAccessWide"><header><div><h2>Usuários ativos</h2><p>Quem pode acessar a plataforma e qual é o alcance.</p></div><div class="fsAccessHeaderActions">${["developer", "regional_admin"].includes(data.context?.role) || data.context?.globalAdmin ? '<button class="fsAccessSoft" id="fsAccessNewBranch">+ Nova filial</button>' : ""}<button class="fsAccessPrimary" id="fsAccessNew">+ Novo acesso</button></div></header><div class="fsAccessTable">${members.map((m) => `<article><div class="fsAccessAvatar">${esc((m.name || "U").slice(0, 1))}</div><div><b>${esc(m.name)}</b><small>${esc(role(m.role))} • ${esc(scopeName(m.id))}</small><em>${m.lastAccess ? "Último acesso " + when(m.lastAccess) : "Ainda não acessou"}</em></div><span class="fsAccessTag ${m.canShare ? "share" : ""}">${m.canShare ? "Pode compartilhar" : "Acesso padrão"}</span>${m.id !== data.context?.memberId ? `<button class="fsAccessMore" data-reissue-member="${esc(m.id)}">Novo link</button><button class="fsAccessMore" data-end-session="${esc(m.id)}">Encerrar sessão</button>${accessData.globalAdmin ? `<button class="fsAccessMore" data-scope-member="${esc(m.id)}" title="Alterar alcance">Alcance</button>` : ""}<button class="fsAccessDanger" data-revoke-member="${esc(m.id)}">Bloquear</button>` : ""}</article>`).join("") || '<div class="fsDashEmpty">Nenhum usuário cadastrado.</div>'}</div></section>${branchAdmin}<section class="fsAccessCard"><header><div><h2>Convites pendentes</h2><p>Aguardando ativação pelo destinatário.</p></div></header><div class="fsAccessList">${invites.map((i) => `<article><div><b>${esc(i.name)}</b><small>${esc(role(i.role))} • ${esc(branchName(i.branchId || i.originBranchId))}</small><em>Expira ${when(i.expiresAt)}</em></div><button class="fsAccessDanger" data-revoke-invite="${esc(i.id)}">Cancelar</button></article>`).join("") || '<div class="fsDashEmpty">Nenhum convite pendente.</div>'}</div></section><section class="fsAccessCard"><header><div><h2>Links de visualização</h2><p>Consulta sem permissão de edição.</p></div><button class="fsAccessSoft" id="fsAccessNewLink">+ Gerar link</button></header><div class="fsAccessList">${links.map((l) => `<article><div><b>${esc(l.description || "Visualização")}</b><small>${esc(branchName(l.branchId))}</small><em>${l.lastAccess ? "Acessado " + when(l.lastAccess) : "Nunca acessado"}</em></div><button class="fsAccessDanger" data-revoke-link="${esc(l.id)}">Desativar</button></article>`).join("") || '<div class="fsDashEmpty">Nenhum link ativo.</div>'}</div></section><section class="fsAccessCard fsAccessWide"><header><div><h2>Atividade recente</h2><p>Auditoria dos acessos e alterações administrativas.</p></div></header><div class="fsAccessHistory">${
       (accessData.recent || [])
         .slice(0, 30)
         .map(
@@ -729,6 +733,9 @@
       .forEach(
         (b) => (b.onclick = () => reissueMember(b.dataset.reissueMember)),
       );
+    root
+      .querySelectorAll("[data-delete-branch]")
+      .forEach((b) => (b.onclick = () => deleteBranch(b.dataset.deleteBranch)));
   }
   function modal(title, body, submitText, onSubmit) {
     const wrap = document.createElement("div");
@@ -880,6 +887,26 @@
         } catch (e) {
           error(e.message);
         }
+      },
+    );
+  }
+  function deleteBranch(branchId) {
+    const branch=(accessData.branches||[]).find(b=>b.id===branchId);if(!branch)return;
+    const linkedUsers=(accessData.members||[]).filter(m=>m.active&&m.branchId===branchId).length,
+      linkedInvites=(accessData.invites||[]).filter(i=>i.active&&(i.branchId||i.originBranchId)===branchId).length,
+      linkedLinks=(accessData.viewLinks||[]).filter(l=>l.active&&l.branchId===branchId).length;
+    modal(
+      "Excluir filial",
+      `<div class="fsDeleteBranchWarning"><strong>⚠️ ${esc(branch.name)}</strong><p>A filial deixará de aparecer na Central e os acessos vinculados serão desativados. O histórico permanece preservado para auditoria.</p><div><span>${linkedUsers} usuário(s)</span><span>${linkedInvites} convite(s)</span><span>${linkedLinks} link(s)</span></div></div><label>Digite o nome exato da filial para confirmar<input name="confirmName" required autocomplete="off" placeholder="${esc(branch.name)}"></label><label class="fsAccessCheck"><input type="checkbox" name="ack" value="1" required> Confirmo que este cadastro é duplicado ou foi criado incorretamente.</label>`,
+      "Excluir filial",
+      async (f,w)=>{
+        try{
+          if(f.get('confirmName')!==branch.name)throw new Error('Digite o nome exato da filial para confirmar.');
+          const r=await jsonp('deactivateBranch',{targetBranchId:branchId,confirmName:f.get('confirmName'),confirmation:'EXCLUIR'});
+          if(!r.ok)throw new Error(r.message);
+          if(cfg().branch===branchId&&r.fallbackBranchId){localStorage.setItem(K.branch,r.fallbackBranchId);localStorage.setItem(K.branchName,r.fallbackBranchName||'Filial');localStorage.setItem(K.version,'0');sessionStorage.removeItem('fs_cloud_admin_loaded');}
+          w.remove();await load(true);await openAccess();
+        }catch(e){error(e.message)}
       },
     );
   }
