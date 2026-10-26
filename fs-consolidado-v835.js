@@ -48,7 +48,6 @@
     const s=store();if(criar){s.itens[d]=s.itens[d]||{};s.itens[d][id]=s.itens[d][id]||{status:'pendente',trabalha:false,folgaData:''}}
     return s.itens?.[d]?.[id]||{};
   }
-  function folgaPreferida(data){const[a,m,d]=data.split('-').map(Number),x=new Date(a,m-1,d+2,12);return`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`}
   function folgasData(data){const[a,m,d]=data.split('-').map(Number);return Array.from({length:5},(_,i)=>{const x=new Date(a,m-1,d+1+i,12);return`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`})}
   function br(data){return String(data||'').split('-').reverse().join('/')}
   function persistir(){
@@ -68,6 +67,29 @@
     const f=faixa(),q=Math.max(1,Math.min(3,Number(state.config?.equipesDia?.domingo)||1)),base=Array.from({length:q},(_,i)=>({titulo:`Equipe ${pad(i+1)}`,entrada:f.entrada,...intervalo(i,q,f),saida:f.saida}));
     state.horarios=state.horarios||{};if(JSON.stringify(state.horarios.domingo||[])!==JSON.stringify(base)){state.horarios.domingo=base;mudou=true}
     if(mudou)persistir();return mudou;
+  }
+  function aplicarEquipesPadrao(qtd){
+    const q=Math.max(1,Math.min(3,Number(qtd)||1));
+    state.config=state.config||{};state.config.equipesDia=state.config.equipesDia||{};state.config.equipesDia.domingo=q;
+    datas().forEach(d=>{const c=cfg(d);if(c)c.equipes=q});
+    sincronizarTudo();return q;
+  }
+  function limparFolgasAutomaticas(data){
+    const alvo=data?[data]:datas();let mudou=false;
+    alvo.forEach(d=>Object.values(store().itens?.[d]||{}).forEach(r=>{if((r.status==='trabalha'||r.trabalha)&&r.folgaData){r.folgaData='';mudou=true}}));
+    if(mudou){invalidar();persistir()}return mudou;
+  }
+  function migrarFolgaAutomaticaLegada(){
+    const chave=`fsV899FolgaManual_${store().competencia}`;if(state.config[chave])return false;let mudou=false;
+    datas().forEach(data=>{const[a,m,d]=data.split('-').map(Number),x=new Date(a,m-1,d+2,12),automatica=`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;Object.values(store().itens?.[data]||{}).forEach(r=>{if((r.status==='trabalha'||r.trabalha)&&r.folgaData===automatica){r.folgaData='';mudou=true}})});
+    state.config[chave]=true;if(mudou)invalidar();persistir();return mudou;
+  }
+  function instalarGeradoresSemFolgaCravada(){
+    [['fsV561GerarDomingo',true],['fsV551Sugerir',false]].forEach(([nome,porData])=>{
+      const atual=window[nome];if(typeof atual!=='function'||atual.__fsV899SemFolga)return;
+      const fn=function(){const data=porData?arguments[0]:'';const retorno=atual.apply(this,arguments);setTimeout(()=>{limparFolgasAutomaticas(data);try{window.fsDom541Mes?.(store().competencia)}catch(_){ }setTimeout(atualizar,40)},100);return retorno};
+      fn.__fsV899SemFolga=true;fn.__fsV899Original=atual;window[nome]=fn;try{if(nome==='fsV561GerarDomingo')fsV561GerarDomingo=fn;else fsV551Sugerir=fn}catch(_){ }
+    });
   }
   function migrarFechados(){
     const chave=`fsV835DomingosIniciadosFechados_${store().competencia||'sem_competencia'}`;if(state.config[chave])return false;
@@ -93,7 +115,7 @@
     if(!['pendente','trabalha','nao'].includes(v))return;const r=reg(data,id,true),c=cfg(data);r.status=v;r.trabalha=v==='trabalha';
     if(v==='trabalha'){
       r.equipe=Math.max(0,Math.min(Math.max(1,Number(c?.equipes)||1)-1,Number(r.equipe)||0));
-      r.folgaData=r.folgaData||folgaPreferida(data);r.horario=clone(c?.horarios?.[r.equipe]||c?.horarios?.[0]||{});
+      r.folgaData='';r.horario=clone(c?.horarios?.[r.equipe]||c?.horarios?.[0]||{});
     }else if(v==='nao'){r.folgaData='';delete r.equipe;delete r.horario}else{r.folgaData='';delete r.equipe;delete r.horario}
     invalidar();persistir();atualizarLinhaDomingo(data,id);setTimeout(atualizar,35);
   };
@@ -139,14 +161,23 @@
       const grade=model.querySelector('.fsCronoDomingoGrid');if(grade){const titulo=grade.previousElementSibling;if(titulo?.classList.contains('cronoWeekTitle'))titulo.remove();grade.remove()}
       model.querySelectorAll('.cronoOverviewTable').forEach(table=>{const linha=[...table.querySelectorAll('tr')].find(tr=>/dia da semana/i.test(tr.textContent||''));if(!linha)return;const celulas=[...linha.children],idx=celulas.findIndex(c=>/^domingo$/i.test((c.textContent||'').trim()));if(idx<0)return;table.querySelectorAll('tr').forEach(tr=>tr.children[idx]?.remove())});
       const visao=[...model.querySelectorAll('.cronoWeekTitle')].find(x=>/visão geral/i.test(x.textContent||'')),ds=abertas();
-      if(visao&&ds.length){const sec=document.createElement('section');sec.dataset.fsV835Domingos='1';sec.className='fsV835CronoDomingos';sec.innerHTML=`<div class="cronoWeekTitle">DOMINGOS PROGRAMADOS NA COMPETÊNCIA</div><div class="fsV835CronoDomingo">${ds.map(d=>{const c=cfg(d),ps=(state.pessoas||[]).filter(p=>reg(d,p.id).status==='trabalha'),f=faixa(),q=Math.max(1,Number(c?.equipes)||1),hs=(c?.horarios||[]).slice(0,q),linhas=Array.from({length:q},(_,i)=>{const h=hs[i]||{entrada:f.entrada,saida:f.saida},intIni=h.almocoIni||'00:00',intFim=h.almocoFim||'00:00',pausa=Math.max(0,min(intFim)-min(intIni)),efet=Math.max(0,min(h.saida||f.saida)-min(h.entrada||f.entrada)-pausa);return`<tr><td>${i+1}</td><td>${esc(h.entrada||f.entrada)}</td><td>${pausa?`${esc(intIni)} às ${esc(intFim)}`:'—'}</td><td>${esc(h.saida||f.saida)}</td><td>${pad(Math.floor(efet/60))}h${pad(efet%60)}</td></tr>`}).join('');return`<section class="fsV835CronoData"><h4>DOMINGO, ${d.split('-').reverse().join('/')} — OPERAÇÃO PROGRAMADA</h4><div class="fsV853CronoBody"><div class="fsV853CronoClock"><small>JORNADA<br>HORÁRIO DA UNIDADE</small><strong>${esc(f.entrada)}</strong><em>às</em><strong>${esc(f.saida)}</strong></div><table class="fsV853CronoTable"><thead><tr><th>Grupo</th><th>Entrada</th><th>Intervalo</th><th>Saída</th><th>Duração</th></tr></thead><tbody>${linhas}</tbody></table></div><div class="fsV853CronoSupport"><span>👥 <b>${ps.length} colaboradores</b></span><span>◷ <b>Carga do dia: ${(()=>{const h=hs[0]||{entrada:f.entrada,saida:f.saida,almocoIni:'00:00',almocoFim:'00:00'},ef=Math.max(0,min(h.saida||f.saida)-min(h.entrada||f.entrada)-Math.max(0,min(h.almocoFim)-min(h.almocoIni)));return`${pad(Math.floor(ef/60))}h${pad(ef%60)}`})()}</b></span></div></section>`}).join('')}</div>`;model.insertBefore(sec,visao)}
+      if(visao&&ds.length){
+        const sec=document.createElement('section'),d=ds[0],c=cfg(d),f=faixa(),q=Math.max(1,Number(c?.equipes)||Number(state.config?.equipesDia?.domingo)||1),hs=(c?.horarios||state.horarios?.domingo||[]).slice(0,q);
+        const linhas=Array.from({length:q},(_,i)=>{const h=hs[i]||{entrada:f.entrada,saida:f.saida},intIni=h.almocoIni||'00:00',intFim=h.almocoFim||'00:00',pausa=Math.max(0,min(intFim)-min(intIni)),efet=Math.max(0,min(h.saida||f.saida)-min(h.entrada||f.entrada)-pausa);return`<tr><td>${pad(i+1)}</td><td>${esc(h.entrada||f.entrada)}</td><td>${pausa?`${esc(intIni)} às ${esc(intFim)}`:'—'}</td><td>${esc(h.saida||f.saida)}</td><td>${pad(Math.floor(efet/60))}h${pad(efet%60)}</td></tr>`}).join('');
+        const datasHtml=ds.map(x=>`<span>${br(x)}</span>`).join(''),total=new Set(ds.flatMap(x=>(state.pessoas||[]).filter(p=>reg(x,p.id).status==='trabalha').map(p=>String(p.id)))).size,h=hs[0]||{entrada:f.entrada,saida:f.saida,almocoIni:'00:00',almocoFim:'00:00'},ef=Math.max(0,min(h.saida||f.saida)-min(h.entrada||f.entrada)-Math.max(0,min(h.almocoFim)-min(h.almocoIni)));
+        sec.dataset.fsV835Domingos='1';sec.className='fsV835CronoDomingos';sec.innerHTML=`<div class="cronoWeekTitle">HORÁRIO PADRÃO DE DOMINGO</div><div class="fsV835CronoDomingo"><section class="fsV835CronoData"><h4>DOMINGO — ${q} EQUIPE${q>1?'S':''} / INTERVALOS INDEPENDENTES</h4><div class="fsV853CronoBody"><div class="fsV853CronoClock"><small>HORÁRIO<br>DA UNIDADE</small><strong>${esc(f.entrada)}</strong><em>às</em><strong>${esc(f.saida)}</strong></div><table class="fsV853CronoTable"><thead><tr><th>Equipe</th><th>Entrada</th><th>Intervalo</th><th>Saída</th><th>Efetivas</th></tr></thead><tbody>${linhas}</tbody></table></div><div class="fsV899SundayDates"><b>Datas abertas na competência:</b>${datasHtml}</div><div class="fsV853CronoSupport"><span>👥 <b>${total} colaborador(es) únicos escalados</b></span><span>◷ <b>Carga padrão: ${pad(Math.floor(ef/60))}h${pad(ef%60)}</b></span></div></section></div>`;model.insertBefore(sec,visao)
+      }
       const jornada=[...model.querySelectorAll('.compCard')].find(x=>/jornada semanal/i.test(x.textContent||''));if(jornada){const sm=jornada.querySelector('small');if(sm)sm.innerHTML=ds.length?`Meta: ${state.cargaMeta}h por colaborador<br>Domingos abertos: ${ds.length} • escala calculada por data`:`Meta: ${state.cargaMeta}h por colaborador<br>Domingo: folga geral`}
       return tmp.innerHTML};fn.__fsV835=true;window.cronogramaExecutivoHtml=fn;try{cronogramaExecutivoHtml=fn}catch(_){ }
   }
-  function atualizar(){compactarSalvar();acoesMes();sincronizarTudo();corrigirCabecalhos();corrigirRodape();corrigirExpansores();instalarCronograma()}
-  function iniciar(){migrarFechados();sincronizarTudo();instalarCronograma();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }setTimeout(prepararControleNuvem,500)}
+  function atualizar(){compactarSalvar();acoesMes();sincronizarTudo();instalarGeradoresSemFolgaCravada();corrigirCabecalhos();corrigirRodape();corrigirExpansores();instalarCronograma()}
+  function iniciar(){migrarFechados();migrarFolgaAutomaticaLegada();sincronizarTudo();instalarGeradoresSemFolgaCravada();instalarCronograma();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }setTimeout(prepararControleNuvem,500)}
   let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(atualizar,60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
-  document.addEventListener('change',e=>{if(e.target?.matches?.('#fsAbreDomingo,#fsHorarioDomingoEntrada,#fsHorarioDomingoSaida,#fsHorarioDomingoIntervaloMinutos'))setTimeout(()=>{sincronizarTudo();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }},120)},true);
+  document.addEventListener('change',e=>{
+    const equipes=e.target?.closest?.('.fsV561Field')?.querySelector?.('span')?.textContent||'';
+    if(e.target?.matches?.('select')&&/equipes\s*\/\s*intervalos/i.test(equipes))setTimeout(()=>{aplicarEquipesPadrao(e.target.value);try{window.fsDom541Mes?.(store().competencia);renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }setTimeout(atualizar,50)},40);
+    if(e.target?.matches?.('#fsAbreDomingo,#fsHorarioDomingoEntrada,#fsHorarioDomingoSaida,#fsHorarioDomingoIntervaloMinutos'))setTimeout(()=>{sincronizarTudo();atualizar();try{renderCronograma?.();renderRelatoriosPreview?.()}catch(_){ }},120)
+  },true);
   setInterval(atualizar,700);setTimeout(iniciar,850);
 })();
 
