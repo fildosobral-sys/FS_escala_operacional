@@ -9,7 +9,7 @@
     },
     MAIN_STATE_KEY = "fs_escala_limpa_v381",
     OPTIONAL_STATE_KEYS = ["fsDadosEmpresa", "fs_continuidade_operacional_v1", "fsDomingosMensaisV550", "fsDomMinimosV551"],
-    DASH_CACHE_KEY = "fs_management_dashboard_cache_v822",
+    DASH_CACHE_KEY = "fs_management_dashboard_cache_v890",
     BRANCH_CACHE_PREFIX = "fs_branch_payload_cache_v822_",
     ROLES = {
       developer: "Desenvolvedor",
@@ -234,6 +234,8 @@
         : 0,
       divergences,
       pending,
+      summarySchema:2,
+      scaleCompletionAvailable:true,
       scaleCompletion,
       bankCredit,
       bankDebit,
@@ -527,7 +529,15 @@
       select = dev
         ? `<label class="fsDashAssign"><span>Regional</span><select data-assign-branch="${esc(b.id)}"><option value="">Definir regional</option>${(data.regions || []).map((r) => `<option value="${esc(r.id)}" ${b.regionId === r.id ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label>`
         : "";
-    return `<article class="fsDashBranch ${h.c}"><div class="fsDashBranchTop"><div><h3>${esc(b.name)}</h3><p>${esc(regionName(b.regionId))}${s.city ? " • " + esc(s.city) : ""}</p></div><span class="fsDashStatus ${b.presence}">${b.presence === "online" ? "Online" : b.presence === "recent" ? "Atividade recente" : "Sem atividade"}</span></div><div class="fsDashHealth"><span class="${h.c}"></span><b>${h.t}</b><small>Atualizada ${when(b.lastActivity)}</small></div><div class="fsDashMini"><div><span>Colaboradores</span><b>${Number(s.employees || 0)}</b></div><div><span>Funções</span><b>${Number(s.functions || 0)}</b></div><div><span>Equipes</span><b>${Number(s.teams || 0)}</b></div><div><span>Jornada</span><b>${Number(s.weeklyHours || 0) || "—"}h</b></div><div><span>Cobertura</span><b>${Number(s.coverage || 0)}%</b></div><div><span>Divergências</span><b>${Number(s.divergences || 0)}</b></div></div><div class="fsDashBranchMeta"><span>☁️ Versão ${Number(b.version || 0)}</span><span>${s.manager ? "👤 " + esc(s.manager) : "Gestor não informado"}</span></div>${select}<button class="fsDashEnter" data-open-branch="${esc(b.id)}">Abrir filial <span>→</span></button></article>`;
+    const contacts=b.contacts||[],manager=contacts.find(x=>x.type==="manager"),credit=contacts.find(x=>x.type==="credit_manager"),acting=contacts.find(x=>x.type==="acting");
+    return `<article class="fsDashBranch ${h.c}"><div class="fsDashBranchTop"><div><h3>${esc(b.name)}</h3><p>${esc(regionName(b.regionId))}${s.city ? " • " + esc(s.city) : ""}</p></div><span class="fsDashStatus ${b.presence}">${b.presence === "online" ? "Online" : b.presence === "recent" ? "Atividade recente" : "Sem atividade"}</span></div><div class="fsDashHealth"><span class="${h.c}"></span><b>${h.t}</b><small>Atualizada ${when(b.lastActivity)}</small></div><div class="fsDashMini"><div><span>Colaboradores</span><b>${Number(s.employees || 0)}</b></div><div><span>Funções</span><b>${Number(s.functions || 0)}</b></div><div><span>Equipes</span><b>${Number(s.teams || 0)}</b></div><div><span>Jornada</span><b>${Number(s.weeklyHours || 0) || "—"}h</b></div><div><span>Cobertura</span><b>${Number(s.coverage || 0)}%</b></div><div><span>Divergências</span><b>${Number(s.divergences || 0)}</b></div></div><div class="fsDashBranchMeta"><span>☁️ Versão ${Number(b.version || 0)}</span><span>${manager ? "👤 " + esc(manager.name) : "Gestor não informado"}</span></div><div class="fsDashContacts"><span><b>Gerente de crédito</b>${credit?esc(credit.name):"Não informado"}</span>${acting?`<span><b>Responsável temporário</b>${esc(acting.name)}</span>`:""}<button type="button" data-edit-contacts="${esc(b.id)}">Editar responsáveis</button></div>${select}<button class="fsDashEnter" data-open-branch="${esc(b.id)}">Abrir filial <span>→</span></button></article>`;
+  }
+  function contactEditor(branchId){
+    const b=(data.branches||[]).find(x=>x.id===branchId);if(!b)return;
+    const current=type=>(b.contacts||[]).find(x=>x.type===type)||{},members=(data.members||[]).filter(x=>x.active!==false&&x.branchId===branchId),memberOptions=type=>`<option value="">Cadastrar nome e WhatsApp</option>${members.map(x=>`<option value="${esc(x.id)}" ${current(type).memberId===x.id?'selected':''}>${esc(x.name)} • ${esc(role(x.role))}</option>`).join('')}`;
+    const fields=(type,label)=>{const c=current(type);return`<fieldset class="fsContactGroup"><legend>${label}</legend><label>Usar usuário já cadastrado<select name="${type}_member">${memberOptions(type)}</select></label><div class="fsContactManual"><label>Nome<input name="${type}_name" value="${esc(c.name||'')}"></label><label>WhatsApp<input name="${type}_phone" inputmode="tel" value="${esc(c.phone||'')}"></label></div>${type==='acting'?'<div class="fsContactManual"><label>Início<input name="acting_start" type="date" value="'+esc(c.startDate||'')+'"></label><label>Fim<input name="acting_end" type="date" value="'+esc(c.endDate||'')+'"></label></div>':''}</fieldset>`};
+    const m=modal('Responsáveis da filial',`<p class="fsInviteNote">Esses contatos serão usados nas orientações regionais e nas futuras notificações do aplicativo.</p>${fields('manager','Gerente da filial')}${fields('credit_manager','Gerente de crédito')}${fields('acting','Responsável temporário')}`,'Salvar responsáveis',async(f,w)=>{try{for(const type of ['manager','credit_manager','acting']){const name=String(f.get(type+'_name')||'').trim(),memberId=String(f.get(type+'_member')||''),old=current(type);if(!name&&!memberId){if(old.id&&!String(old.id).startsWith('MEMBER-')&&!String(old.id).startsWith('SUMMARY-'))await jsonp('deactivateBranchContact',{targetBranchId:branchId,contactId:old.id});continue}const r=await jsonp('saveBranchContact',{targetBranchId:branchId,contactType:type,memberId,name,phone:f.get(type+'_phone')||'',startDate:type==='acting'?f.get('acting_start')||'':'',endDate:type==='acting'?f.get('acting_end')||'':''});if(!r.ok)throw new Error(r.message||'Não foi possível salvar o responsável.')}w.remove();await load(true)}catch(e){error(e.message)}});
+    m.querySelectorAll('select[name$="_member"]').forEach(s=>s.onchange=()=>{const prefix=s.name.replace('_member',''),member=members.find(x=>x.id===s.value);if(member){m.querySelector(`[name="${prefix}_name"]`).value=member.name||'';m.querySelector(`[name="${prefix}_phone"]`).value=member.phone||'';}});
   }
   function alerts(bs) {
     const a = bs
@@ -1169,6 +1179,7 @@
     root
       .querySelectorAll("[data-open-branch]")
       .forEach((x) => (x.onclick = () => openBranch(x.dataset.openBranch)));
+    root.querySelectorAll("[data-edit-contacts]").forEach((x)=>(x.onclick=()=>contactEditor(x.dataset.editContacts)));
   }
   async function assignRegion(branchId, regionId) {
     if (!regionId || busy) return;
@@ -1323,6 +1334,7 @@
   window.fsDashJsonp=jsonp;
   window.fsDashOpenBranch=openBranch;
   window.fsDashRender=render;
+  window.fsDashPublishSummary=publish;
   async function start() {
     if (await activateInvite()) return;
     const c = cfg();
@@ -1370,6 +1382,10 @@
       },
       true,
     );
+    document.addEventListener("fs:cloud-published", () => {
+      setTimeout(publish, 350);
+      setTimeout(publish, 2200);
+    });
     setInterval(() => {
       if (!document.hidden) publish();
     }, 600000);
