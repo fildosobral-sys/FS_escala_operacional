@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-central-v892';
+const CACHE_NAME = 'fs-escala-central-v893';
 const CORE_FILES = [
   './',
   './index.html',
@@ -48,6 +48,8 @@ const CORE_FILES = [
   './fs-banco-horas-v842.css',
   './fs-mapa-mensal-v865.js',
   './fs-mapa-mensal-v865.css',
+  './fs-simulador-v893.js',
+  './fs-simulador-v893.css',
   './fs-pdf-import-v717.js',
   './pdf.min.mjs',
   './pdf.worker.min.mjs',
@@ -95,7 +97,7 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  if (/fs-(?:cloud-v716|dashboard-v800|regional-v884|central-v812|ui-v806|equilibrio-v807|refino-v808|fotos-relatorios-v809|final-v810|finalizacao-v837|banco-horas-v842|mapa-mensal-v865|consolidacao-v811|editor-v824|domingo-v831|conformidade-v832|conformidade-v833|consolidado-v835)\.(?:js|css)$/.test(url.pathname) || /fs-42h\.js$/.test(url.pathname)) {
+  if (/fs-(?:cloud-v716|dashboard-v800|regional-v884|central-v812|ui-v806|equilibrio-v807|refino-v808|fotos-relatorios-v809|final-v810|finalizacao-v837|banco-horas-v842|mapa-mensal-v865|simulador-v893|consolidacao-v811|editor-v824|domingo-v831|conformidade-v832|conformidade-v833|consolidado-v835)\.(?:js|css)$/.test(url.pathname) || /fs-42h\.js$/.test(url.pathname)) {
     event.respondWith(
       fetch(event.request).then(function (response) {
         if (response.ok) {
