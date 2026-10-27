@@ -129,6 +129,65 @@
     try{fsV835LimparDomingos=fn}catch(_){ }
   }
 
+  /*
+   * Equilíbrio dominical: considera somente as datas que a filial marcou
+   * como abertas. Datas fechadas são limpas e não consomem a sequência do
+   * rodízio. Dentro de cada função, os colaboradores entram em ordem estável;
+   * depois que todos participam, a sequência recomeça pelo primeiro.
+   */
+  function instalarEquilibrioDomingosAbertos(){
+    const atual=window.fsV551Sugerir;
+    if(typeof atual!=='function'||atual.__fsV908ApenasAbertos)return;
+    const fn=function(){
+      let ativo=false;try{ativo=!!window.fsGetDadosEmpresa?.().abreDomingo}catch(_){ }
+      if(!ativo)return false;
+      const s=state.config=state.config||{},dom=s.escalaDomingosPorData=s.escalaDomingosPorData||{competencia:'',itens:{}};
+      dom.itens=dom.itens||{};dom.concluidos=dom.concluidos||{};
+      const comp=dom.competencia||'';
+      if(!/^\d{4}-\d{2}$/.test(comp))return alert('Selecione primeiro a competência dos domingos.');
+      const [ano,mes]=comp.split('-').map(Number),todas=[],d=new Date(ano,mes-1,1,12);
+      while(d.getMonth()===mes-1){if(d.getDay()===0)todas.push(`${ano}-${pad(mes)}-${pad(d.getDate())}`);d.setDate(d.getDate()+1)}
+      const configs=s.fsDomingoPorDataConfig||{};
+      const abertas=todas.filter(data=>{
+        const c=window.fsV561ConfigData?.(data)||configs[data];
+        return c?.aberto===true&&c?.fsV831ManualOpen===true;
+      });
+      if(!abertas.length)return alert('Marque pelo menos um domingo como aberto antes de aplicar o Equilíbrio.');
+      if(!confirm(`Aplicar a sugestão equilibrada somente em ${abertas.length} domingo(s) aberto(s)? Os domingos fechados serão ignorados.`))return false;
+      sundayBusy(`Distribuindo ${abertas.length} domingo(s) aberto(s)…`);
+
+      const pessoas=state.pessoas||[],minimos=s.fsDomMinimosV551||{};
+      const equipes=Math.max(1,Number(s.equipesDia?.domingo)||Number(state.horarios?.domingo?.length)||1);
+      const grupos=new Map();
+      pessoas.forEach(p=>{const f=String(p.funcao||'Sem função').trim()||'Sem função',g=/gerente|gestor|lideran/i.test(f)?'Liderança':f;if(!grupos.has(g))grupos.set(g,[]);grupos.get(g).push(p)});
+      grupos.forEach(lista=>lista.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR',{sensitivity:'base'})));
+      const registro=(data,id)=>{dom.itens[data]=dom.itens[data]||{};return dom.itens[data][id]=dom.itens[data][id]||{status:'pendente',trabalha:false,folgaData:''}};
+      const folga=(data,indice)=>{const x=new Date(data+'T12:00:00');x.setDate(x.getDate()+1+(indice%5));return `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`};
+
+      /* Zera toda a competência; só as datas abertas serão recompostas. */
+      todas.forEach(data=>pessoas.forEach(p=>{const r=registro(data,p.id);r.status='nao';r.trabalha=false;r.folgaData='';delete r.equipe;delete r.horario}));
+      const usados=Object.fromEntries(pessoas.map(p=>[p.id,0]));
+      abertas.forEach((data,di)=>{
+        grupos.forEach((lista,g)=>{
+          const padrao=Math.max(1,Math.round(lista.length/abertas.length));
+          const alvo=Math.min(lista.length,Math.max(0,Number(minimos[g]??padrao)));
+          const inicio=lista.length?di%lista.length:0;
+          const ordem=[...lista].sort((a,b)=>usados[a.id]-usados[b.id]||((lista.indexOf(a)-inicio+lista.length)%lista.length)-((lista.indexOf(b)-inicio+lista.length)%lista.length));
+          ordem.slice(0,alvo).forEach((p,i)=>{const r=registro(data,p.id);r.status='trabalha';r.trabalha=true;r.equipe=i%equipes;r.folgaData=folga(data,i);usados[p.id]++});
+        });
+      });
+      Object.keys(dom.concluidos).filter(k=>k.startsWith(comp)).forEach(k=>delete dom.concluidos[k]);
+      delete s.fsDomCompetenciaConfirmada;delete s.fsDomConfirmacaoAssinatura;
+      try{save()}catch(_){ }
+      try{localStorage.setItem('fsDomingosMensaisV550',JSON.stringify({competencia:comp,itens:dom.itens,concluidos:dom.concluidos,at:Date.now()}))}catch(_){ }
+      try{window.fsDom541Mes?.(comp)}catch(_){ }
+      setTimeout(()=>{try{window.fsV559SincronizarTudo?.()}catch(_){ }aguardarDomingoEstavel(window.scrollX,window.scrollY)},80);
+      return true;
+    };
+    fn.__fsV908ApenasAbertos=true;fn.__fsV908Original=atual;
+    window.fsV551Sugerir=fn;try{fsV551Sugerir=fn}catch(_){ }
+  }
+
   /* ---------- Leitura integral e genérica dos relatórios Fortes/PDF ---------- */
   function titulo(v){
     return String(v||'').toLowerCase().split(/\s+/).filter(Boolean).map((p,i)=>/^(de|da|do|das|dos|e|em|com)$/.test(p)&&i?p:p.charAt(0).toUpperCase()+p.slice(1)).join(' ');
@@ -253,7 +312,7 @@
   /* API mínima apenas para a fiscalização automatizada do leitor. */
   window.fsV903Test={extrairPorColunas,extrairTextoGenerico,consolidarRows};
 
-  function atualizar(){protegerBackup();instalarLimpezaDomingo();envolverMutacoesDomingo();estabilizarFolgas();instalarLeitor()}
+  function atualizar(){protegerBackup();instalarLimpezaDomingo();instalarEquilibrioDomingosAbertos();envolverMutacoesDomingo();estabilizarFolgas();instalarLeitor()}
   let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(atualizar,80)}).observe(document.body,{childList:true,subtree:true});
   new MutationObserver(mutations=>{
     if(!document.getElementById('fsV903SundayBusy')||!sundayStableScroll)return;
