@@ -32,6 +32,13 @@
 #baseContent .baseAgrupadaTable .fsV806ColEditar{width:8%!important;min-width:64px!important}
 #baseContent .baseAgrupadaTable .baseGrupoLinha td{width:auto!important;max-width:none!important;text-align:left!important;padding:3px 12px!important}
 #baseContent .baseAgrupadaTable .baseGrupoLinha .fsGrupoUnico{display:block!important;text-align:left!important}
+
+/* V912 — o quadro diário nasce e permanece no mesmo padrão visual. */
+.page .board .tableWrap td.ncol{color:transparent!important;font-size:0!important;position:relative!important}
+.page .board .tableWrap td.ncol.fsV912AvatarCell::before{content:attr(data-initials);display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;background:linear-gradient(145deg,#0b2d84,#1760c9);color:#fff;font-size:13px;font-weight:950;letter-spacing:.35px;border:3px solid #fff;box-shadow:0 0 0 1px #b9c9df,0 4px 9px rgba(7,29,104,.16)}
+.page .board .tableWrap th.ncol{width:64px!important;min-width:64px!important}
+.page .board .tableWrap td.ncol{width:64px!important;min-width:64px!important;padding:5px!important}
+.page .board .tableWrap table.fsV912AvatarStable tbody{visibility:visible!important}
 .fsV806RulesOverlay{position:fixed;inset:0;z-index:12000;display:grid;place-items:center;padding:18px;background:rgba(9,18,42,.58);backdrop-filter:blur(10px)}
 .fsV806RulesOverlay[hidden]{display:none!important}
 .fsV806RulesModal{width:min(780px,96vw);max-height:90vh;overflow:auto;border-radius:24px;background:#f8fbff;box-shadow:0 30px 90px rgba(0,17,63,.35)}
