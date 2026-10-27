@@ -53,7 +53,7 @@
   window.fsV820ReviewSchedules=function(){const o=document.getElementById('fsV806Rules');if(o)o.hidden=true;document.querySelector('#configContent .horariosDiaBox')?.scrollIntoView({behavior:'smooth',block:'start'})};
   window.fsV822SetBreak=function(key,n){planBreaks[key]=Number(n);showModel(key)};
   const planDays=['segunda','terca','quarta','quinta','sexta','sabado'];
-  function protectedPerson(p){return !!(p?.jovemAprendiz||p?.fsMetaIndividualAtiva===true)}
+  function protectedPerson(p){return !!(p?.jovemAprendiz||p?.fsMetaIndividualAtiva===true||p?.fs42ManualLock===true)}
   function activePlanDays(p,key){
     if(key==='6x1'||key==='42h-6x1')return [...planDays];
     if(key==='42h-5x2')return planDays.filter(d=>d!==(p.folgaDistribuida||'terca'));
@@ -71,6 +71,22 @@
     const people=Object.fromEntries((state.pessoas||[]).map(p=>[p.id,{horariosIndividuais:JSON.parse(JSON.stringify(p.horariosIndividuais||{})),diasAtivosIndividuais:[...(p.diasAtivosIndividuais||[])],usarDiasIndividuais:!!p.usarDiasIndividuais,sabadoSim:!!p.sabadoSim,equipeBase:Number(p.equipeBase||0),equipeSabado:Number(p.equipeSabado||0),slots:JSON.parse(JSON.stringify(p.slots||{})),fs42AutoGerado:!!p.fs42AutoGerado,fs42ManualLock:!!p.fs42ManualLock,folgaDistribuida:p.folgaDistribuida}])) ;
     c.perfisEscala[key]=Object.assign({},c.perfisEscala[key]||{},{modo:c.modo,cargaMeta:Number(state.cargaMeta),fs42Tipo:c.fs42Tipo,horarios:JSON.parse(JSON.stringify(state.horarios||{})),equipesDia:JSON.parse(JSON.stringify(c.equipesDia||{})),diaEspecial:c.diaEspecial,percentualEspecial:Number(c.percentualEspecial||50),pessoas:people});
   }
+  function activatePlanModel(key){
+    state.config=state.config||{};
+    if(key==='42h-5x2'){state.config.modo='42h';state.config.fs42Tipo='5x2';state.cargaMeta=42}
+    else if(key==='6x1'){state.config.modo='6x1';state.config.fs42Tipo='';state.cargaMeta=44}
+    else if(key==='distribuido'){state.config.modo='distribuido';state.config.fs42Tipo='';state.cargaMeta=40}
+    else if(key==='atual'){state.config.modo='atual';state.config.fs42Tipo='';state.cargaMeta=40}
+  }
+  function programCalculatedPlan(key,p){
+    state.horarios=state.horarios||{};state.config=state.config||{};state.config.equipesDia=state.config.equipesDia||{};
+    ['segunda','terca','quarta','quinta','sexta'].forEach(d=>{state.horarios[d]=p.week.rows.map((x,i)=>Object.assign({titulo:`Equipe ${String(i+1).padStart(2,'0')}`},x));state.config.equipesDia[d]=p.teams});
+    state.horarios.sabado=p.sat.rows.map((x,i)=>Object.assign({titulo:`Equipe ${String(i+1).padStart(2,'0')}`},x));state.config.equipesDia.sabado=p.teams;
+    const editable=(state.pessoas||[]).filter(x=>!protectedPerson(x));balanceTeams(editable,p.teams);
+    const folgaPorFuncao={};editable.forEach(person=>{if(key==='42h-5x2'){const role=String(person.funcao||'Sem função').trim().toLocaleLowerCase('pt-BR'),n=folgaPorFuncao[role]||0;person.folgaDistribuida=['terca','quarta','quinta'][n%3];folgaPorFuncao[role]=n+1}else if(key==='42h-6x1')person.folgaDistribuida=null;const team=Math.min(p.teams-1,Number(person.__fsPlanTeam||0)),active=activePlanDays(person,key);delete person.__fsPlanTeam;person.equipeBase=team;person.equipeSabado=team;person.slots=person.slots||{};planDays.forEach(d=>person.slots[d]=team);person.usarDiasIndividuais=true;person.diasAtivosIndividuais=[...active];person.sabadoSim=active.includes('sabado');person.horariosIndividuais=person.horariosIndividuais||{};planDays.forEach(d=>{if(!active.includes(d)){delete person.horariosIndividuais[d];return}const source=d==='sabado'?p.sat.rows[team]:p.week.rows[team];person.horariosIndividuais[d]=Object.assign({ativo:true},source,{ativo:true,fsAssistido:true})});person.fs42AutoGerado=key.startsWith('42h');person.fs42ManualLock=false;person.fsAssistidoGerado=true});
+    syncActiveProfile();try{save()}catch(_){}try{render()}catch(_){}try{renderConfig()}catch(_){}
+    return editable.length;
+  }
   window.fsV822ApplyPlan=function(key){
     let h=projectionHours(),p=planData(key,h);
     if(!p.exact){
@@ -85,18 +101,27 @@
     const resumo=`MODELO SELECIONADO\n${MODELS[key]?.title||key}\n\nFUNCIONAMENTO ${hoursChanged?'PROPOSTO':'OFICIAL'}\nSegunda a sexta: ${h.weekOpen}–${h.weekClose}\nSábado: ${h.satOpen}–${h.satClose}\nIntervalo projetado: ${p.names[p.breakMin]}\n\nDIAS ÚTEIS\n${p.week.texts.map((x,i)=>`Equipe ${String(i+1).padStart(2,'0')}: ${x}`).join('\n')}\n\nSÁBADO\n${p.sat.texts.map((x,i)=>`Equipe ${String(i+1).padStart(2,'0')}: ${x}`).join('\n')}\n\nAplicar este modelo ao quadro geral e aos horários individuais?${changingModel?'\n\nA confirmação ativará esta escala na filial.':''}${hoursChanged?'\n\nA confirmação também atualizará o funcionamento oficial da filial.':''}${protectedCount?`\n\n${protectedCount} jornada(s) protegida(s), como jovem aprendiz, permanecerá(ão) inalterada(s).`:''}`;
     if(!confirm(resumo))return;
     if(hoursChanged)saveProjectionHours(h);
-    state.horarios=state.horarios||{};state.config=state.config||{};state.config.equipesDia=state.config.equipesDia||{};
-    if(key==='42h-5x2'){state.config.modo='42h';state.config.fs42Tipo='5x2';state.cargaMeta=42}
-    else if(key==='6x1'){state.config.modo='6x1';state.config.fs42Tipo='';state.cargaMeta=44}
-    else if(key==='distribuido'){state.config.modo='distribuido';state.config.fs42Tipo='';state.cargaMeta=40}
-    else if(key==='atual'){state.config.modo='atual';state.config.fs42Tipo='';state.cargaMeta=40}
-    ['segunda','terca','quarta','quinta','sexta'].forEach(d=>{state.horarios[d]=p.week.rows.map((x,i)=>Object.assign({titulo:`Equipe ${String(i+1).padStart(2,'0')}`},x));state.config.equipesDia[d]=p.teams});
-    state.horarios.sabado=p.sat.rows.map((x,i)=>Object.assign({titulo:`Equipe ${String(i+1).padStart(2,'0')}`},x));state.config.equipesDia.sabado=p.teams;
-    const editable=(state.pessoas||[]).filter(x=>!protectedPerson(x));balanceTeams(editable,p.teams);
-    const folgaPorFuncao={};editable.forEach(person=>{if(key==='42h-5x2'){const role=String(person.funcao||'Sem função').trim().toLocaleLowerCase('pt-BR'),n=folgaPorFuncao[role]||0;person.folgaDistribuida=['terca','quarta','quinta'][n%3];folgaPorFuncao[role]=n+1}else if(key==='42h-6x1')person.folgaDistribuida=null;const team=Math.min(p.teams-1,Number(person.__fsPlanTeam||0)),active=activePlanDays(person,key);delete person.__fsPlanTeam;person.equipeBase=team;person.equipeSabado=team;person.slots=person.slots||{};planDays.forEach(d=>person.slots[d]=team);person.usarDiasIndividuais=true;person.diasAtivosIndividuais=[...active];person.sabadoSim=active.includes('sabado');person.horariosIndividuais=person.horariosIndividuais||{};planDays.forEach(d=>{if(!active.includes(d)){delete person.horariosIndividuais[d];return}const source=d==='sabado'?p.sat.rows[team]:p.week.rows[team];person.horariosIndividuais[d]=Object.assign({ativo:true},source,{ativo:true,fsAssistido:true})});person.fs42AutoGerado=key.startsWith('42h');person.fs42ManualLock=false;person.fsAssistidoGerado=true});
-    syncActiveProfile();try{save()}catch(_){}try{render()}catch(_){}try{renderConfig()}catch(_){}
-    setTimeout(()=>{showModel(key);const t=typeof toast==='function'?toast:null;t&&t(`Sugestão aplicada a ${editable.length} colaborador(es). Ajustes manuais posteriores serão preservados.`)},220)
+    activatePlanModel(key);const updatedCount=programCalculatedPlan(key,p);
+    setTimeout(()=>{showModel(key);const t=typeof toast==='function'?toast:null;t&&t(`Sugestão aplicada a ${updatedCount} colaborador(es). Ajustes manuais posteriores serão preservados.`)},220)
   };
+  function installAutomaticOperatingHours(){
+    const old=window.fsSalvarDadosEmpresa;
+    if(typeof old!=='function'||old.__fsV910AutomaticHours)return;
+    const wrapped=function(){
+      const before=companyHours(),result=old.apply(this,arguments);
+      const after=companyHours(),changed=!sameHours(before,after);
+      if(changed)setTimeout(()=>{
+        const key=currentKey();delete planBreaks[key];projectionDraft=Object.assign({},after);
+        const p=planData(key,after);
+        if(!p.exact){const t=typeof toast==='function'?toast:null;t&&t('Funcionamento salvo. A jornada precisa de ajuste em Regras da escala.');return}
+        activatePlanModel(key);const total=programCalculatedPlan(key,p);
+        const t=typeof toast==='function'?toast:null;t&&t(`Funcionamento, intervalos e horários recalculados automaticamente para ${total} colaborador(es).`);
+      },80);
+      return result;
+    };
+    wrapped.__fsV910AutomaticHours=true;wrapped.__fsV910Original=old;window.fsSalvarDadosEmpresa=wrapped;
+    try{fsSalvarDadosEmpresa=wrapped}catch(_){}
+  }
   function organizeStrategy(){const box=document.querySelector('#configContent .strategyBox'),grid=box?.querySelector('.strategyGrid');if(!box||!grid)return;let top=box.querySelector('.fsV819StrategyTop'),title=box.querySelector(':scope>h3');if(!top){top=document.createElement('div');top.className='fsV819StrategyTop';title?.insertAdjacentElement('beforebegin',top)}if(title&&title.parentElement!==top)top.appendChild(title);let actions=top.querySelector('.fsV819StrategyActions');if(!actions){actions=document.createElement('div');actions.className='fsV819StrategyActions';top.appendChild(actions)}let rules=document.getElementById('fsBotaoRegrasConfigFixo');if(!rules){rules=document.createElement('button');rules.id='fsBotaoRegrasConfigFixo';rules.type='button';rules.className='fsBotaoRegrasConfigFixo';rules.textContent='📌 Regras da escala'}rules.onclick=openRules;if(rules.parentElement!==actions)actions.appendChild(rules);let about=document.getElementById('fsV816AboutButton');if(!about){about=document.createElement('button');about.type='button';about.id='fsV816AboutButton';about.className='fsV806AboutButton';about.innerHTML='ⓘ Sobre a plataforma'}about.onclick=openAbout;if(about.parentElement!==actions)actions.appendChild(about);box.querySelectorAll('.fsBotaoRegrasConfigWrap').forEach(w=>{if(!w.contains(rules))w.remove()});const panel=box.querySelector('#fs42Options');if(panel&&state?.config?.modo==='42h'){panel.classList.add('fsV819FortyTwo');const generate=[...grid.children].find(x=>/gerar distribuição inteligente/i.test(x.textContent||''));if(generate&&panel.parentElement!==grid)grid.insertBefore(panel,generate)}box.classList.add('fsV819StrategyReady')}
   function injectAbout(){organizeStrategy()}
   const schedulePlanV862=schedulePlan;
@@ -117,6 +142,6 @@
   function hideLegacyGenerator(){document.querySelectorAll('#configContent .strategyGrid>div').forEach(x=>{if(/gerar distribuição inteligente/i.test(x.textContent||''))x.classList.add('fsV823LegacyGenerate')})}
   function refreshApplyCopy(){const box=document.querySelector('#fsV806Rules .fsV822Apply');if(box){const title=box.querySelector('b'),copy=box.querySelector('span');if(title)title.textContent='Padrão pronto para programar todo o quadro';if(copy)copy.textContent='Atualiza os horários gerais e individuais. Depois disso, qualquer ajuste manual de um colaborador fica preservado.'}document.querySelectorAll('#fsV806Rules .fsV820Exceptions small').forEach(x=>x.textContent='Ao aplicar novamente o padrão, os horários comuns são atualizados; jornadas protegidas permanecem inalteradas.')}
   function protectManualEdits(){if(window.__fsV823ManualProtection)return;const old=window.salvarPessoaModal;if(typeof old!=='function')return;window.__fsV823ManualProtection=true;window.salvarPessoaModal=function(){const idx=document.getElementById('editIndex')?.value;const r=old.apply(this,arguments);const person=idx!==''?(state.pessoas||[])[Number(idx)]:null;if(person){person.fsAssistidoGerado=false;person.fs42AutoGerado=false;person.fs42ManualLock=true;try{syncActiveProfile();save()}catch(_){}}return r};try{salvarPessoaModal=window.salvarPessoaModal}catch(_){}}
-  function install(){window.fsAbrirModalRegras=openRules;window.fsAbrirSobrePlataforma=openAbout;try{fsAbrirModalRegras=openRules}catch(e){}enhanceDays();stabilizeTable();organizeStrategy();hideLegacyGenerator();refreshApplyCopy();protectManualEdits();let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(()=>{enhanceDays();stabilizeTable();organizeStrategy();hideLegacyGenerator();refreshApplyCopy()},90)}).observe(document.body,{childList:true,subtree:true});document.addEventListener('keydown',e=>{if(e.key==='Escape'){const o=document.getElementById('fsV806Rules');if(o)o.hidden=true;const a=document.getElementById('fsV816About');if(a)a.hidden=true}})}
+  function install(){window.fsAbrirModalRegras=openRules;window.fsAbrirSobrePlataforma=openAbout;try{fsAbrirModalRegras=openRules}catch(e){}enhanceDays();stabilizeTable();organizeStrategy();hideLegacyGenerator();refreshApplyCopy();protectManualEdits();installAutomaticOperatingHours();let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(()=>{enhanceDays();stabilizeTable();organizeStrategy();hideLegacyGenerator();refreshApplyCopy();installAutomaticOperatingHours()},90)}).observe(document.body,{childList:true,subtree:true});document.addEventListener('keydown',e=>{if(e.key==='Escape'){const o=document.getElementById('fsV806Rules');if(o)o.hidden=true;const a=document.getElementById('fsV816About');if(a)a.hidden=true}})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,80));else setTimeout(install,80);
 })();
