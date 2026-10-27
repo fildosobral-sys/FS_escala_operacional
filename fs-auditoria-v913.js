@@ -35,7 +35,10 @@
     const work=h=>Math.max(0,mins(h.saida)-mins(h.entrada)-Math.max(0,mins(h.almocoFim)-mins(h.almocoIni))),key=d.key||selectedRuleKey(),days=(key==='42h-5x2'||key==='distribuido'||key==='atual')?4:5,teams=Math.max(d.week.length,d.sat.length);
     const totals=Array.from({length:teams},(_,i)=>days*work(d.week[i]||d.week[0])+work(d.sat[i]||d.sat[0]));
     const title=root.querySelector('.fsV821PlanTitle b');if(title)title.textContent=`Quadro editável • ${totals.map((n,i)=>`Equipe ${String(i+1).padStart(2,'0')}: ${fmt(n)} semanais`).join(' • ')}`;
-    const info=root.querySelector('.fsV822Breaks');if(info)info.innerHTML=`<div><b>Intervalos definidos por equipe</b><span>O resumo e a validação usam exatamente os horários do quadro editável abaixo.</span></div><div>${d.week.map((h,i)=>`<button type="button" class="active" disabled>Equipe ${String(i+1).padStart(2,'0')} • ${fmt(Math.max(0,mins(h.almocoFim)-mins(h.almocoIni)))}</button>`).join('')}</div>`;
+    root.classList.add('fsV915UnifiedPlan');
+    const target=key==='6x1'?44:key.includes('42h')?42:40,inside=(h,o,c)=>mins(h.entrada)>=mins(o)&&mins(h.saida)<=mins(c),official=window.fsGetDadosEmpresa?.()||state?.config?.funcionamentoUnidade||{},wo=official.horarioSemanaEntrada||'08:00',wc=official.horarioSemanaSaida||'18:00',so=official.horarioSabadoEntrada||'08:00',sc=official.horarioSabadoSaida||'14:00';
+    const okWindow=d.week.every(h=>inside(h,wo,wc))&&d.sat.every(h=>inside(h,so,sc)),okTotal=totals.every(n=>n===target*60);
+    root.querySelector('.fsV915Status')?.remove();const status=document.createElement('div');status.className=`fsV915Status ${okWindow&&okTotal?'ok':'warn'}`;status.innerHTML=`<div><b>${okWindow&&okTotal?'✓ Padrão validado':'⚠ Revisão necessária'}</b><span>${okWindow?'Horários dentro do funcionamento da filial.':'Existe equipe fora do funcionamento da filial.'}</span></div>${totals.map((n,i)=>`<article><small>Equipe ${String(i+1).padStart(2,'0')}</small><strong>${fmt(n)} / ${String(target).padStart(2,'0')}h00</strong><em>${n===target*60?'Completa':n<target*60?`Faltam ${fmt(target*60-n)}`:`Excede ${fmt(n-target*60)}`}</em></article>`).join('')}<button type="button" ${okWindow&&okTotal?'':'disabled'} onclick="fsV915ApplyConfiguredSchedule()">${okWindow&&okTotal?'Aplicar este padrão à escala':'Ajuste os horários para aplicar'}</button>`;root.querySelector('.fsV821PlanTitle')?.insertAdjacentElement('afterend',status);
     const loads=root.querySelectorAll('td[data-label="Carga efetiva"]');if(loads[0])loads[0].textContent=d.week.map((h,i)=>`Eq. ${String(i+1).padStart(2,'0')}: ${fmt(work(h))}`).join(' • ');if(loads[1])loads[1].textContent=d.sat.map((h,i)=>`Eq. ${String(i+1).padStart(2,'0')}: ${fmt(work(h))}`).join(' • ');
   }
   function injectRuleEditor(){
@@ -51,15 +54,16 @@
   window.fsV913ApplyRuleTimes=function(){
     const d=ensureDraft();if(!d.week.length||!d.sat.length)return alert('Nenhuma equipe foi localizada para salvar.');
     const mins=h=>{const [a,b]=String(h||'00:00').split(':').map(Number);return(a||0)*60+(b||0)};
-    const invalid=[...d.week,...d.sat].some(h=>h.entrada>=h.saida||h.almocoIni>h.almocoFim||h.almocoIni<h.entrada||h.almocoFim>h.saida||((mins(h.saida)-mins(h.entrada)-Math.max(0,mins(h.almocoFim)-mins(h.almocoIni)))>360&&(mins(h.almocoFim)-mins(h.almocoIni))<60));
-    if(invalid)return alert('Revise os horários: entrada, intervalo e saída precisam seguir a ordem correta. Em jornadas acima de 6 horas, o intervalo configurado deve ter no mínimo 1 hora.');
+    const invalid=[...d.week,...d.sat].some(h=>h.entrada>=h.saida||h.almocoIni>h.almocoFim||h.almocoIni<h.entrada||h.almocoFim>h.saida);
+    if(invalid)return alert('Revise os horários: entrada, intervalo e saída precisam seguir a ordem correta.');
     state.horarios=state.horarios||{};state.config=state.config||{};state.config.equipesDia=state.config.equipesDia||{};
     DAYS.forEach(day=>{state.horarios[day]=JSON.parse(JSON.stringify(d.week));state.config.equipesDia[day]=d.week.length});
     state.horarios.sabado=JSON.parse(JSON.stringify(d.sat));state.config.equipesDia.sabado=d.sat.length;
     try{save()}catch(e){return alert('Não foi possível salvar os horários: '+(e?.message||e))}
-    d.key=selectedRuleKey()||d.key;refreshRuleModel();
-    const t=typeof toast==='function'?toast:null;t&&t('Horários das equipes salvos. Configurações e Regras agora usam o mesmo padrão.');
+    d.key=selectedRuleKey()||d.key;try{renderConfig()}catch(_){ }refreshRuleModel();
+    const advisory=[...d.week,...d.sat].some(h=>(mins(h.saida)-mins(h.entrada)-Math.max(0,mins(h.almocoFim)-mins(h.almocoIni)))>360&&(mins(h.almocoFim)-mins(h.almocoIni))<60),t=typeof toast==='function'?toast:null;t&&t(advisory?'Horários salvos. Atenção: há jornada acima de 6h com intervalo inferior a 1h.':'Horários salvos e sincronizados com as Configurações.');
   };
+  window.fsV915ApplyConfiguredSchedule=function(){const key=selectedRuleKey();window.fsV913ApplyRuleTimes();setTimeout(()=>window.fsV822ApplyPlan?.(key),120)};
 
   /* A cadeia antiga continua preservando todos os campos, mas save/render são
      agrupados em uma única operação. Isso impede reconstruções concorrentes. */
