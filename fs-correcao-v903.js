@@ -42,6 +42,37 @@
   }
   window.fsV903SundayBusy=sundayBusy;window.fsV903SundayReady=sundayReady;
 
+  /*
+   * Os controles antigos recompõem o painel inteiro a cada alteração. A
+   * cortina entra antes dessa recomposição, conserva o ponto de rolagem e só
+   * sai quando a nova tabela estiver pronta, evitando a sequência de telas
+   * vista durante a definição da folga.
+   */
+  const MUTACOES_DOMINGO={
+    fsDom541Status:'Atualizando a situação do colaborador…',
+    fsDom541Equipe:'Atualizando equipe e horário…',
+    fsDom541Folga:'Salvando a folga compensatória…'
+  };
+  function envolverMutacoesDomingo(){
+    Object.entries(MUTACOES_DOMINGO).forEach(([nome,mensagem])=>{
+      const atual=window[nome];
+      if(typeof atual!=='function'||atual.__fsV905Busy)return;
+      const fn=function(){
+        const x=window.scrollX,y=window.scrollY;
+        sundayBusy(mensagem);
+        let resultado;
+        try{resultado=atual.apply(this,arguments);}
+        catch(erro){sundayReady(0);throw erro;}
+        const concluir=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          window.scrollTo(x,y);estabilizarFolgas();sundayReady(220);
+        }));
+        if(resultado&&typeof resultado.then==='function')resultado.finally(concluir);else concluir();
+        return resultado;
+      };
+      fn.__fsV905Busy=true;fn.__fsV905Original=atual;window[nome]=fn;
+    });
+  }
+
   /* Restaura o select nativo de folga: permanece clicável e não depende do pop-up legado. */
   function estabilizarFolgas(){
     document.querySelectorAll('#domingo select[onchange*="fsDom541Folga"]').forEach(sel=>{
@@ -197,7 +228,7 @@
   /* API mínima apenas para a fiscalização automatizada do leitor. */
   window.fsV903Test={extrairPorColunas,extrairTextoGenerico,consolidarRows};
 
-  function atualizar(){protegerBackup();instalarLimpezaDomingo();estabilizarFolgas();instalarLeitor()}
+  function atualizar(){protegerBackup();instalarLimpezaDomingo();envolverMutacoesDomingo();estabilizarFolgas();instalarLeitor()}
   let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(atualizar,80)}).observe(document.body,{childList:true,subtree:true});
   document.addEventListener('change',e=>{if(e.target?.matches?.('#domingo select[data-fs-v903-folga]'))setTimeout(estabilizarFolgas,30)},false);
   setInterval(atualizar,2200);setTimeout(atualizar,300);

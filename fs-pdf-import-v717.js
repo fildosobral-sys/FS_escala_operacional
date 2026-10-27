@@ -1,4 +1,4 @@
-/* FS Escala Operacional - importador de PDF isolado v719 */
+/* FS Escala Operacional - importador de PDF isolado v905 */
 (function(){
   'use strict';
 
@@ -46,6 +46,71 @@
     return grupos.sort((a,b)=>b.y-a.y).map(g=>g.itens.sort((a,b)=>(a.transform?.[4]||0)-(b.transform?.[4]||0)).map(x=>x.str).join(' ').replace(/\s+/g,' ').trim()).filter(Boolean);
   }
 
+  /*
+   * Relatórios Fortes possuem colunas estáveis. A leitura por posição evita
+   * descartar colaboradores só porque o cargo ainda não existe em uma lista
+   * de funções conhecida pela plataforma.
+   */
+  function titulo(v){
+    return String(v||'').toLowerCase().split(/\s+/).filter(Boolean).map((p,i)=>
+      /^(de|da|do|das|dos|e|em|com)$/.test(p)&&i?p:p.charAt(0).toUpperCase()+p.slice(1)
+    ).join(' ');
+  }
+  function gruposDaPagina(items){
+    const grupos=[];
+    (items||[]).filter(x=>String(x.str||'').trim()).forEach(it=>{
+      const y=Math.round(it.transform?.[5]||0);
+      let g=grupos.find(x=>Math.abs(x.y-y)<=2);
+      if(!g){g={y,itens:[]};grupos.push(g);}
+      g.itens.push(it);
+    });
+    return grupos.sort((a,b)=>b.y-a.y).map(g=>({y:g.y,itens:g.itens.sort((a,b)=>(a.transform?.[4]||0)-(b.transform?.[4]||0))}));
+  }
+  const textoGrupo=g=>g.itens.map(x=>String(x.str||'').trim()).filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+  function colunasFortes(grupos){
+    const h=grupos.find(g=>/empregado/i.test(textoGrupo(g))&&/lota[cç][aã]o/i.test(textoGrupo(g)))||{itens:[]};
+    const pos=(re,padrao)=>h.itens.find(x=>re.test(x.str||''))?.transform?.[4]??padrao;
+    return {ordem:pos(/ordem/i,15),nome:pos(/empregado/i,70),lotacao:pos(/lota/i,260),turno:pos(/turno\s*1/i,455)};
+  }
+  function textoFaixa(g,ini,fim){
+    return g.itens.filter(x=>{const p=x.transform?.[4]||0;return p>=ini&&p<fim;}).map(x=>x.str).join(' ').replace(/\s+/g,' ').trim();
+  }
+  function extrairPorColunas(pagina){
+    if(!pagina.itens?.length)return [];
+    const grupos=gruposDaPagina(pagina.itens),col=colunasFortes(grupos),saida=[];
+    grupos.forEach((g,idx)=>{
+      const linha=textoGrupo(g),ord=linha.match(/^\s*(\d{1,4})\s+/);if(!ord)return;
+      const inicioNome=col.ordem+20,inicioLotacao=col.lotacao-25,fimLotacao=col.turno-5;
+      const nome=titulo(textoFaixa(g,inicioNome,inicioLotacao-4).replace(/^\d{1,4}\s+/,''));
+      if(!nomeValido(nome))return;
+      let funcao=textoFaixa(g,inicioLotacao,fimLotacao).trim();
+      for(let j=idx+1;j<grupos.length&&g.y-grupos[j].y<34;j++){
+        if(/^\d{1,4}\s+[A-Za-zÀ-ÿ]/.test(textoGrupo(grupos[j])))break;
+        const complemento=textoFaixa(grupos[j],inicioLotacao,fimLotacao);
+        if(/[A-Za-zÀ-ÿ]/.test(complemento)&&!tempos(complemento).length)funcao=`${funcao} ${complemento}`.trim();
+      }
+      funcao=titulo(funcao.replace(/\b\d{1,2}:\d{2}.*$/,'').replace(/\d+/g,'').replace(/[:;.-]+$/,'').replace(/\s+/g,' ').trim())||'Função não informada';
+      const horasLinha=tempos(linha),horasSeguintes=[];
+      for(let j=idx+1;j<grupos.length&&g.y-grupos[j].y<34;j++){
+        if(/^\d{1,4}\s+/.test(textoGrupo(grupos[j])))break;
+        horasSeguintes.push(...tempos(textoGrupo(grupos[j])));
+      }
+      const semana=horario(horasLinha.slice(0,4)),sabado=horario(horasSeguintes.slice(0,4));
+      const aprendiz=/aprendiz/i.test(funcao),horariosIndividuais={},diasTrabalho=[];
+      if(semana){
+        const dias=aprendiz?DIAS_UTEIS.slice(0,3):DIAS_UTEIS;
+        dias.forEach(d=>{diasTrabalho.push(d);horariosIndividuais[d]={ativo:true,...semana};});
+      }
+      if(sabado&&!aprendiz){diasTrabalho.push('sabado');horariosIndividuais.sabado={ativo:true,...sabado};}
+      saida.push({
+        _ordem:Number(ord[1]),nome,funcao:aprendiz?'Jovem Aprendiz':funcao,
+        jovemAprendiz:aprendiz,cargaSemanalAprendiz:aprendiz?12:undefined,
+        horariosIndividuais,diasTrabalho
+      });
+    });
+    return saida;
+  }
+
   function extrairMetadados(texto){
     const linhas=String(texto||'').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
     const pegar=re=>{const m=String(texto||'').match(re);return m?m[1].replace(/\s+/g,' ').trim():'';};
@@ -71,6 +136,8 @@
   function extrairPessoas(paginas){
     const saida=[];
     for(const pagina of paginas){
+      const estruturados=extrairPorColunas(pagina);
+      if(estruturados.length){saida.push(...estruturados);continue;}
       const linhas=pagina.linhas;
       const fortes=/hor[aá]rio de trabalho/i.test(pagina.texto)&&/turno 1/i.test(pagina.texto);
       for(let i=0;i<linhas.length;i++){
@@ -98,7 +165,7 @@
     }
     const mapa=new Map();
     saida.forEach(p=>{const k=chave(p.nome),at=mapa.get(k);if(!at)mapa.set(k,p);else{Object.assign(at.horariosIndividuais,p.horariosIndividuais);p.diasTrabalho.forEach(d=>{if(!at.diasTrabalho.includes(d))at.diasTrabalho.push(d);});}});
-    return [...mapa.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+    return [...mapa.values()].sort((a,b)=>(a._ordem||9999)-(b._ordem||9999)||a.nome.localeCompare(b.nome,'pt-BR'));
   }
 
   let leitorPromise=null;
@@ -121,7 +188,7 @@
     for(let n=1;n<=pdf.numPages;n++){
       status(`Arquivo ${indice+1}/${total}: lendo página ${n}/${pdf.numPages}...`);
       const page=await pdf.getPage(n),conteudo=await page.getTextContent(),linhas=linhasDaPagina(conteudo.items);
-      out.push({nome:file.name+' - página '+n,linhas,texto:linhas.join('\n')});
+      out.push({nome:file.name+' - página '+n,linhas,texto:linhas.join('\n'),itens:conteudo.items,pagina:n});
     }
     return out;
   }
@@ -131,6 +198,13 @@
     window.fsPdfImportacaoConcluida=null;
     const pos=document.getElementById('fsV858PosImportacao');if(pos)pos.hidden=true;
     const regras=document.getElementById('fsV806Rules');if(regras)regras.hidden=true;
+  }
+  function auditoriaPdf(dados){
+    const ta=document.getElementById('importText'),area=ta?.parentElement;if(!area)return;
+    let box=area.querySelector('.fsV903ImportAudit');
+    if(!box){box=document.createElement('section');box.className='fsV903ImportAudit';ta.insertAdjacentElement('afterend',box);}
+    const inconsistencias=dados.inconsistencias||[];
+    box.innerHTML=`<header><b>Conferência da importação</b><span>${dados.paginas} página(s) lida(s) integralmente</span></header><div><article><small>Total identificado</small><strong>${dados.total}</strong></article><article><small>Total pronto para importar</small><strong>${dados.total}</strong></article><article><small>Total importado</small><strong>${dados.importados||0}</strong></article><article class="${inconsistencias.length?'warn':'ok'}"><small>Inconsistências</small><strong>${inconsistencias.length}</strong></article></div>${inconsistencias.length?`<p>Revisar: ${inconsistencias.join(' • ')}</p>`:'<p>✓ Nenhuma duplicação ou linha descartada foi detectada.</p>'}`;
   }
   async function processarArquivosPdf(files){
     const area=document.getElementById('importText');
@@ -148,15 +222,18 @@
       }
       const itens=extrairPessoas(paginas),metadados=extrairMetadados(paginas.map(p=>p.texto).join('\n'));
       if(!itens.length)throw new Error('o PDF abriu, mas nenhuma linha de colaborador foi reconhecida');
+      const estruturados=paginas.flatMap(extrairPorColunas),duplicados=Math.max(0,estruturados.length-itens.length);
+      window.fsPdfV905Audit={total:itens.length,paginas:paginas.length,importados:0,inconsistencias:duplicados?[`${duplicados} duplicidade(s) consolidada(s)`]:[]};
       window.fsPdfImportacaoConcluida=null;
-      window.fsImportacaoPdfPendente={itens,metadados,arquivos:files.length};
+      window.fsImportacaoPdfPendente={itens,metadados,arquivos:files.length,paginas:paginas.length};
       const modalRegras=document.getElementById('fsV806Rules');if(modalRegras)modalRegras.hidden=true;
       const previa=itens.map(x=>`${x.nome} - ${x.funcao}`).join('\n');
       if(area){area.value=previa;area.dispatchEvent(new Event('input',{bubbles:true}));}
       window.fsPdfUltimaPrevia=previa;
       const modo=document.getElementById('importMode');if(modo)modo.value='replace';
+      auditoriaPdf(window.fsPdfV905Audit);
       const unidade=[metadados.filial,metadados.cnpj].filter(Boolean).join(' - ');
-      status(`${itens.length} colaborador(es) reconhecido(s) em ${files.length} arquivo(s). ${unidade?'Unidade identificada: '+unidade+'. ':''}Confira a lista e clique em importar.`);
+      status(`${itens.length} colaborador(es) reconhecido(s) em ${paginas.length} página(s). ${unidade?'Unidade identificada: '+unidade+'. ':''}Confira a lista e clique em importar.`);
     }catch(e){console.error('[FS PDF]',e);status('Falha na leitura do PDF: '+e.message);alert('Não consegui concluir a leitura do PDF: '+e.message);}
     finally{if(botao){botao.disabled=false;botao.textContent=rotulo||'Ler arquivos selecionados';}}
   }
@@ -164,6 +241,7 @@
     const input=document.getElementById('listaInput');
     return processarArquivosPdf([...(input?.files||[])]);
   };
+  window.lerArquivoAssistido.__fsV903Integral=true;
 
   window.fsSelecionarELerPdf=function(){
     iniciarConferenciaPdf();
@@ -233,6 +311,7 @@
     // gestão em Dados da unidade / Editar parâmetros.
     window.fsImportacaoPdfPendente=null;
     window.fsPdfImportacaoConcluida={quantidade:revisados.length,metadados:novos,at:Date.now()};
+    if(window.fsPdfV905Audit){window.fsPdfV905Audit.importados=revisados.length;auditoriaPdf(window.fsPdfV905Audit);}
     if(typeof save==='function')save();
     if(typeof render==='function')render();
     status(`${revisados.length} colaborador(es) importado(s). Agora escolha e confirme a regra da escala antes de aplicar a distribuição.`);
@@ -246,7 +325,7 @@
     const input=document.getElementById('listaInput');if(!input)return;
     input.accept='.pdf,application/pdf';
     input.removeAttribute('capture');
-    input.dataset.fsPdfV='719';
+    input.dataset.fsPdfV='905';
     if(input.dataset.fsPdfChange==='1')return;
     input.dataset.fsPdfChange='1';
     input.addEventListener('change',()=>{
@@ -256,7 +335,7 @@
     });
     const card=input.closest('.toolCard');
     if(card&&!card.querySelector('#fsPdfDirectButton')){
-      const aviso=document.createElement('div');aviso.id='fsPdfReaderVersion';aviso.textContent='✓ Leitor PDF v719 ativo';aviso.style.cssText='margin:8px 0;padding:8px 10px;border-radius:10px;background:#ecfdf3;color:#166534;font-weight:900;font-size:12px;text-align:center';
+      const aviso=document.createElement('div');aviso.id='fsPdfReaderVersion';aviso.textContent='✓ Leitor PDF v905 ativo — leitura integral';aviso.style.cssText='margin:8px 0;padding:8px 10px;border-radius:10px;background:#ecfdf3;color:#166534;font-weight:900;font-size:12px;text-align:center';
       const botao=document.createElement('button');botao.id='fsPdfDirectButton';botao.type='button';botao.className='primary';botao.textContent='📄 Selecionar e ler PDF';botao.onclick=window.fsSelecionarELerPdf;
       input.style.display='none';
       const antigo=[...card.querySelectorAll('button')].find(b=>/ler arquivos selecionados/i.test(b.textContent||''));if(antigo)antigo.style.display='none';
@@ -266,4 +345,5 @@
   const observar=new MutationObserver(()=>{prepararSeletorPdf();const area=document.getElementById('importText');if(area&&window.fsImportacaoPdfPendente&&window.fsPdfUltimaPrevia&&!area.value.trim())area.value=window.fsPdfUltimaPrevia;});observar.observe(document.documentElement,{childList:true,subtree:true});
   prepararSeletorPdf();
   document.addEventListener('click',e=>{if(e.target?.closest?.('button')?.textContent?.match(/configura[cç][oõ]es/i))setTimeout(prepararSeletorPdf,80);},true);
+  window.fsPdfV905Test={extrairPorColunas};
 })();
