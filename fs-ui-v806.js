@@ -94,7 +94,7 @@
   window.fsV820ReviewSchedules=function(){const o=document.getElementById('fsV806Rules');if(o)o.hidden=true;document.querySelector('#configContent .horariosDiaBox')?.scrollIntoView({behavior:'smooth',block:'start'})};
   window.fsV822SetBreak=function(key,n){planBreaks[key]=Number(n);showModel(key)};
   const planDays=['segunda','terca','quarta','quinta','sexta','sabado'];
-  function protectedPerson(p){return !!(p?.jovemAprendiz||p?.fsMetaIndividualAtiva===true||p?.fs42ManualLock===true)}
+  function protectedPerson(p){return !!(p?.jovemAprendiz||p?.fsMetaIndividualAtiva===true||p?.fsIndividualOverrideConfirmed===true)}
   function activePlanDays(p,key){
     if(key==='6x1'||key==='42h-6x1')return [...planDays];
     if(key==='42h-5x2')return planDays.filter(d=>d!==(p.folgaDistribuida||'terca'));
