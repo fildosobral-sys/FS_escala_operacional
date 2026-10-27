@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"><title>FS Operacional Inteligente</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="./icone-192.png"><meta name="theme-color" content="#020617"><script src="./fs-runtime-guard.js"></script>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"><title>FS Operacional Inteligente</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="./icone-192.png"><meta name="theme-color" content="#020617"><script src="./fs-runtime-guard.js"></script><script defer src="./fs-integridade-v916.js?v=916"></script>
 <script>
 /* ===== v508: terceiro modo operacional — dias normais 6x1 / 44h ===== */
 document.addEventListener('DOMContentLoaded',function(){
@@ -15240,7 +15240,8 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function distribuirTudo(salvar=true){DS.forEach(distribuirDia);state.config=state.config||{};state.config.fsDistribuicaoFuncaoV560=true;if(salvar){save();try{render()}catch(e){}}return true}
   window.fsV560DistribuirDia=distribuirDia;window.fsV560DistribuirTudo=distribuirTudo;window.fsV560OrdenarHorarios=ordenarHorarios;
   const anterior=window.aplicarDistribuicao||((typeof aplicarDistribuicao==='function')?aplicarDistribuicao:null);if(anterior&&!anterior.__fsV560){const fn=function(){const r=anterior.apply(this,arguments);distribuirTudo(true);setTimeout(()=>distribuirTudo(true),70);return r};fn.__fsV560=true;window.aplicarDistribuicao=fn;try{aplicarDistribuicao=fn}catch(e){}}
-  document.addEventListener('change',e=>{const t=e.target;if(t?.closest?.('.dayScheduleCard')||t?.closest?.('.fsDomingoScheduleCard'))setTimeout(()=>distribuirTudo(true),40)},true);
+  /* A edicao do horario padrao apenas grava o valor. A redistribuicao e a
+     reconstrucao da interface acontecem somente em comandos explicitos. */
   function iniciar(){if(state.config?.fsRestauracaoFiel){window.fsV559SincronizarTudo?.();return}if(!state.config?.fsDistribuicaoFuncaoV560)distribuirTudo(true);else DS.forEach(ordenarHorarios);window.fsV559SincronizarTudo?.()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(iniciar,500));else setTimeout(iniciar,500);
 })();

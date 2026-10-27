@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fs-escala-central-v915';
+const CACHE_NAME = 'fs-escala-central-v916';
 const CORE_FILES = [
   './',
   './index.html',
@@ -25,6 +25,7 @@ const CORE_FILES = [
   './fs-correcao-v903.css',
   './fs-auditoria-v913.js',
   './fs-auditoria-v913.css',
+  './fs-integridade-v916.js',
   './fs-equilibrio-v807.js',
   './fs-equilibrio-v807.css',
   './fs-refino-v808.js',
@@ -101,7 +102,7 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  if (/fs-(?:auditoria-v913|correcao-v903|cloud-v716|dashboard-v800|regional-v884|central-v812|ui-v806|equilibrio-v807|refino-v808|fotos-relatorios-v809|final-v810|finalizacao-v837|banco-horas-v842|mapa-mensal-v865|simulador-v893|consolidacao-v811|editor-v824|domingo-v831|conformidade-v832|conformidade-v833|consolidado-v835)\.(?:js|css)$/.test(url.pathname) || /fs-42h\.js$/.test(url.pathname)) {
+  if (/fs-(?:integridade-v916|auditoria-v913|correcao-v903|cloud-v716|dashboard-v800|regional-v884|central-v812|ui-v806|equilibrio-v807|refino-v808|fotos-relatorios-v809|final-v810|finalizacao-v837|banco-horas-v842|mapa-mensal-v865|simulador-v893|consolidacao-v811|editor-v824|domingo-v831|conformidade-v832|conformidade-v833|consolidado-v835)\.(?:js|css)$/.test(url.pathname) || /fs-42h\.js$/.test(url.pathname)) {
     event.respondWith(
       fetch(event.request).then(function (response) {
         if (response.ok) {
