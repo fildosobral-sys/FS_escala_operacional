@@ -42,6 +42,24 @@
   }
   window.fsV903SundayBusy=sundayBusy;window.fsV903SundayReady=sundayReady;
 
+  let sundayStableTimer=0,sundayStableLimit=0,sundayStableLast=0,sundayStableScroll=null;
+  function programarFimDomingo(){
+    clearTimeout(sundayStableTimer);
+    sundayStableTimer=setTimeout(()=>{
+      if(Date.now()-sundayStableLast<650&&Date.now()<sundayStableLimit){programarFimDomingo();return;}
+      const pos=sundayStableScroll;sundayStableLimit=0;sundayStableScroll=null;
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(pos)window.scrollTo(pos.x,pos.y);
+        estabilizarFolgas();sundayReady(180);
+      }));
+    },700);
+  }
+  function aguardarDomingoEstavel(x,y){
+    sundayStableScroll={x,y};sundayStableLast=Date.now();
+    if(!sundayStableLimit)sundayStableLimit=Date.now()+5000;
+    programarFimDomingo();
+  }
+
   /*
    * Os controles antigos recompõem o painel inteiro a cada alteração. A
    * cortina entra antes dessa recomposição, conserva o ponto de rolagem e só
@@ -63,9 +81,7 @@
         let resultado;
         try{resultado=atual.apply(this,arguments);}
         catch(erro){sundayReady(0);throw erro;}
-        const concluir=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
-          window.scrollTo(x,y);estabilizarFolgas();sundayReady(220);
-        }));
+        const concluir=()=>aguardarDomingoEstavel(x,y);
         if(resultado&&typeof resultado.then==='function')resultado.finally(concluir);else concluir();
         return resultado;
       };
@@ -230,6 +246,11 @@
 
   function atualizar(){protegerBackup();instalarLimpezaDomingo();envolverMutacoesDomingo();estabilizarFolgas();instalarLeitor()}
   let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(atualizar,80)}).observe(document.body,{childList:true,subtree:true});
+  new MutationObserver(()=>{
+    if(document.getElementById('fsV903SundayBusy')&&sundayStableScroll){
+      sundayStableLast=Date.now();programarFimDomingo();
+    }
+  }).observe(document.body,{childList:true,subtree:true,attributes:true});
   document.addEventListener('change',e=>{if(e.target?.matches?.('#domingo select[data-fs-v903-folga]'))setTimeout(estabilizarFolgas,30)},false);
   setInterval(atualizar,2200);setTimeout(atualizar,300);
 })();
