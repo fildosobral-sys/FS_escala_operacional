@@ -142,10 +142,9 @@
       const after=companyHours(),changed=!sameHours(before,after);
       if(changed)setTimeout(()=>{
         const key=currentKey();delete planBreaks[key];projectionDraft=Object.assign({},after);
-        const p=planData(key,after);
-        if(!p.exact){const t=typeof toast==='function'?toast:null;t&&t('Funcionamento salvo. A jornada precisa de ajuste em Regras da escala.');return}
-        activatePlanModel(key);const total=programCalculatedPlan(key,p);
-        const t=typeof toast==='function'?toast:null;t&&t(`Funcionamento, intervalos e horários recalculados automaticamente para ${total} colaborador(es).`);
+        const p=planData(key,after),t=typeof toast==='function'?toast:null;
+        t&&t(p.exact?'Funcionamento salvo. Os horários das equipes foram preservados e podem ser revisados em Regras da escala.':'Funcionamento salvo. Revise a compatibilidade em Regras da escala.');
+        if(!document.getElementById('fsV806Rules')?.hidden)showModel(key);
       },80);
       return result;
     };
