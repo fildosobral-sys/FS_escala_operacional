@@ -42,21 +42,30 @@
   }
   window.fsV903SundayBusy=sundayBusy;window.fsV903SundayReady=sundayReady;
 
-  let sundayStableTimer=0,sundayStableLimit=0,sundayStableLast=0,sundayStableScroll=null;
+  let sundayStableTimer=0,sundayForceTimer=0,sundayStableLimit=0,sundayStableLast=0,sundayStableScroll=null;
+  function finalizarDomingoEstavel(){
+    clearTimeout(sundayStableTimer);clearTimeout(sundayForceTimer);
+    sundayStableTimer=0;sundayForceTimer=0;
+    const pos=sundayStableScroll;sundayStableLimit=0;sundayStableScroll=null;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(pos)window.scrollTo(pos.x,pos.y);
+      estabilizarFolgas();sundayReady(100);
+    }));
+  }
   function programarFimDomingo(){
     clearTimeout(sundayStableTimer);
     sundayStableTimer=setTimeout(()=>{
       if(Date.now()-sundayStableLast<650&&Date.now()<sundayStableLimit){programarFimDomingo();return;}
-      const pos=sundayStableScroll;sundayStableLimit=0;sundayStableScroll=null;
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        if(pos)window.scrollTo(pos.x,pos.y);
-        estabilizarFolgas();sundayReady(180);
-      }));
+      finalizarDomingoEstavel();
     },700);
   }
   function aguardarDomingoEstavel(x,y){
     sundayStableScroll={x,y};sundayStableLast=Date.now();
-    if(!sundayStableLimit)sundayStableLimit=Date.now()+5000;
+    if(!sundayStableLimit){
+      sundayStableLimit=Date.now()+3200;
+      clearTimeout(sundayForceTimer);
+      sundayForceTimer=setTimeout(finalizarDomingoEstavel,3400);
+    }
     programarFimDomingo();
   }
 
@@ -246,11 +255,13 @@
 
   function atualizar(){protegerBackup();instalarLimpezaDomingo();envolverMutacoesDomingo();estabilizarFolgas();instalarLeitor()}
   let timer=0;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(atualizar,80)}).observe(document.body,{childList:true,subtree:true});
-  new MutationObserver(()=>{
-    if(document.getElementById('fsV903SundayBusy')&&sundayStableScroll){
-      sundayStableLast=Date.now();programarFimDomingo();
-    }
-  }).observe(document.body,{childList:true,subtree:true,attributes:true});
+  new MutationObserver(mutations=>{
+    if(!document.getElementById('fsV903SundayBusy')||!sundayStableScroll)return;
+    const mudouDomingo=mutations.some(m=>[...m.addedNodes,...m.removedNodes].some(n=>
+      n.nodeType===1&&(n.id==='domingo'||n.closest?.('#domingo')||n.querySelector?.('#domingo'))
+    ));
+    if(mudouDomingo){sundayStableLast=Date.now();programarFimDomingo();}
+  }).observe(document.body,{childList:true,subtree:true});
   document.addEventListener('change',e=>{if(e.target?.matches?.('#domingo select[data-fs-v903-folga]'))setTimeout(estabilizarFolgas,30)},false);
   setInterval(atualizar,2200);setTimeout(atualizar,300);
 })();
