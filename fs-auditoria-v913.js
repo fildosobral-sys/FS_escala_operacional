@@ -24,26 +24,40 @@
 
   let ruleDraft=null;
   function cloneRows(day){return(state?.horarios?.[day]||[]).map((h,i)=>({titulo:h.titulo||`Equipe ${String(i+1).padStart(2,'0')}`,entrada:h.entrada||'08:00',almocoIni:h.almocoIni||'12:00',almocoFim:h.almocoFim||'13:00',saida:h.saida||'18:00'}))}
-  function ensureDraft(){if(!ruleDraft)ruleDraft={week:cloneRows('segunda'),sat:cloneRows('sabado')};return ruleDraft}
+  function selectedRuleKey(){return document.querySelector('#fsV806Rules .fsV806RulesModels button.active')?.dataset?.key||''}
+  function ensureDraft(){if(!ruleDraft)ruleDraft={key:selectedRuleKey(),week:cloneRows('segunda'),sat:cloneRows('sabado')};return ruleDraft}
+  window.fsV913GetRuleDraft=function(key){const d=ruleDraft;if(!d||!d.week?.length||!d.sat?.length)return null;if(key&&d.key&&key!==d.key)return null;return JSON.parse(JSON.stringify(d))};
   function timeField(group,index,key,label,value){return`<label><span>${label}</span><input type="time" value="${esc(value)}" onchange="fsV913RuleTime('${group}',${index},'${key}',this.value)"></label>`}
   function teamCard(group,row,index){return`<article><b>Equipe ${String(index+1).padStart(2,'0')}</b><div>${timeField(group,index,'entrada','Entrada',row.entrada)}${timeField(group,index,'almocoIni','Início intervalo',row.almocoIni)}${timeField(group,index,'almocoFim','Fim intervalo',row.almocoFim)}${timeField(group,index,'saida','Saída',row.saida)}</div></article>`}
+  function decorateSummary(d){
+    const root=document.querySelector('#fsV806Rules .fsV821Plan');if(!root||!d)return;
+    const mins=h=>{const[a,b]=String(h||'00:00').split(':').map(Number);return(a||0)*60+(b||0)},fmt=n=>`${String(Math.floor(Math.max(0,n)/60)).padStart(2,'0')}h${String(Math.max(0,n)%60).padStart(2,'0')}`;
+    const work=h=>Math.max(0,mins(h.saida)-mins(h.entrada)-Math.max(0,mins(h.almocoFim)-mins(h.almocoIni))),key=d.key||selectedRuleKey(),days=(key==='42h-5x2'||key==='distribuido'||key==='atual')?4:5,teams=Math.max(d.week.length,d.sat.length);
+    const totals=Array.from({length:teams},(_,i)=>days*work(d.week[i]||d.week[0])+work(d.sat[i]||d.sat[0]));
+    const title=root.querySelector('.fsV821PlanTitle b');if(title)title.textContent=`Quadro editável • ${totals.map((n,i)=>`Equipe ${String(i+1).padStart(2,'0')}: ${fmt(n)} semanais`).join(' • ')}`;
+    const info=root.querySelector('.fsV822Breaks');if(info)info.innerHTML=`<div><b>Intervalos definidos por equipe</b><span>O resumo e a validação usam exatamente os horários do quadro editável abaixo.</span></div><div>${d.week.map((h,i)=>`<button type="button" class="active" disabled>Equipe ${String(i+1).padStart(2,'0')} • ${fmt(Math.max(0,mins(h.almocoFim)-mins(h.almocoIni)))}</button>`).join('')}</div>`;
+    const loads=root.querySelectorAll('td[data-label="Carga efetiva"]');if(loads[0])loads[0].textContent=d.week.map((h,i)=>`Eq. ${String(i+1).padStart(2,'0')}: ${fmt(work(h))}`).join(' • ');if(loads[1])loads[1].textContent=d.sat.map((h,i)=>`Eq. ${String(i+1).padStart(2,'0')}: ${fmt(work(h))}`).join(' • ');
+  }
   function injectRuleEditor(){
     const detail=document.querySelector('#fsV806Rules .fsV806RulesDetail'),plan=detail?.querySelector('.fsV821Plan');if(!detail||!plan)return;
     let box=detail.querySelector('.fsV913TeamEditor');if(box)return;
     const d=ensureDraft();box=document.createElement('section');box.className='fsV913TeamEditor';
     box.innerHTML=`<header><div><b>Horários editáveis das equipes</b><span>Estes são os horários atualmente configurados. Ajuste cada equipe sem alterar a abertura oficial da filial.</span></div></header><h4>Segunda a sexta</h4><div class="fsV913Teams">${d.week.map((x,i)=>teamCard('week',x,i)).join('')}</div><h4>Sábado</h4><div class="fsV913Teams">${d.sat.map((x,i)=>teamCard('sat',x,i)).join('')}</div><footer><span>Entrada, intervalo e saída são independentes por equipe.</span><button type="button" onclick="fsV913ApplyRuleTimes()">Salvar horários das equipes</button></footer>`;
     plan.insertAdjacentElement('afterend',box);
+    decorateSummary(d);
   }
-  window.fsV913RuleTime=function(group,index,key,value){if(!/^\d{2}:\d{2}$/.test(value))return;const d=ensureDraft();if(d[group]?.[index])d[group][index][key]=value};
+  function refreshRuleModel(){const key=selectedRuleKey();if(key&&typeof window.fsV913RefreshRuleModel==='function')window.fsV913RefreshRuleModel(key)}
+  window.fsV913RuleTime=function(group,index,key,value){if(!/^\d{2}:\d{2}$/.test(value))return;const d=ensureDraft();d.key=selectedRuleKey()||d.key;if(d[group]?.[index])d[group][index][key]=value;refreshRuleModel()};
   window.fsV913ApplyRuleTimes=function(){
     const d=ensureDraft();if(!d.week.length||!d.sat.length)return alert('Nenhuma equipe foi localizada para salvar.');
-    const invalid=[...d.week,...d.sat].some(h=>h.entrada>=h.saida||h.almocoIni>h.almocoFim||h.almocoIni<h.entrada||h.almocoFim>h.saida);
-    if(invalid)return alert('Revise os horários: entrada, intervalo e saída precisam seguir a ordem correta.');
+    const mins=h=>{const [a,b]=String(h||'00:00').split(':').map(Number);return(a||0)*60+(b||0)};
+    const invalid=[...d.week,...d.sat].some(h=>h.entrada>=h.saida||h.almocoIni>h.almocoFim||h.almocoIni<h.entrada||h.almocoFim>h.saida||((mins(h.saida)-mins(h.entrada)-Math.max(0,mins(h.almocoFim)-mins(h.almocoIni)))>360&&(mins(h.almocoFim)-mins(h.almocoIni))<60));
+    if(invalid)return alert('Revise os horários: entrada, intervalo e saída precisam seguir a ordem correta. Em jornadas acima de 6 horas, o intervalo configurado deve ter no mínimo 1 hora.');
     state.horarios=state.horarios||{};state.config=state.config||{};state.config.equipesDia=state.config.equipesDia||{};
     DAYS.forEach(day=>{state.horarios[day]=JSON.parse(JSON.stringify(d.week));state.config.equipesDia[day]=d.week.length});
     state.horarios.sabado=JSON.parse(JSON.stringify(d.sat));state.config.equipesDia.sabado=d.sat.length;
     try{save()}catch(e){return alert('Não foi possível salvar os horários: '+(e?.message||e))}
-    try{render()}catch(_){ }try{renderConfig()}catch(_){ }
+    d.key=selectedRuleKey()||d.key;refreshRuleModel();
     const t=typeof toast==='function'?toast:null;t&&t('Horários das equipes salvos. Configurações e Regras agora usam o mesmo padrão.');
   };
 
