@@ -15595,6 +15595,10 @@ window.baixarImagem=function(elementId,nomeArquivo){
 })();
 </script>
 
+<style id="fs-v17-exportacao-isolada-css">
+.fsV17ExportIsolado{position:fixed!important;left:-24000px!important;top:0!important;width:1700px!important;max-width:none!important;z-index:-1!important;pointer-events:none!important;background:#fff!important;overflow:visible!important;visibility:visible!important;opacity:1!important}
+.fsV17ExportIsolado .execReport{margin:0!important;transform:none!important;zoom:1!important;overflow:visible!important}
+</style>
 <script id="fs-v16-relatorios-paginados">
 /* V16: exportacao diaria por paginas, sem encolher a tabela inteira. */
 (function(){
@@ -15608,21 +15612,39 @@ window.baixarImagem=function(elementId,nomeArquivo){
    if(!window.html2canvas){alert('O gerador de imagem ainda não carregou.');return}
    exportando=true;
    const stage=document.createElement('div');
-   stage.style.cssText='position:fixed;left:-20000px;top:0;width:1700px;background:white;pointer-events:none;z-index:-1';
-   stage.className='fsA4ExportStage';
+   // A classe antiga fsA4ExportStage tem left:0!important e sobrepunha
+   // o deslocamento inline, deixando o relatório visível atrás do modal.
+   // Usar estágio independente e fora da área visível, sem display:none
+   // (html2canvas precisa medir os elementos).
+   stage.className='fsV17ExportIsolado';
+   stage.style.cssText='position:fixed!important;left:-24000px!important;top:0!important;width:1700px!important;max-width:none!important;background:#fff!important;pointer-events:none!important;z-index:-1!important;opacity:1!important;visibility:visible!important;overflow:visible!important;';
    try{
      stage.innerHTML=montarRelatorioExecutivo(tipo);
      document.body.appendChild(stage);
      const root=stage.firstElementChild;
      if(!root)throw Error('Relatório vazio');
      root.style.cssText='width:1600px!important;max-width:1600px!important;margin:0!important;';
-     const boards=[...root.querySelectorAll('.execBoard')];
+     // O HTML legado já fragmenta equipes em 25 linhas; reunir por equipe
+     // antes de paginar evita folhas quase vazias e numeração repetida.
+     const pre=[...root.querySelectorAll('.execBoard')];
+     const merged=[];
+     for(const b of pre){
+       const title=b.querySelector('.execTitle');
+       const base=(title?.textContent||'').replace(/\s*[—-]\s*CONTINUAÇÃO\s*\d+/gi,'').trim();
+       const last=merged[merged.length-1];
+       if(last&&last.key===base){
+         const target=last.board.querySelector('tbody'),source=b.querySelector('tbody');
+         if(target&&source){[...source.children].forEach(row=>target.appendChild(row.cloneNode(true)));continue}
+       }
+       merged.push({key:base,board:b.cloneNode(true)});
+     }
+     const boards=merged.map(x=>x.board);
      if(!boards.length)throw Error('Nenhuma equipe encontrada');
      // Each team may exceed a page. Split by rows while retaining original table header.
      const pages=[];
      for(const board of boards){
        const rows=[...board.querySelectorAll('tbody tr')];
-       const chunk=18;
+       const chunk=32;
        for(let i=0;i<Math.max(1,rows.length);i+=chunk){
          const copy=board.cloneNode(true),body=copy.querySelector('tbody');
          if(body){body.innerHTML='';rows.slice(i,i+chunk).forEach((r,j)=>{const c=r.cloneNode(true);const n=c.querySelector('td');if(n&&rows.length>1)n.textContent=String(i+j+1).padStart(2,'0');body.appendChild(c)})}
@@ -15633,7 +15655,11 @@ window.baixarImagem=function(elementId,nomeArquivo){
      const sum=root.querySelector('.execMiniCards');
      const bottom=root.querySelector('.execBottomGrid');
      // Summary only on last page if it fits; otherwise separate page.
-     if(sum||bottom){const wrap=document.createElement('div');if(sum)wrap.appendChild(sum.cloneNode(true));if(bottom)wrap.appendChild(bottom.cloneNode(true));pages.push(wrap)}
+     if(sum||bottom){const wrap=document.createElement('div');if(sum)wrap.appendChild(sum.cloneNode(true));if(bottom)wrap.appendChild(bottom.cloneNode(true));
+       // Sumário compacto no rodapé da última folha quando há espaço.
+       const last=pages[pages.length-1];const lastRows=last?.querySelectorAll('tbody tr').length||0;
+       if(last&&lastRows<=12)last.appendChild(wrap);else pages.push(wrap);
+     }
      const nome='Relatorio_Executivo_'+tipo[0].toUpperCase()+tipo.slice(1)+'_A4_Paisagem';
      for(let i=0;i<pages.length;i++){
        root.innerHTML='';root.appendChild(pages[i]);
