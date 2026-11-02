@@ -436,10 +436,30 @@
       next.set(key, encoded);
     }
     const previous = new Map([...next.keys()].map(key => [key, localStorage.getItem(key)]));
+    // V12: dados antigos de outras filiais podem consumir toda a quota.
+    // Remover somente caches identificados, nunca escalas ou dados operacionais.
+    function discardLegacyBranchCopies() {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(BRANCH_CACHE_PREFIX)) keys.push(key);
+      }
+      keys.forEach(key => localStorage.removeItem(key));
+    }
+    function writeState() {
+      // Remover campos opcionais que não existem mais antes de inserir o estado.
+      // O snapshot anterior permanece em memória para restauração em caso de falha.
+      for (const [key, value] of next) if (value === null) localStorage.removeItem(key);
+      for (const [key, value] of next) if (value !== null) localStorage.setItem(key, value);
+    }
     try {
-      for (const [key, value] of next) {
-        if (value === null) localStorage.removeItem(key);
-        else localStorage.setItem(key, value);
+      try { writeState(); }
+      catch (e) {
+        if (e?.name !== 'QuotaExceededError') throw e;
+        discardLegacyBranchCopies();
+        // O cache da Central pode ser reconstruído pela nuvem; não contém a escala ativa.
+        localStorage.removeItem(DASH_CACHE_KEY);
+        writeState();
       }
     } catch (e) {
       let restored = true;
@@ -1481,7 +1501,11 @@
         throw new Error(r.message || "Central indisponível.");
       }
       data = r;
-      try { localStorage.setItem(DASH_CACHE_KEY, JSON.stringify(r)); } catch (_) {}
+      if (open) window.dispatchEvent(new CustomEvent('fs-dashboard-explicit-refresh'));
+      try {
+        localStorage.setItem(DASH_CACHE_KEY, JSON.stringify(r));
+        localStorage.setItem('fs_dash_daily_refresh_v12', JSON.stringify({date:new Date().toLocaleDateString('en-CA'),memberId:String(r.context?.memberId||'')}));
+      } catch (_) {}
       centralButton();
       if (open || autoEntry || document.getElementById("fsDashRoot")) {
         autoEntry = false;
@@ -1534,7 +1558,18 @@
       setTimeout(publish, 2500);
       setTimeout(publish, 8000);
     }
-    if (!branchMode) load(false);
+    if (!branchMode) {
+      // V12: uma consulta completa por dia para a mesma sessão de usuário;
+      // botão Atualizar continua forçando nova consulta.
+      const today = new Date().toLocaleDateString('en-CA');
+      const userId = String(data?.context?.memberId || '');
+      let fresh = false;
+      try {
+        const marker = JSON.parse(localStorage.getItem('fs_dash_daily_refresh_v12') || 'null');
+        fresh = !!data && marker?.date === today && marker?.memberId === userId && !!userId;
+      } catch (_) {}
+      if (!fresh) load(false);
+    }
     document.addEventListener(
       "click",
       (e) => {

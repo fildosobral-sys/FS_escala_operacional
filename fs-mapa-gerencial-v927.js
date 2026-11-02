@@ -26,8 +26,42 @@
   function render(){const root=document.getElementById(ID),d=window.fsDashGetData?.();if(!root||!d)return;const list=filtered(),opens=[...new Set(rows.map(x=>x.week[0]?.entrada||x.company?.horarioSemanaEntrada||'').filter(Boolean))].sort();root.innerHTML=`<header class="fsM927Top"><div><i>FS</i><span><b>Horários das filiais</b><small>Visão executiva das configurações oficiais</small></span></div><button data-map-close>×</button></header><main><section class="fsM927Filters"><label>Buscar<input data-map-query value="${esc(filters.query)}" placeholder="Filial ou cidade"></label><label>Regional<select data-map-region><option value="all">Visão geral</option>${(d.regions||[]).map(r=>`<option value="${esc(r.id)}" ${filters.region===String(r.id)?'selected':''}>${esc(r.name)}</option>`).join('')}</select></label><label>Carga<select data-map-load><option value="all">Todas</option>${[40,42,44].map(h=>`<option value="${h}" ${filters.load===String(h)?'selected':''}>${h} horas</option>`).join('')}</select></label><label>Abertura<select data-map-opening><option value="all">Todos os horários</option>${opens.map(t=>`<option value="${esc(t)}" ${filters.opening===t?'selected':''}>${esc(t)}</option>`).join('')}</select></label><button data-map-refresh>↻ Atualizar</button></section>${loading?'<div class="fsM927Loading"><i></i><b>Atualizando filiais…</b></div>':summary(list)+table(list)}</main>`;bind(root)}
   function bind(root){root.querySelector('[data-map-close]').onclick=()=>root.remove();root.querySelector('[data-map-refresh]').onclick=()=>load(true);[['query','input'],['region','change'],['load','change'],['opening','change']].forEach(([k,ev])=>root.querySelector(`[data-map-${k}]`).addEventListener(ev,e=>{filters[k]=e.target.value;render()}));root.querySelectorAll('[data-map-open]').forEach(b=>b.onclick=()=>window.fsDashOpenBranch?.(b.dataset.mapOpen))}
   function enhanceDashboard(){rows.forEach(x=>{const card=[...document.querySelectorAll('#fsDashRoot .fsDashBranch[data-branch-id]')].find(c=>String(c.dataset.branchId)===String(x.branch.id));if(!card)return;const meta=card.querySelector('.fsDashBranchMeta span');if(x.error)return;if(meta)meta.textContent=x.confirmed?'Parâmetros: validados':'Parâmetros: pendentes';const html=`<span><b>Seg–sex</b>${esc(x.week.map(range).join(' / ')||'—')}<small>${esc(x.week.map(breakRange).join(' / '))}</small></span><span><b>Sábado</b>${esc(x.sat.map(range).join(' / ')||'—')}<small>${esc(x.sat.map(breakRange).join(' / '))}</small></span>`,signature=JSON.stringify([x.load,x.confirmed,html]),slot=card.querySelector('[data-schedule-slot]');if(slot&&slot.dataset.signature!==signature){slot.className='fsDashScheduleSlot fsM927CardSchedule';slot.dataset.signature=signature;slot.innerHTML=html}const status=card.querySelector('.fsDashStatus'),label=`Escala ${x.load}h validada`;if(status){status.className='fsDashStatus '+(x.confirmed?'scale-approved':'scale-empty');status.textContent=x.confirmed?label:'Escala não validada'}})}
-  async function load(force){const d=window.fsDashGetData?.();if(!d||loading)return;loading=true;if(force)rows=[];render();const bs=(d.branches||[]).slice(),out=new Array(bs.length);let cursor=0;async function worker(){while(cursor<bs.length){const i=cursor++;out[i]=await fetchOne(bs[i],d);rows=out.filter(Boolean);enhanceDashboard()}}await Promise.all(Array.from({length:Math.min(4,Math.max(1,bs.length))},worker));rows=out.filter(Boolean);loading=false;render();enhanceDashboard()}
+  const DAILY_KEY='fs_management_schedule_daily_v12';
+  const today=()=>new Date().toLocaleDateString('en-CA');
+  function scope(d){return String(d?.context?.memberId||'')}
+  function restoreDaily(d){
+    try{
+      const saved=JSON.parse(localStorage.getItem(DAILY_KEY)||'null');
+      const bs=d.branches||[];
+      if(!scope(d)||saved?.day!==today()||saved?.user!==scope(d)||!Array.isArray(saved.items))return false;
+      const ids=bs.map(b=>String(b.id)).sort().join('|');
+      if(saved.ids!==ids||saved.items.length!==bs.length)return false;
+      const byId=new Map(bs.map(b=>[String(b.id),b]));
+      rows=saved.items.map(x=>({...x,branch:byId.get(String(x.id)),id:undefined}));
+      if(rows.some(x=>!x.branch))return false;
+      return true;
+    }catch(_){return false}
+  }
+  function storeDaily(d){
+    try{
+      const bs=d.branches||[];
+      const items=rows.filter(x=>!x.error).map(x=>({id:x.branch.id,region:x.region,company:x.company,week:x.week,sat:x.sat,sun:x.sun,load:x.load,confirmed:x.confirmed,version:x.version,updatedAt:x.updatedAt}));
+      // Do not persist partial or failed batches as a complete daily snapshot.
+      if(!scope(d)||items.length!==bs.length)return;
+      localStorage.setItem(DAILY_KEY,JSON.stringify({day:today(),user:scope(d),ids:bs.map(b=>String(b.id)).sort().join('|'),items}));
+    }catch(_){} // Cache is optional; quota failure must not affect the application.
+  }
+  async function load(force){const d=window.fsDashGetData?.();if(!d||loading)return;
+    if(!force && (rows.length===0 || rows.length!==(d.branches||[]).length) && restoreDaily(d)){enhanceDashboard();render();return;}
+    if(!force && rows.length===(d.branches||[]).length){enhanceDashboard();render();return;}
+    loading=true;if(force){rows=[];try{localStorage.removeItem(DAILY_KEY)}catch(_){}}render();
+    const bs=(d.branches||[]).slice(),out=new Array(bs.length);let cursor=0;
+    async function worker(){while(cursor<bs.length){const i=cursor++;out[i]=await fetchOne(bs[i],d);rows=out.filter(Boolean);enhanceDashboard()}}
+    try{await Promise.all(Array.from({length:Math.min(4,Math.max(1,bs.length))},worker));rows=out.filter(Boolean);storeDaily(d)}finally{loading=false;render();enhanceDashboard()}
+  }
   function open(){const d=window.fsDashGetData?.();if(!d||!ALLOWED.has(d.context?.role))return;document.getElementById(ID)?.remove();const root=document.createElement('div');root.id=ID;root.className='fsM927Root';document.body.appendChild(root);render();load(false)}
   function mount(){if(!document.getElementById('fsDashRoot'))return;if(rows.length)enhanceDashboard();else if(!loading)load(false)}
+  window.addEventListener('fs-dashboard-explicit-refresh',()=>{rows=[];try{localStorage.removeItem(DAILY_KEY)}catch(_){}load(true)});
+  document.addEventListener('fs:cloud-published',()=>{rows=[];try{localStorage.removeItem(DAILY_KEY)}catch(_){};if(document.getElementById('fsDashRoot'))load(true)});
   window.fsManagementScheduleMapOpen=open;window.fsManagementScheduleMapSync=mount;window.addEventListener('fs-dashboard-rendered',()=>setTimeout(mount,0));document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500));setTimeout(mount,900);
 })();
