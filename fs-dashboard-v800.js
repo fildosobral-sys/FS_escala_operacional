@@ -117,7 +117,7 @@
       timer = setTimeout(() => {
         const e = new Error(action === "read" ? "A filial demorou para responder. Tente novamente em alguns segundos." : "A Central demorou para atualizar. Os últimos dados válidos continuam disponíveis.");
         e.code = "TIMEOUT"; done(e);
-      }, timeoutMs || 12000);
+      }, timeoutMs || (action === "managementDashboard" ? 35000 : 12000));
       window[cb] = result => done(null, result);
       const p = params(action, extra); p.callback = cb;
       s.src = c.url + (c.url.includes("?") ? "&" : "?") + new URLSearchParams(p);
@@ -505,7 +505,7 @@
   }
   async function readBranchWithRetry(id) {
     let last;
-    for (const wait of [18000, 38000]) {
+    for (const wait of [30000, 45000]) {
       try {
         const response = await jsonp("read", { branchId:id, attempt:String(wait) }, wait);
         if (response && response.ok) return response;
@@ -1425,7 +1425,8 @@
           sessionStorage.setItem("fs_dashboard_branch_mode","1");sessionStorage.setItem("fs_cloud_admin_loaded",id);sessionStorage.setItem("fs_branch_cache_fallback","1");document.documentElement.classList.remove("fsDashboardOpen");location.reload();return;
         }catch(_){}
       }
-      error("Não foi possível atualizar esta filial agora. Tente novamente; nenhuma informação foi apagada.");
+      const reason = String(e?.message || "Falha de comunicação").slice(0, 200);
+      error("Não foi possível abrir a filial: " + reason + ". Nenhuma informação foi apagada.");
       busy = false;stopBranchLoading();
     }
   }
@@ -1452,7 +1453,16 @@
         sessionStorage.removeItem("fs_dashboard_branch_mode");
         document.documentElement.classList.add("fsDashboardOpen");
         autoEntry = true;
-        data ? render() : load(true);
+        if (!data) {
+          try {
+            const cached = JSON.parse(localStorage.getItem(DASH_CACHE_KEY) || "null");
+            const access = JSON.parse(localStorage.getItem("fs_access_data_v1") || "null");
+            const sameUser = !access?.memberId || cached?.context?.memberId === access.memberId;
+            if (cached?.ok && Array.isArray(cached.branches) && sameUser) data = cached;
+          } catch (_) {}
+        }
+        if (data) render();
+        else load(true);
       };
       (document.querySelector(".top .header") || document.body).appendChild(b);
     }
