@@ -447,6 +447,26 @@
     }
     setStatus("sync", "Salvando em segundo plano");
     try {
+      // Homologação V8: conferência preventiva antes de enviar uma gravação.
+      // Não substitui a verificação atômica de baseVersion no servidor.
+      const remote = await jsonp(authParams("status"));
+      if (!remote || !remote.ok) {
+        throw new Error(remote?.message || "Não foi possível confirmar a versão da nuvem. Nenhuma gravação foi enviada.");
+      }
+      if (remote.branchId && String(remote.branchId) !== String(cfg.branch)) {
+        throw new Error("A nuvem retornou outra filial. Nenhuma gravação foi enviada.");
+      }
+      const remoteVersion = Number(remote.version);
+      if (!Number.isSafeInteger(remoteVersion) || remoteVersion < 0) {
+        throw new Error("A nuvem retornou uma versão inválida. Nenhuma gravação foi enviada.");
+      }
+      if (remoteVersion !== cfg.version) {
+        throw new Error(
+          "Existe uma versão mais recente ou divergente na nuvem (local: " +
+          cfg.version + "; nuvem: " + remoteVersion +
+          "). Suas alterações locais foram mantidas. Confira as versões antes de salvar."
+        );
+      }
       const payload = snapshot(),
         requestId =
           "REQ-" + Date.now() + "-" + Math.random().toString(36).slice(2),

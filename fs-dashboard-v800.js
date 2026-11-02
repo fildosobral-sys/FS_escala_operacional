@@ -81,38 +81,39 @@
     else p.token = c.token;
     return p;
   }
+  // Homologação V2: métricas locais sem credenciais nem conteúdo de filiais.
+  function recordCloudDiagnostic(action, status, duration) {
+    try {
+      const key = "fs_cloud_diagnostics_v2";
+      const raw = JSON.parse(sessionStorage.getItem(key) || "[]");
+      const history = Array.isArray(raw) ? raw.slice(-39) : [];
+      history.push({ at: new Date().toISOString(), action: String(action).slice(0,40), status: String(status).slice(0,30), durationMs: Math.round(duration) });
+      sessionStorage.setItem(key, JSON.stringify(history));
+    } catch (_) {}
+  }
   function jsonp(action, extra, timeoutMs) {
     return new Promise((resolve, reject) => {
       const c = cfg();
       if (!c.url) return reject(new Error("Nuvem não configurada."));
-      const cb = "fsDashCb" + Date.now() + Math.random().toString(36).slice(2),
-        s = document.createElement("script"),
-        timer = setTimeout(
-          () =>
-            done(
-              new Error(
-                action === "read"
-                  ? "A filial demorou para responder. Tente novamente em alguns segundos."
-                  : "A Central demorou para atualizar. Os últimos dados válidos continuam disponíveis.",
-              ),
-            ),
-          timeoutMs || 12000,
-        );
-      function done(e, x) {
+      const started = Date.now(), cb = "fsDashCb" + Date.now() + Math.random().toString(36).slice(2), s = document.createElement("script");
+      let settled = false, timer;
+      function done(err, result) {
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
-        try {
-          delete window[cb];
-          s.remove();
-        } catch (_) {}
-        e ? reject(e) : resolve(x);
+        try { delete window[cb]; s.remove(); } catch (_) {}
+        recordCloudDiagnostic(action, err ? (err.code || "network_error") : "response", Date.now() - started);
+        err ? reject(err) : resolve(result);
       }
-      window[cb] = (x) => done(null, x);
-      const p = params(action, extra);
-      p.callback = cb;
-      s.src =
-        c.url + (c.url.includes("?") ? "&" : "?") + new URLSearchParams(p);
-      s.onerror = () => done(new Error("Não foi possível consultar a nuvem."));
-      document.head.appendChild(s);
+      timer = setTimeout(() => {
+        const e = new Error(action === "read" ? "A filial demorou para responder. Tente novamente em alguns segundos." : "A Central demorou para atualizar. Os últimos dados válidos continuam disponíveis.");
+        e.code = "TIMEOUT"; done(e);
+      }, timeoutMs || 12000);
+      window[cb] = result => done(null, result);
+      const p = params(action, extra); p.callback = cb;
+      s.src = c.url + (c.url.includes("?") ? "&" : "?") + new URLSearchParams(p);
+      s.onerror = () => { const e = new Error("Não foi possível consultar a nuvem."); e.code = "NETWORK_ERROR"; done(e); };
+      try { document.head.appendChild(s); } catch (e) { done(e); }
     });
   }
   function publicJsonp(action, extra, serviceUrl) {
@@ -398,22 +399,49 @@
     x.classList.remove("show");
     setTimeout(() => x.remove(), 180);
   }
+  // Homologação: validação integral e reversão de escrita local em caso de falha.
   function applyBranchPayload(raw) {
     let pack;
     try { pack = typeof raw === "string" ? JSON.parse(raw) : raw; }
     catch (_) { throw new Error("Os dados recebidos desta filial estão inválidos."); }
-    const storage = pack?.storage || pack || {};
+    if (!pack || typeof pack !== "object" || Array.isArray(pack))
+      throw new Error("Formato inválido dos dados da filial.");
+    const storage = pack.storage || pack;
+    if (!storage || typeof storage !== "object" || Array.isArray(storage))
+      throw new Error("Armazenamento inválido da filial.");
     let main = storage[MAIN_STATE_KEY];
     if (main == null) {
       for (const alias of ["FS_ESCALA_OPERACIONAL_STATE", "FS_ESCALA_STATE", "FS_OPERACIONAL_STATE", "fs_state", "state"])
         if (storage[alias] != null) { main = storage[alias]; break; }
     }
     if (main == null) throw new Error("Esta filial ainda não publicou a escala na nuvem.");
-    localStorage.setItem(MAIN_STATE_KEY, typeof main === "string" ? main : JSON.stringify(main));
-    OPTIONAL_STATE_KEYS.forEach((key) => {
-      if (storage[key] == null) localStorage.removeItem(key);
-      else localStorage.setItem(key, typeof storage[key] === "string" ? storage[key] : JSON.stringify(storage[key]));
-    });
+    const serialized = (value) => typeof value === "string" ? value : JSON.stringify(value);
+    const next = new Map();
+    for (const key of [MAIN_STATE_KEY, ...OPTIONAL_STATE_KEYS]) {
+      const value = key === MAIN_STATE_KEY ? main : storage[key];
+      if (value == null) { next.set(key, null); continue; }
+      const encoded = serialized(value);
+      if (typeof encoded !== "string") throw new Error("Campo inválido: " + key);
+      try { JSON.parse(encoded); }
+      catch (_) { throw new Error("JSON inválido na filial: " + key); }
+      next.set(key, encoded);
+    }
+    const previous = new Map([...next.keys()].map(key => [key, localStorage.getItem(key)]));
+    try {
+      for (const [key, value] of next) {
+        if (value === null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      }
+    } catch (e) {
+      let restored = true;
+      for (const [key, value] of previous) {
+        try { if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, value); }
+        catch (_) { restored = false; }
+      }
+      throw new Error(restored
+        ? "Falha ao aplicar a filial. Os dados locais anteriores foram restaurados."
+        : "Falha de armazenamento: restauração local incompleta. Não continue editando; preserve este navegador e solicite suporte.");
+    }
   }
   function branchCache(id) {
     try {
@@ -430,11 +458,54 @@
       localStorage.setItem(BRANCH_CACHE_PREFIX + "index", JSON.stringify(index.slice(0,3)));
     } catch (_) {}
   }
-  async function readBranchReliable(id) {
+  // Homologação V4: limita SOMENTE leituras de filiais na Central.
+  // Escritas e autenticação continuam fora da fila para não mudar seus fluxos.
+  const branchReadQueue = [];
+  let activeBranchReads = 0;
+  const MAX_PARALLEL_BRANCH_READS = 3;
+  function scheduleBranchRead(task) {
+    return new Promise((resolve, reject) => {
+      branchReadQueue.push({task, resolve, reject});
+      drainBranchReadQueue();
+    });
+  }
+  function drainBranchReadQueue() {
+    while (activeBranchReads < MAX_PARALLEL_BRANCH_READS && branchReadQueue.length) {
+      const item = branchReadQueue.shift();
+      activeBranchReads++;
+      Promise.resolve().then(item.task).then(item.resolve, item.reject).finally(() => {
+        activeBranchReads--;
+        drainBranchReadQueue();
+      });
+    }
+  }
+  // Homologação V3: consultas simultâneas da mesma filial compartilham
+  // a mesma promessa; operações de gravação não são agrupadas.
+  const pendingBranchReads = new Map();
+  function readBranchReliable(id) {
+    const key = String(id || "");
+    if (pendingBranchReads.has(key)) return pendingBranchReads.get(key);
+    const task = scheduleBranchRead(() => readBranchWithRetry(id));
+    pendingBranchReads.set(key, task);
+    // Limpa em sucesso ou falha, sem criar rejeição não observada.
+    task.then(
+      () => { if (pendingBranchReads.get(key) === task) pendingBranchReads.delete(key); },
+      () => { if (pendingBranchReads.get(key) === task) pendingBranchReads.delete(key); }
+    );
+    return task;
+  }
+  async function readBranchWithRetry(id) {
     let last;
     for (const wait of [18000, 38000]) {
-      try { return await jsonp("read", { branchId:id, attempt:String(wait) }, wait); }
-      catch (e) { last=e; }
+      try {
+        const response = await jsonp("read", { branchId:id, attempt:String(wait) }, wait);
+        if (response && response.ok) return response;
+        const code = String(response?.code || "").toUpperCase();
+        // Falhas de permissão, versão e conteúdo não devem ser repetidas.
+        if (!["TIMEOUT", "TEMPORARY", "BUSY", "UNAVAILABLE", "RATE_LIMIT", "RETRY_LATER"].includes(code))
+          return response;
+        last = new Error(response.message || "Serviço temporariamente indisponível.");
+      } catch (e) { last = e; }
     }
     throw last || new Error("Não foi possível carregar a filial.");
   }
@@ -1259,7 +1330,7 @@
         currentVersion = Number(localStorage.getItem(K.version) || 0),
         targetVersion = Number(branch?.version || 0),
         hasLocalState = !!localStorage.getItem(MAIN_STATE_KEY);
-      if (currentBranch === id && hasLocalState && currentVersion >= targetVersion) {
+      if (currentBranch === id && hasLocalState && targetVersion > 0 && currentVersion >= targetVersion) {
         sessionStorage.setItem("fs_dashboard_branch_mode", "1");
         sessionStorage.setItem("fs_cloud_admin_loaded", id);
         sessionStorage.removeItem("fs_dashboard_open_cloud");
@@ -1268,8 +1339,22 @@
         return;
       }
       const cached = branchCache(id);
-      if (cached && Number(cached.version||0) >= targetVersion) {
-        applyBranchPayload(cached.payload);
+      // V6: versão zero não confirma atualidade. Não abrir cache automaticamente
+      // quando o índice remoto não informa uma versão verificável.
+      if (cached && targetVersion > 0 && Number(cached.version||0) >= targetVersion) {
+        const cachedAt = cached.savedAt ? new Date(cached.savedAt) : null;
+        const cachedWhen = cachedAt && !Number.isNaN(cachedAt.getTime())
+          ? cachedAt.toLocaleString("pt-BR") : "data desconhecida";
+        const acceptCache = window.confirm(
+          "Existe uma cópia local desta filial (versão " + String(cached.version) +
+          ", salva em " + cachedWhen + ").\\n\\n" +
+          "O índice da Central informa a versão " + String(targetVersion) +
+          ", mas a cópia não foi conferida diretamente com a nuvem agora.\\n" +
+          "Abrir essa cópia substituirá o estado local deste navegador.\\n\\n" +
+          "OK: abrir cópia local. Cancelar: consultar a nuvem."
+        );
+        if (acceptCache) {
+          applyBranchPayload(cached.payload);
         localStorage.setItem(K.branch, id);
         localStorage.setItem(K.branchName, cached.name || branch?.name || "Filial");
         localStorage.setItem(K.version, String(cached.version || targetVersion || 0));
@@ -1277,12 +1362,23 @@
         sessionStorage.setItem("fs_cloud_admin_loaded", id);
         sessionStorage.removeItem("fs_dashboard_open_cloud");
         document.documentElement.classList.remove("fsDashboardOpen");
-        location.reload();
-        return;
+          location.reload();
+          return;
+        }
       }
       const r = await readBranchReliable(id);
       if (!r.ok)
         throw new Error(r.message || "Não foi possível carregar a filial.");
+      // V7: impedir substituição por resposta com versão inferior ao índice consultado.
+      // A versão remota deve ser verificável antes de substituir o estado do navegador.
+      const receivedVersion = Number(r.version);
+      if (!Number.isSafeInteger(receivedVersion) || receivedVersion <= 0 ||
+          (targetVersion > 0 && receivedVersion < targetVersion)) {
+        throw new Error("A nuvem retornou uma versão não verificável ou anterior à versão anunciada. Nenhum dado foi aplicado.");
+      }
+      if (r.branchId && String(r.branchId) !== String(id)) {
+        throw new Error("A nuvem retornou uma filial diferente da solicitada. Nenhum dado foi aplicado.");
+      }
       applyBranchPayload(r.payload);
       saveBranchCache(r.branchId || id, r.payload, r.version, r.branchName || branch?.name);
       localStorage.setItem(K.branch, r.branchId || id);
@@ -1294,8 +1390,26 @@
       document.documentElement.classList.remove("fsDashboardOpen");
       location.reload();
     } catch (e) {
-      const fallback=branchCache(id);
+      const integrityFailure = /versão não verificável|anterior à versão anunciada|filial diferente da solicitada/.test(String(e?.message || ""));
+      const fallback = integrityFailure ? null : branchCache(id);
       if(fallback){
+        // V5: não substituir dados locais por cache após falha da nuvem sem consentimento.
+        const cachedAt = fallback.savedAt ? new Date(fallback.savedAt) : null;
+        const dateLabel = cachedAt && !Number.isNaN(cachedAt.getTime())
+          ? cachedAt.toLocaleString("pt-BR") : "data não informada";
+        const proceed = window.confirm(
+          "Não foi possível consultar a nuvem desta filial.\\n\\n" +
+          "Existe uma cópia local armazenada em " + dateLabel + ".\\n" +
+          "Versão da cópia: " + String(fallback.version || "não informada") + ".\\n\\n" +
+          "Esta cópia pode estar desatualizada e sua abertura substituirá o estado local exibido neste navegador.\\n" +
+          "Deseja abrir essa cópia mesmo assim?\\n\\n" +
+          "Cancelar mantém os dados locais como estão."
+        );
+        if (!proceed) {
+          error("Abertura da cópia local cancelada. Os dados atuais foram mantidos.");
+          busy = false; stopBranchLoading();
+          return;
+        }
         try{
           applyBranchPayload(fallback.payload);
           localStorage.setItem(K.branch,id);localStorage.setItem(K.branchName,fallback.name||branch?.name||"Filial");localStorage.setItem(K.version,String(fallback.version||0));
