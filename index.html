@@ -14801,7 +14801,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function obs(p){let ativo=false;try{ativo=!!window.fsGetDadosEmpresa?.().abreDomingo}catch(e){}if(!ativo)return'';const st=situacao(p),defs=domingos().filter(d=>['trabalha','nao'].includes(reg(d,p.id).status));if(!defs.length)return'';const lis=st.trabs.map(({folgaData},i)=>{const datas=domingos().filter(d=>reg(d,p.id).status==='trabalha'&&reg(d,p.id).folgaData)[i];return`<li>Trabalha domingo <b>${br(datas)}</b>, no horário ${horario()}, com folga compensatória em <b>${br(folgaData)}</b>.</li>`}).join('');return`<div class="fsInd523DomObs"><b>📅 PROGRAMAÇÃO DOMINICAL DA COMPETÊNCIA:</b>${lis?`<ul>${lis}</ul>`:' Não trabalha nos domingos definidos desta competência.'}${st.pend?'<br><b>⚠ Existem domingos ainda pendentes de definição.</b>':''}</div>`}
   function instalarQuadro(){if(window.__fsV541QuadroInstalado)return;const ant=window.baixarQuadroIndividual;if(typeof ant!=='function')return;window.__fsV541QuadroInstalado=true;const fn=function(){const idx=document.getElementById('editIndex')?.value,p=idx!==''?state.pessoas?.[Number(idx)]:null,ap=document.body.appendChild;document.body.appendChild=function(n){if(p&&n?.classList?.contains('fsInd523Stage')&&!n.querySelector('.fsInd523DomObs')){const aviso=n.querySelector('.fsInd523Notice');if(aviso)aviso.insertAdjacentHTML('beforebegin',obs(p))}return ap.call(this,n)};try{return ant.apply(this,arguments)}finally{document.body.appendChild=ap}};fn.__fs541=true;window.baixarQuadroIndividual=fn;try{baixarQuadroIndividual=fn}catch(e){}}
   function atualizarTudo(){if(document.getElementById('domingo')&&!document.querySelector('#domingo .fsDomMesPainel[data-v541]'))renderPainel();statusLista();atualModal();instalarQuadro()}
-  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizarTudo,80)}).observe(document.body,{childList:true,subtree:true});setInterval(atualizarTudo,900);setTimeout(()=>{renderPainel();atualizarTudo()},350);
+  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizarTudo,80)}).observe(document.body,{childList:true,subtree:true});setInterval(()=>{if(document.getElementById("domingo")?.offsetParent)atualizarTudo()},2200);setTimeout(()=>{renderPainel();atualizarTudo()},350);
 })();
 </script>
 <script id="fs-v542-ordem-inteligente-equipes">
@@ -15591,7 +15591,67 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function rodape(){const box=document.querySelector('#domingo .fsDomMensalRodape');if(!box)return;const ds=abertas(),falt=ds.filter(d=>(state.pessoas||[]).some(p=>!definido(d,p))),feitos=ds.length-falt.length,ok=state.config?.fsDomCompetenciaConfirmada===store().competencia,html=`<div><b>Conclusão da escala dominical</b><small><span class="fsV828OpenCount">${feitos} de ${ds.length} domingo(s) aberto(s)</span> totalmente classificados. Domingos fechados não entram na pendência. A confirmação fica disponível quando todos os domingos abertos estiverem definidos.</small></div><button class="${ok?'fsV556Confirmed':''}" ${ds.length&&!falt.length?'':'disabled'} onclick="fsBaixarDomingosMes()">${ok?'✓ Competência confirmada':'✓ Confirmar conclusão da competência'}</button>`;if(box.dataset.fsV830!=='1'||box.innerHTML!==html){box.dataset.fsV830='1';box.innerHTML=html}}
   function atualizar(){prepararStatus();rodape()}
   document.addEventListener('click',e=>{const btn=e.target.closest?.('.fsV830StatusBtn');if(btn){e.preventDefault();e.stopPropagation();document.querySelectorAll('.fsV830StatusPop').forEach(p=>{if(p!==btn.nextElementSibling)p.hidden=true});btn.nextElementSibling.hidden=!btn.nextElementSibling.hidden;return}const op=e.target.closest?.('.fsV830StatusPop button');if(op){e.preventDefault();e.stopPropagation();const pop=op.closest('.fsV830StatusPop'),b=pop.previousElementSibling;pop.hidden=true;window.fsDom541Status?.(b.dataset.data,b.dataset.id,op.dataset.value);setTimeout(atualizar,45);return}if(!e.target.closest?.('.fsV830StatusPop'))document.querySelectorAll('.fsV830StatusPop').forEach(p=>p.hidden=true)},true);
-  function iniciar(){const mudou=migrar();if(mudou)persistir();atualizar()}let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizar,25)}).observe(document.body,{childList:true,subtree:true});setInterval(atualizar,250);setTimeout(iniciar,500);
+  function iniciar(){const mudou=migrar();if(mudou)persistir();atualizar()}let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizar,25)}).observe(document.body,{childList:true,subtree:true});setInterval(()=>{if(document.getElementById("domingo")?.offsetParent)atualizar()},1200);setTimeout(iniciar,500);
+})();
+</script>
+
+<script id="fs-v16-relatorios-paginados">
+/* V16: exportacao diaria por paginas, sem encolher a tabela inteira. */
+(function(){
+ const DIAS=['segunda','terca','quarta','quinta','sexta','sabado'];
+ const anterior=window.baixarRelatorioExecutivo;
+ let exportando=false;
+ const esperar=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ function baixar(canvas,nome){const a=document.createElement('a');a.download=nome+'.png';a.href=canvas.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove()}
+ async function gerar(tipo){
+   if(exportando)return;
+   if(!window.html2canvas){alert('O gerador de imagem ainda não carregou.');return}
+   exportando=true;
+   const stage=document.createElement('div');
+   stage.style.cssText='position:fixed;left:-20000px;top:0;width:1700px;background:white;pointer-events:none;z-index:-1';
+   stage.className='fsA4ExportStage';
+   try{
+     stage.innerHTML=montarRelatorioExecutivo(tipo);
+     document.body.appendChild(stage);
+     const root=stage.firstElementChild;
+     if(!root)throw Error('Relatório vazio');
+     root.style.cssText='width:1600px!important;max-width:1600px!important;margin:0!important;';
+     const boards=[...root.querySelectorAll('.execBoard')];
+     if(!boards.length)throw Error('Nenhuma equipe encontrada');
+     // Each team may exceed a page. Split by rows while retaining original table header.
+     const pages=[];
+     for(const board of boards){
+       const rows=[...board.querySelectorAll('tbody tr')];
+       const chunk=18;
+       for(let i=0;i<Math.max(1,rows.length);i+=chunk){
+         const copy=board.cloneNode(true),body=copy.querySelector('tbody');
+         if(body){body.innerHTML='';rows.slice(i,i+chunk).forEach((r,j)=>{const c=r.cloneNode(true);const n=c.querySelector('td');if(n&&rows.length>1)n.textContent=String(i+j+1).padStart(2,'0');body.appendChild(c)})}
+         const title=copy.querySelector('.execTitle');if(title&&rows.length>chunk)title.textContent+=' — CONTINUAÇÃO '+(Math.floor(i/chunk)+1);
+         pages.push(copy);
+       }
+     }
+     const sum=root.querySelector('.execMiniCards');
+     const bottom=root.querySelector('.execBottomGrid');
+     // Summary only on last page if it fits; otherwise separate page.
+     if(sum||bottom){const wrap=document.createElement('div');if(sum)wrap.appendChild(sum.cloneNode(true));if(bottom)wrap.appendChild(bottom.cloneNode(true));pages.push(wrap)}
+     const nome='Relatorio_Executivo_'+tipo[0].toUpperCase()+tipo.slice(1)+'_A4_Paisagem';
+     for(let i=0;i<pages.length;i++){
+       root.innerHTML='';root.appendChild(pages[i]);
+       const foot=document.createElement('div');foot.style.cssText='text-align:right;font:700 16px Arial;color:#071d68;padding:12px';foot.textContent='Página '+(i+1)+' de '+pages.length;root.appendChild(foot);
+       await esperar();
+       const w=Math.ceil(Math.max(root.scrollWidth,1600)),h=Math.ceil(root.scrollHeight);
+       const src=await html2canvas(root,{scale:1.5,backgroundColor:'#fff',useCORS:true,logging:false,width:w,height:h,windowWidth:w+30,windowHeight:h+30});
+       const out=document.createElement('canvas');out.width=3508;out.height=2480;
+       const ctx=out.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);
+       const m=45,r=Math.min((out.width-2*m)/src.width,(out.height-2*m)/src.height);
+       ctx.drawImage(src,Math.round((out.width-src.width*r)/2),Math.round((out.height-src.height*r)/2),Math.round(src.width*r),Math.round(src.height*r));
+       baixar(out,nome+'_Parte_'+String(i+1).padStart(2,'0'));
+       await new Promise(resolve=>setTimeout(resolve,120));
+     }
+   }catch(e){console.error('FS V16 exportação:',e);alert('Falha ao gerar páginas: '+(e.message||e))}
+   finally{stage.remove();exportando=false}
+ }
+ window.baixarRelatorioExecutivo=function(tipo){if(DIAS.includes(tipo))return gerar(tipo);return anterior.apply(this,arguments)};
 })();
 </script>
 <link rel="stylesheet" href="./fs-mapa-gerencial-v927.css?v=931"><script src="./fs-mapa-gerencial-v927.js?v=931"></script>
