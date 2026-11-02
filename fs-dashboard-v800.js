@@ -448,7 +448,7 @@
         catch (_) { restored = false; }
       }
       throw new Error(restored
-        ? "Falha ao aplicar a filial. Os dados locais anteriores foram restaurados."
+        ? "Falha ao aplicar a filial (" + String(e?.name || "Erro") + "): " + String(e?.message || "armazenamento indisponível") + ". Os dados anteriores foram restaurados."
         : "Falha de armazenamento: restauração local incompleta. Não continue editando; preserve este navegador e solicite suporte.");
     }
   }
@@ -458,15 +458,10 @@
       return x && x.payload ? x : null;
     } catch (_) { return null; }
   }
-  function saveBranchCache(id, payload, version, name) {
-    try {
-      localStorage.setItem(BRANCH_CACHE_PREFIX + id, JSON.stringify({ payload, version:Number(version||0), name:name||"Filial", savedAt:new Date().toISOString() }));
-      const index = JSON.parse(localStorage.getItem(BRANCH_CACHE_PREFIX + "index") || "[]").filter(x=>x!==id);
-      index.unshift(id);
-      index.slice(3).forEach(old=>localStorage.removeItem(BRANCH_CACHE_PREFIX + old));
-      localStorage.setItem(BRANCH_CACHE_PREFIX + "index", JSON.stringify(index.slice(0,3)));
-    } catch (_) {}
-  }
+  // V11: não armazenar novas cópias integrais de outras filiais no localStorage.
+  // A versão publicada continua na nuvem; cópias antigas permanecem intactas.
+  function saveBranchCache(id, payload, version, name) { return; }
+
   // Homologação V4: limita SOMENTE leituras de filiais na Central.
   // Escritas e autenticação continuam fora da fila para não mudar seus fluxos.
   const branchReadQueue = [];
@@ -609,7 +604,7 @@
       select = dev
         ? `<label class="fsDashAssign"><span>Regional</span><select data-assign-branch="${esc(b.id)}"><option value="">Definir regional</option>${(data.regions || []).map((r) => `<option value="${esc(r.id)}" ${b.regionId === r.id ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label>`
         : "";
-    const contacts=b.contacts||[],manager=contacts.find(x=>x.type==="manager"),scenarioStatus=(()=>{try{const a=JSON.parse(localStorage.getItem('fsScenarioApprovalsV923')||'{}')[String(b.id)],d=JSON.parse(localStorage.getItem('fsScenarioBranchDraftsV902')||'{}')[String(b.id)];return a?{c:'approved',t:`Escala ${Number(a.target)||'—'}h validada`}:d?{c:'pending',t:'Simulação salva • falta aprovar'}:{c:'empty',t:'Sem estudo salvo'}}catch(_){return{c:'empty',t:'Sem estudo salvo'}}})();
+    const contacts=b.contacts||[],manager=contacts.find(x=>x.type==="manager"),scenarioStatus={c:'empty',t:'Consultando situação…'};
     return `<article class="fsDashBranch ${h.c}" data-branch-id="${esc(b.id)}" tabindex="0"><div class="fsDashBranchTop"><div><h3>${esc(b.name)}</h3><p>${esc(regionName(b.regionId))}${s.city ? " • " + esc(s.city) : ""}</p></div><span class="fsDashStatus scale-${scenarioStatus.c}">${scenarioStatus.t}</span></div><div class="fsDashHealth"><span class="${h.c}"></span><b>${h.t}</b><small>Publicação ${b.presence === "online" ? "online" : b.presence === "recent" ? "recente" : "sem atividade recente"} • ${when(b.lastActivity)}</small></div><div class="fsDashMini"><div><span>Colaboradores</span><b>${Number(s.employees || 0)}</b></div><div><span>Funções</span><b>${Number(s.functions || 0)}</b></div><div><span>Equipes</span><b>${Number(s.teams || 0)}</b></div><div><span>Jornada</span><b>${Number(s.weeklyHours || 0) || "—"}h</b></div><div><span>Cobertura</span><b>${Number(s.coverage || 0)}%</b></div><div><span>Divergências</span><b>${Number(s.divergences || 0)}</b></div></div><div class="fsDashScheduleSlot" data-schedule-slot="${esc(b.id)}"></div><div class="fsDashBranchMeta"><span>Parâmetros: ${scenarioStatus.c==='approved'?'aprovados':'pendentes'}</span></div><div class="fsDashContacts"><span>${manager?esc(manager.name):"Não informado"}</span><button type="button" data-edit-contacts="${esc(b.id)}" title="Editar responsável" aria-label="Editar responsável da filial">✎</button></div>${select}<button class="fsDashEnter" data-open-branch="${esc(b.id)}">Abrir filial <span>→</span></button></article>`;
   }
   function contactEditor(branchId){
