@@ -15220,7 +15220,7 @@ window.baixarImagem=function(elementId,nomeArquivo){
   function atualizar(){painel();try{window.fsV558AtualizarTabela?.()}catch(e){}}
   window.fsV559SincronizarTudo=atualizar;
   const rv=window.renderVisao||((typeof renderVisao==='function')?renderVisao:null);if(rv&&!rv.__fsV559){const fn=function(){const r=rv.apply(this,arguments);painel();return r};fn.__fsV559=true;window.renderVisao=fn;try{renderVisao=fn}catch(e){}}
-  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizar,35)}).observe(document.body,{childList:true,subtree:true,characterData:true});document.addEventListener('change',()=>setTimeout(atualizar,20),true);document.addEventListener('click',()=>setTimeout(atualizar,35),true);setInterval(atualizar,180);setTimeout(atualizar,80);
+  let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(atualizar,35)}).observe(document.body,{childList:true,subtree:true,characterData:true});document.addEventListener('change',()=>setTimeout(atualizar,20),true);document.addEventListener('click',()=>setTimeout(atualizar,35),true);setInterval(atualizar,2500);setTimeout(atualizar,80);
 })();
 </script>
 <style id="fs-v560-distribuicao-funcao-css">
