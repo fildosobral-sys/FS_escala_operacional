@@ -15599,83 +15599,76 @@ window.baixarImagem=function(elementId,nomeArquivo){
 .fsV17ExportIsolado{position:fixed!important;left:-24000px!important;top:0!important;width:1700px!important;max-width:none!important;z-index:-1!important;pointer-events:none!important;background:#fff!important;overflow:visible!important;visibility:visible!important;opacity:1!important}
 .fsV17ExportIsolado .execReport{margin:0!important;transform:none!important;zoom:1!important;overflow:visible!important}
 </style>
-<script id="fs-v16-relatorios-paginados">
-/* V16: exportacao diaria por paginas, sem encolher a tabela inteira. */
+<script id="fs-v19-relatorios-a4-restaurados">
+/* V19: preserva equipes no mesmo quadro, pagina somente por limite real A4. */
 (function(){
  const DIAS=['segunda','terca','quarta','quinta','sexta','sabado'];
  const anterior=window.baixarRelatorioExecutivo;
- let exportando=false;
- const esperar=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ let busy=false;
+ const frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
  function baixar(canvas,nome){const a=document.createElement('a');a.download=nome+'.png';a.href=canvas.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove()}
  async function gerar(tipo){
-   if(exportando)return;
-   if(!window.html2canvas){alert('O gerador de imagem ainda não carregou.');return}
-   exportando=true;
-   const stage=document.createElement('div');
-   // A classe antiga fsA4ExportStage tem left:0!important e sobrepunha
-   // o deslocamento inline, deixando o relatório visível atrás do modal.
-   // Usar estágio independente e fora da área visível, sem display:none
-   // (html2canvas precisa medir os elementos).
-   stage.className='fsV17ExportIsolado';
-   stage.style.cssText='position:fixed!important;left:-24000px!important;top:0!important;width:1700px!important;max-width:none!important;background:#fff!important;pointer-events:none!important;z-index:-1!important;opacity:1!important;visibility:visible!important;overflow:visible!important;';
-   try{
-     stage.innerHTML=montarRelatorioExecutivo(tipo);
-     document.body.appendChild(stage);
-     const root=stage.firstElementChild;
-     if(!root)throw Error('Relatório vazio');
-     root.style.cssText='width:1600px!important;max-width:1600px!important;margin:0!important;';
-     // O HTML legado já fragmenta equipes em 25 linhas; reunir por equipe
-     // antes de paginar evita folhas quase vazias e numeração repetida.
-     const pre=[...root.querySelectorAll('.execBoard')];
-     const merged=[];
-     for(const b of pre){
-       const title=b.querySelector('.execTitle');
-       const base=(title?.textContent||'').replace(/\s*[—-]\s*CONTINUAÇÃO\s*\d+/gi,'').trim();
-       const last=merged[merged.length-1];
-       if(last&&last.key===base){
-         const target=last.board.querySelector('tbody'),source=b.querySelector('tbody');
-         if(target&&source){[...source.children].forEach(row=>target.appendChild(row.cloneNode(true)));continue}
-       }
-       merged.push({key:base,board:b.cloneNode(true)});
+  if(busy)return;
+  if(typeof window.montarRelatorioExecutivo!=='function'||!window.html2canvas){alert('Gerador de relatórios indisponível.');return}
+  busy=true;
+  const stage=document.createElement('div');stage.className='fsV17ExportIsolado';
+  stage.style.cssText='position:fixed!important;left:-24000px!important;top:0!important;width:1600px!important;max-width:none!important;z-index:-1!important;pointer-events:none!important;background:#fff!important;visibility:visible!important;opacity:1!important;';
+  try{
+   stage.innerHTML=montarRelatorioExecutivo(tipo);document.body.appendChild(stage);
+   const original=stage.firstElementChild;if(!original)throw Error('Relatório vazio');
+   original.style.cssText='width:1600px!important;max-width:1600px!important;margin:0!important';
+   const source=[...original.querySelectorAll('.execBoard')];if(!source.length)throw Error('Equipes não encontradas');
+   // Reúne fragmentos consecutivos da MESMA equipe, sem mudar a ordem nem a estrutura.
+   const merged=[];
+   for(const board of source){
+    const key=(board.querySelector('.execTitle')?.textContent||'').replace(/\s*[—-]\s*CONTINUAÇÃO\s*\d+/gi,'').trim();
+    const prev=merged[merged.length-1];
+    if(prev&&prev.key===key){const dest=prev.el.querySelector('tbody'),src=board.querySelector('tbody');if(dest&&src){[...src.children].forEach(r=>dest.appendChild(r.cloneNode(true)));continue}}
+    const clone=board.cloneNode(true);const t=clone.querySelector('.execTitle');if(t)t.textContent=key;
+    merged.push({key,el:clone});
+   }
+   const summary=[];for(const selector of ['.execMiniCards','.execBottomGrid']){const el=original.querySelector(selector);if(el)summary.push(el.cloneNode(true))}
+   const width=1600, height=1131; // 1600 x 1131 = proporção A4 paisagem
+   const padding=20, footer=32, maxHeight=height-padding*2-footer;
+   const measure=document.createElement('div');measure.style.cssText='width:1600px;max-width:1600px;background:#fff';stage.appendChild(measure);
+   async function altura(el){measure.innerHTML='';measure.appendChild(el.cloneNode(true));await frame();return Math.ceil(measure.scrollHeight)}
+   const pages=[];let current=[],used=0;
+   function finish(){if(current.length){pages.push(current);current=[];used=0}}
+   async function add(el){const h=await altura(el);if(current.length&&used+h>maxHeight)finish();current.push(el);used+=h}
+   for(const item of merged){
+    const board=item.el,rows=[...board.querySelectorAll('tbody tr')];
+    if(await altura(board)<=maxHeight){await add(board);continue}
+    // Só divide a própria equipe se ela, sozinha, ultrapassar uma folha.
+    let pos=0,part=0;
+    while(pos<rows.length){
+     const partBoard=board.cloneNode(true),body=partBoard.querySelector('tbody');if(!body)throw Error('Tabela de equipe sem linhas');body.innerHTML='';
+     const title=partBoard.querySelector('.execTitle');if(title&&part>0)title.textContent=item.key+' — CONTINUAÇÃO';
+     let taken=0;
+     while(pos+taken<rows.length){
+      body.appendChild(rows[pos+taken].cloneNode(true));
+      const h=await altura(partBoard);
+      if(h>maxHeight){body.lastElementChild.remove();break}
+      taken++;
      }
-     const boards=merged.map(x=>x.board);
-     if(!boards.length)throw Error('Nenhuma equipe encontrada');
-     // Each team may exceed a page. Split by rows while retaining original table header.
-     const pages=[];
-     for(const board of boards){
-       const rows=[...board.querySelectorAll('tbody tr')];
-       const chunk=32;
-       for(let i=0;i<Math.max(1,rows.length);i+=chunk){
-         const copy=board.cloneNode(true),body=copy.querySelector('tbody');
-         if(body){body.innerHTML='';rows.slice(i,i+chunk).forEach((r,j)=>{const c=r.cloneNode(true);const n=c.querySelector('td');if(n&&rows.length>1)n.textContent=String(i+j+1).padStart(2,'0');body.appendChild(c)})}
-         const title=copy.querySelector('.execTitle');if(title&&rows.length>chunk)title.textContent+=' — CONTINUAÇÃO '+(Math.floor(i/chunk)+1);
-         pages.push(copy);
-       }
-     }
-     const sum=root.querySelector('.execMiniCards');
-     const bottom=root.querySelector('.execBottomGrid');
-     // Summary only on last page if it fits; otherwise separate page.
-     if(sum||bottom){const wrap=document.createElement('div');if(sum)wrap.appendChild(sum.cloneNode(true));if(bottom)wrap.appendChild(bottom.cloneNode(true));
-       // Sumário compacto no rodapé da última folha quando há espaço.
-       const last=pages[pages.length-1];const lastRows=last?.querySelectorAll('tbody tr').length||0;
-       if(last&&lastRows<=12)last.appendChild(wrap);else pages.push(wrap);
-     }
-     const nome='Relatorio_Executivo_'+tipo[0].toUpperCase()+tipo.slice(1)+'_A4_Paisagem';
-     for(let i=0;i<pages.length;i++){
-       root.innerHTML='';root.appendChild(pages[i]);
-       const foot=document.createElement('div');foot.style.cssText='text-align:right;font:700 16px Arial;color:#071d68;padding:12px';foot.textContent='Página '+(i+1)+' de '+pages.length;root.appendChild(foot);
-       await esperar();
-       const w=Math.ceil(Math.max(root.scrollWidth,1600)),h=Math.ceil(root.scrollHeight);
-       const src=await html2canvas(root,{scale:1.5,backgroundColor:'#fff',useCORS:true,logging:false,width:w,height:h,windowWidth:w+30,windowHeight:h+30});
-       const out=document.createElement('canvas');out.width=3508;out.height=2480;
-       const ctx=out.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);
-       const m=45,r=Math.min((out.width-2*m)/src.width,(out.height-2*m)/src.height);
-       ctx.drawImage(src,Math.round((out.width-src.width*r)/2),Math.round((out.height-src.height*r)/2),Math.round(src.width*r),Math.round(src.height*r));
-       baixar(out,nome+'_Parte_'+String(i+1).padStart(2,'0'));
-       await new Promise(resolve=>setTimeout(resolve,120));
-     }
-   }catch(e){console.error('FS V16 exportação:',e);alert('Falha ao gerar páginas: '+(e.message||e))}
-   finally{stage.remove();exportando=false}
+     if(!taken)throw Error('Uma linha da equipe excede a altura da página');
+     await add(partBoard);pos+=taken;part++;
+    }
+   }
+   for(const el of summary){const h=await altura(el);if(h>maxHeight)throw Error('Resumo maior que uma página A4');await add(el)}
+   finish();measure.remove();
+   const nome='Relatorio_Executivo_'+tipo[0].toUpperCase()+tipo.slice(1)+'_A4_Paisagem';
+   for(let i=0;i<pages.length;i++){
+    const page=document.createElement('div');page.style.cssText='width:1600px!important;height:1131px!important;box-sizing:border-box!important;padding:20px!important;background:#fff!important;position:relative!important;overflow:hidden!important';
+    for(const section of pages[i])page.appendChild(section.cloneNode(true));
+    const foot=document.createElement('div');foot.style.cssText='position:absolute;bottom:8px;right:24px;font:bold 16px Arial;color:#071d68';foot.textContent='Página '+(i+1)+'/'+pages.length;page.appendChild(foot);
+    stage.innerHTML='';stage.appendChild(page);await frame();
+    const src=await html2canvas(page,{scale:2,backgroundColor:'#fff',useCORS:true,logging:false,width:1600,height:1131,windowWidth:1650,windowHeight:1200});
+    const out=document.createElement('canvas');out.width=3508;out.height=2480;const ctx=out.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);ctx.drawImage(src,0,0,out.width,out.height);
+    baixar(out,nome+'_Pagina_'+String(i+1).padStart(2,'0')+'_de_'+String(pages.length).padStart(2,'0'));
+    await new Promise(r=>setTimeout(r,150));
+   }
+  }catch(e){console.error('FS V19 A4:',e);alert('Falha na exportação A4: '+(e.message||e))}
+  finally{stage.remove();busy=false}
  }
  window.baixarRelatorioExecutivo=function(tipo){if(DIAS.includes(tipo))return gerar(tipo);return anterior.apply(this,arguments)};
 })();
