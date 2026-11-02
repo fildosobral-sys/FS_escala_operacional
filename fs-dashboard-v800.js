@@ -101,7 +101,16 @@
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        try { delete window[cb]; s.remove(); } catch (_) {}
+        // JSONP pode executar mesmo após timeout/remoção do script.
+        // Manter um callback inofensivo por uma janela de segurança evita
+        // ReferenceError quando o Apps Script responde atrasado.
+        if (err) {
+          window[cb] = () => { try { delete window[cb]; } catch (_) {} };
+          setTimeout(() => { try { delete window[cb]; } catch (_) {} }, 120000);
+        } else {
+          try { delete window[cb]; } catch (_) {}
+        }
+        try { s.remove(); } catch (_) {}
         recordCloudDiagnostic(action, err ? (err.code || "network_error") : "response", Date.now() - started);
         err ? reject(err) : resolve(result);
       }
