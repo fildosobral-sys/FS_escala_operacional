@@ -1,0 +1,36 @@
+/* v940 — Atalho "Primeiro acesso On The Job" */
+.fsOtjLink{display:inline-flex;align-items:center;gap:8px;margin:10px 0 0 8px;padding:6px 14px 6px 8px;border:1px solid #bfd0ea;border-radius:999px;background:#fff;color:#00419a;font:800 12px/1.15 Arial,sans-serif;text-decoration:none;cursor:pointer;box-shadow:0 4px 14px #0f172a18;vertical-align:middle;max-width:100%;box-sizing:border-box}
+.fsOtjLink img{width:22px;height:24px;flex:0 0 auto;object-fit:contain}
+.fsOtjLink b{color:#e90023;font-weight:950;white-space:nowrap}
+.fsOtjLink:hover{border-color:#0867cb;background:#f2f7ff}
+.fsOtjLink:focus-visible{outline:3px solid #1f8ff0;outline-offset:2px}
+.fsOtjLink.fsOtjGate{display:flex;justify-content:center;width:100%;margin:10px 0 0;padding:11px 14px;border-radius:12px;font-size:14px;box-shadow:none}
+.fsOtjLink.fsOtjGate img{width:26px;height:28px}
+
+.fsOtjPanel .fsOtjHead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.fsOtjPanel .fsOtjLogo{width:min(220px,60vw);height:auto}
+.fsOtjPanel .fsOtjHead p{flex:1 1 260px;margin:0;color:#475467;line-height:1.45}
+.fsOtjPanel .fsOtjGrid{display:grid;grid-template-columns:minmax(200px,.8fr) minmax(240px,1.2fr);gap:12px}
+.fsOtjPanel select,.fsOtjPanel input[type=url],.fsOtjPanel textarea{width:100%;box-sizing:border-box}
+.fsOtjPanel textarea{resize:vertical;font:inherit}
+.fsOtjWarn{margin:10px 0 0;padding:9px 12px;border-radius:10px;background:#fff7e5;color:#714500;font-size:12px;font-weight:800}
+.fsOtjUsers{margin-top:14px;padding:14px;border:1px solid #d6e2f2;border-radius:14px;background:#f8fbff}
+.fsOtjUsers h4{margin:0 0 4px;color:#071d68}
+.fsOtjHint{margin:0 0 10px;color:#526071;font-size:12px}
+.fsOtjUserList{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:12px}
+.fsOtjUser{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid #d6e2f2;border-radius:11px;background:#fff;cursor:pointer}
+.fsOtjUser input{width:18px;height:18px;margin:0;flex:0 0 auto}
+.fsOtjUser span{display:grid;gap:2px;min-width:0}
+.fsOtjUser b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#14213d}
+.fsOtjUser small{color:#667085;font-size:11px}
+.fsOtjEmpty{grid-column:1/-1;padding:10px 12px;border-radius:10px;background:#eef4ff;color:#344054;font-size:12px}
+.fsOtjPanel #fsOtjSalvar{margin-top:14px}
+.fsOtjStatus{margin-top:10px;padding:9px 12px;border-radius:10px;font-size:12px;font-weight:850}
+.fsOtjStatus.ok{background:#ecfdf3;color:#166534}
+.fsOtjStatus.err{background:#fee2e2;color:#991b1b}
+
+@media(max-width:650px){
+  .fsOtjPanel .fsOtjGrid{grid-template-columns:1fr}
+  .fsOtjLink{margin:8px 4px 0;padding:6px 12px 6px 7px;font-size:11.5px}
+}
+@media print{.fsOtjLink{display:none!important}}
